@@ -1,0 +1,76 @@
+
+/*
+Marina #135589
+Bondi Blue #2A93D5
+Californian Coral #3DDAD7
+Chill #AED9DA
+Glass #EDFAFD
+*/
+
+.hidden {
+    display: none;
+}
+
+.error {
+    color: red;
+}
+
+#loans_table {
+    border: 1px dotted grey;
+}
+
+.modified {
+    color: white;
+    background-color: #135589;
+}
+
+.late {
+    color: red;
+}
+
+#loan_controls {
+    display: inline;
+}
+
+.loan_control {
+    background-color: #135589;
+    color: white;
+}
+
+.scroll_container {
+    overflow: scroll;
+}
+
+.time_display {
+    width: 100%;
+    color: white;
+    background-color: #135589;
+}
+
+th.input_label {
+    text-align: right;
+}
+
+table.zebra > tbody > tr:nth-child(odd) {
+    background-color: #3DDAD7;
+}
+
+table.zebra > tbody > tr:nth-child(even) {
+    background-color: #AED9DA;
+}
+
+table {
+    table-layout: auto;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table td,th {
+    white-space: nowrap;
+    padding: 0.5em;
+    text-align: left;
+}
+
+.widest {
+    width: 100%;
+}

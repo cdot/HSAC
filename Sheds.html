@@ -1,0 +1,335 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="cache-control" content="public">
+    <meta name="expires" content="Mon, 2 Apr 2018 09:00:00 GMT">
+    
+    <link rel="shortcut icon" sizes="196x196" href="images/yellow-shedsvg.svg"/>
+    <link rel="icon" href="images/favicon.png" type="image/x-icon" />
+    
+    <!-- for ios 7 style, multi-resolution icon of 152x152 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-barstyle" content="black-translucent">
+    <link rel="apple-touch-icon" href="images/yellow-shedsvg.svg">
+
+    <!-- for Chrome on Android, multi-resolution icon of 196x196 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>HSAC Sheds</title>
+    <link rel="icon" href="images/favicon.png" />
+
+    <!-- from //cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1 -->
+    <script src="libs/jquery.min.js"></script>
+
+    <!-- from //cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1 -->
+    <script src="libs/jquery-ui/jquery-ui.min.js"></script>
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.18.0/jquery.validate.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.18.0/additional-methods.min.js"></script>
+    <!-- from //cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.18.0 -->
+<!--
+    <script src="libs/jquery-validate/jquery.validate.min.js"></script>
+    <script src="libs/jquery-validate/additional-methods.min.js"></script>
+-->
+    
+    <!-- from //cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0 -->
+    <script src="libs/js.cookie.min.js"></script>
+    
+    <!-- from https://github.com/evanplaice/jquery-csv/tree/master/src -->
+    <script src="libs/jquery.csv.min.js"></script>
+    
+    <!-- from https://github.com/Mottie/tablesorter -->
+    <script src="libs/tablesorter/js/jquery.tablesorter.min.js"></script>
+    <script src="libs/tablesorter/js/jquery.tablesorter.widgets.min.js"></script>
+
+    <script class="compressable" src="libs/davclient.js"></script>
+    <script class="compressable" src="js/AbstractStore.js"></script>
+    <script class="compressable" src="js/WebDAVStore.js"></script>
+    <script class="compressable" src="js/Nitrox.js"></script>
+    <script class="compressable" src="js/edit_in_place.js"></script>
+    <script class="compressable" src="js/Sheds.js"></script>
+
+    <!-- from //code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css -->
+    <link href="libs/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="libs/tablesorter/css/theme.jui.min.css">
+    <link class="compressable" rel="stylesheet" href="css/Sheds.css">
+
+  </head>
+  <body>
+    <div class="time_display"></div>
+    <div id="tabs">
+      <ul>
+        <li><a href="#Compressor_tab">Compressor</a></li>
+        <li><a href="#Loans_tab">Loans</a></li>
+        <li><a href="#Whereis_tab">Where is...?</a></li>
+        <li><a href="#Nitrox_tab">Nitrox</a></li>
+        <li><a href="#Configuration_tab">Configuration</a></li>
+      </ul>
+      <div id="Compressor_tab" class="store_tab">
+        <h1>Compressor</h1>
+        <form name="compressor" class="validated_form">
+          <table class="form_table zebra">
+            <tr>
+              <th class="input_label">
+                <span data-with-info="#infoOperator">
+                  Operator name
+                </span>
+              </th>
+              <td colspan="2" class="widest">
+                <select name="operator" class="operators" required data-msg="<br>Must be a trained operator">
+                  <option></option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th class="input_label">
+                <span data-with-info="#infoTemperature">
+                  Temperature
+                </span>
+              </th>
+              <td class="widest">
+                <input type="number" id="cur_temp" name="temperature" data-msg="<br>Must be between 4°C and 40°C" required min="4" max="40" value="20" > °C
+              </td>
+            </tr>
+            <tr>
+              <th class="input_label">
+                <span data-with-info="#infoHumidity">
+                  Relative Humidity
+                </span>
+              </th>
+              <td class="widest">
+                <input data-msg="<br>Must be between 0 and 100" name="humidity" type="number" min="0" max="100"> %
+              </td>
+            </tr>
+            <tr>
+              <th class="input_label">
+                <span data-with-info="#infoRuntime">
+                  Runtime
+                </span>
+              </th>
+              <td class="widest">
+                <input type="text" name="runtime" data-msg="<br>Must be runtime from compressor counter" min="0" required>
+                minutes
+              </td>
+            </tr>
+          </table>
+          <input type="submit" id="add_compressor_record" value="Add">
+        </form>
+        The compressor was last run by <span id="cr_operator">?</span> on
+        <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">?</span> hours.
+        <span data-with-info="#infoFilterEfficiency">Filter lifetime is at <span id="cr_flr">?</span>%</span>
+        <div class="hidden" id="infoOperator">
+          Only trained operators may use this compressor. Please select your
+          name from the list. If you are not there and want to be trained,
+          contact hsac.training@gmail.com
+        </div>
+        <div class="hidden" id="infoTemperature">
+          Temperature must be taken from the thermometer on the compressor air
+          intake at the end of the filling session.
+        </div>
+        <div class="hidden" id="infoHumidity">
+          Relative humidity can be read from the humidity gauge on the top of
+          the compressor.
+        </div>
+        <div class="hidden" id="infoRuntime">
+          Runtime is read from the counter on the right of the compressor
+          control panel.
+        </div>
+        <div class="hidden" id="infoFilterEfficiency">
+          Filter lifetime depends on intake air temperature and
+          runtime, so this is just an estimate of how much life there
+          is left in the filters. When it drops below 10%, inform a
+          member of the committee so they can be changed (or, better,
+          learn to change them yourself.)
+          <p>
+            <b>NEVER</b> use the compressor if the filter lifetime is negative!
+          </p>
+        </div>
+      </div>
+
+      <div id="Loans_tab" class="store_tab">
+        <h1>Loans</h1>
+        <label for="show_all_loans">Show returned items</label>
+        <input type="checkbox" value="false" id="show_all_loans">
+        <div id="loan_controls">
+          <button id="loan_save" class="loan_control"><span class="ui-icon ui-icon-disk"></span> Save</button>
+          <button id="loan_reset" class="loan_control"><span class="ui-icon ui-icon-arrowreturnthick-1-w"></span>Reset</button>
+        </div>
+        <div class="scroll_container">
+          <form name="loans" class="validated_form">
+            <table id="loans_table" class="zebra tablesorter">
+              <thead>
+                <th>Date</th>
+                <th class="widest">Description</th>
+                <th>ID</th>
+                <th>Borrower</th>
+                <th>Lender</th>
+                <th>Donation</th>
+                <th>Returned</th>
+              </thead>
+              <tbody>
+              </tbody>
+              <tfoot>
+                <td style="vertical-align:middle">
+                  <span class="date_display"></span>
+                </td>
+                <td style="vertical-align:middle">
+                  <textarea style="width:95%" rows="3" name="desc" required data-msg="<br>For example, BCD" data-with-info="#infoDescription"></textarea>
+                </td>
+                <td style="vertical-align:middle">
+                  <input type="text" name="id" required data-msg="<br>e.g. tag number" data-with-info="#infoIdentification">
+                </td>
+                <td style="vertical-align:middle">
+                  <select name="borrower" class="members" required data-msg="<br>Must be a current HSAC member" data-with-info="#infoBorrower">
+                    <option></option>
+                  </select>
+                </td>
+                <td style="vertical-align:middle">
+                  <select name="lender" class="operators" required data-msg="<br>Must be a trained operator" data-with-info="#infoLender">
+                    <option></option>
+                  </select>
+                </td>
+                <td style="vertical-align:middle">
+                  <input type="number" name="donation" data-with-info="#infoDonation">
+                </td>
+                <td style="vertical-align:middle">
+                  <input type="submit" value="Add:" data-with-info="#infoAdd">
+                </td>
+              </tfoot>
+            </table>
+          </form>
+        </div>
+        <div class="hidden" id="infoAdd">
+          Enter details of the loan in the fields to the right and
+          click "Add" to add it to the database.
+        </div>
+        <div class="hidden" id="infoLender">
+          Equipment loans must be authorised by a member of the kit rota.
+        </div>
+        <div class="hidden" id="infoBorrower">
+          Only current members of the club can borrow equipment. If
+          the borrower's name does not appear on this list, select
+          their instructor instead.
+        </div>
+        <div class="hidden" id="infoDescription">
+          Enter a description of the item of equipment borrowed.
+        </div>
+        <div class="hidden" id="infoIdentification">
+          If the equipment has a unique identifying mark e.g. a number
+          on the shoulder of BCDs, or a tag on regulators, or a
+          regulator serial number, enter that here.
+        </div>
+        <div class="hidden" id="infoDonation">
+          All members except those currently on the Ocean Diver course
+          are asked to make a donation to the club to help with
+          equipment maintenance. See the notices on the wall for the
+          current recommended donations.
+        </div>
+        <div class="hidden" id="infoReturned">
+          Members are requested to make an additional donation if
+          items are returned late. See the notices on the wall for the
+          current recommended donations. In special circumstances You
+          can extend this to a later agreed date with the
+          authorisation of the Diving Officer.
+        </div>
+      </div>
+
+      <div id="Whereis_tab" class="store_tab">
+        <h1>Where is...?</h1>
+        <form name="whereis" class="validated_form">
+          <label for="search">Search</label>
+          <input name="search" id="search" required>
+          <input type="submit" value="Search">
+        </form>
+      </div>
+      <div id="Nitrox_tab" class="store_tab">
+        <h1>Nitrox Blending</h1>
+        <form name="nitrox" class="validated_form">
+          <table class="form_table zebra">
+            <tr>
+              <th>Blender name
+                <select name="who" class="blenders" required data-msg="<br>Must be a qualified blender">
+              </th>
+              <th colspan="2">
+                Temperature
+                <input id="nox_t" name="temperature" data-msg="<br>Must be between 4°C and 40°C" required type="number" min="4" max="40" value="20"> °C
+              </th>
+            </tr>
+            <tr>
+              <th>
+                Cylinder size
+                <input name="cylinder_size" data-msg="<br>Must be between 1 and 30 litres" required type="number" min="1" max="30" value="12"> litres,
+              </th>
+              <th>
+                Current Pressure
+                <input id="nox_sp" name="start_pressure" data-msg="<br>Must be between 0 and 232 bar" required type="number" min="0" max="232" value="50"> bar,
+              </th>
+              <th class="widest">
+                Current Mix
+                <input id="nox_sm" name="start_mix" data-msg="<br>Must be between 21% and 100%" required type="number" min="21" max="100" value="21"> %
+              </th>
+            </tr>
+            <tr>
+              <th>
+                Target Pressure
+                <input id="nox_tp" name="final_pressure" data-msg="<br>Must be between 0 and 232 bar" required type="number" min="0" max="232" value="232"> bar,
+              </th>
+              <th colspan="2" class="widest">
+                Target Mix
+                <input id="nox_tm" name="final_mix" data-msg="<br>Must be between 21% and 100%" required type="number" min="21" max="100" value="32"> %
+              </th>
+            </tr>
+            <tr>
+              <th>O2 bank cylinder size
+                <input id="nox_o2s" name="O2_bank_size" data-msg="<br>Must be between 10 and 100" required type="number" min="10" max="100" value="49"> litres,
+              </th>
+              <th colspan="2" class="widest">Pressure
+                <input id="nox_o2p" name="O2_bank_pressure" data-msg="<br>Must be between 1 and 300" required type="number" min="1" max="300" value="200"> bar
+              </th>
+            </tr>
+          </table>
+          <input type="submit" value="Calculate">
+        </form>
+        <div id="nitrox_report">
+        </div>
+      </div>
+      <div id="Configuration_tab" class="store_tab">
+        <h1>Configuration</h1>
+        Please don't change the configuration unless you know what you are
+        doing! The configuration is cookied.
+        <form name="cfg_form">
+          <table class="form_table zebra">
+            <tr>
+              <th>WebDAV URL</th>
+              <td class="widest">
+                <input type="text" id="cfg_webdav_url" name="webdav_url">
+              </td>
+            </tr>
+            <tr>
+              <th>WebDAV User</th>
+              <td class="widest">
+                <input type="text" id="cfg_webdav_user" name="webdav_user">
+              </td>
+            </tr>
+            <tr>
+              <th>WebDAV Pass</th>
+              <td class="widest">
+                <input type="text" id="cfg_webdav_pass" name="webdav_pass">
+              </td>
+            </tr>
+            <tr>
+              <th>Loan return deadline</th>
+              <td class="widest">
+                <input type="text" id="cfg_loan_return"> days
+              </td>
+            </tr>
+          </table>
+          <input type="submit" value="Save">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
