@@ -145,8 +145,9 @@
         this.update_ui();
     };
     
-    Entries.prototype.submit = function() {
-        var values = {};
+    Entries.prototype.submit = function(values) {
+        if (!values)
+            values = {};
         $("form[name='" + this.name + "'] :input").each(function() {
             values[this.name] = $(this).val();
         });
@@ -468,24 +469,40 @@
     Whereis.prototype.submit = function() {
     };
     
-    function Nitrox() {
+    function NitroxForm() {
     };
 
-    Nitrox.prototype.submit = function() {
+    NitroxForm.prototype.submit = function() {
         $("#nitrox_report").empty();
-        var values = {
-            log: function() {
-                var mess = Array.prototype.slice.call(arguments).join(" ");
-                $("#nitrox_report").append(mess + "<br>");
-            }
-        };
-        $('#nitrox :input').each(function() {
-            values[this.name] = $(this).val();
+        var conditions = {};
+        $("form[name='nitrox'] :input").each(function() {
+            if (this.type === "number")
+                conditions[this.name] = parseFloat($(this).val());
+            else
+                conditions[this.name] = $(this).val();
         });
-        nitrox_blend(values);
-    };
-
-    var nitrox = new Nitrox();
+        var result = Nitrox.blend(conditions);
+        var mess;
+        switch (result.status) {
+        case Nitrox.MIX_ACHIEVABLE:
+            mess = "Add " + Math.floor(result.add_real_O2_bar) + " bar of O<sub>2</sub>. This will use " +
+                Math.round(result.O2_needed_litres) + " litres of O<sub>2</sub> at a cost of £"
+                + (Math.round(100 * (result.O2_needed_litres * Cookies.get("o2_price"))) / 100);
+            break;
+        case Nitrox.BANK_LACKS_O2:
+            mess = "There is not enough O2 in the bank for this fill.";
+            break;
+        case Nitrox.TOO_MUCH_O2:
+            mess = "There is too much gas already in the cylinder for this fill. To use this bank you"
+                + " will have to bleed it down below " + result.bleed + " bar"
+            break;
+        default:
+            debugger;
+        }
+        $("#nitrox_report").append(mess + "<br>");
+    }
+    
+    var nitrox = new NitroxForm();
 
     function dav_connect() {
         return dav_store.connect({
@@ -565,10 +582,13 @@
         $("#cfg_webdav_user").val(Cookies.get("webdav_user"));
         $("#cfg_webdav_pass").val(Cookies.get("webdav_pass"));
         $("#cfg_loan_return").val(Cookies.get("loan_return"));
+        $("#cfg_o2_price").val(Cookies.get("o2_price"));
 
         $("form[name='cfg_form']").on("submit", (e) => {
             var lr = $("#cfg_loan_return").val();
             Cookies.set("loan_return", lr);
+            var o2 = $("#cfg_o2_price").val();
+            Cookies.set("o2_price", o2);
             var url = $("#cfg_webdav_url").val();
             var user = $("#cfg_webdav_user").val();
             var pass = $("#cfg_webdav_pass").val();

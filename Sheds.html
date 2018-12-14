@@ -59,7 +59,7 @@
 
   </head>
   <body>
-    <div class="time_display"></div>
+    <div class="ui-widget time_display"></div>
     <div id="tabs">
       <ul>
         <li><a href="#Compressor_tab">Compressor</a></li>
@@ -275,11 +275,11 @@
             <tr>
               <th>
                 Target Pressure
-                <input id="nox_tp" name="final_pressure" data-msg="<br>Must be between 0 and 232 bar" required type="number" min="0" max="232" value="232"> bar,
+                <input id="nox_tp" name="target_pressure" data-msg="<br>Must be between 0 and 232 bar" required type="number" min="0" max="232" value="232"> bar,
               </th>
               <th colspan="2" class="widest">
                 Target Mix
-                <input id="nox_tm" name="final_mix" data-msg="<br>Must be between 21% and 100%" required type="number" min="21" max="100" value="32"> %
+                <input id="nox_tm" name="target_mix" data-msg="<br>Must be between 21% and 100%" required type="number" min="21" max="100" value="32"> %
               </th>
             </tr>
             <tr>
@@ -311,19 +311,25 @@
             <tr>
               <th>WebDAV User</th>
               <td class="widest">
-                <input type="text" id="cfg_webdav_user" name="webdav_user">
+                <input type="text" required id="cfg_webdav_user" name="webdav_user">
               </td>
             </tr>
             <tr>
               <th>WebDAV Pass</th>
               <td class="widest">
-                <input type="text" id="cfg_webdav_pass" name="webdav_pass">
+                <input type="text" required id="cfg_webdav_pass" name="webdav_pass">
               </td>
             </tr>
             <tr>
               <th>Loan return deadline</th>
               <td class="widest">
-                <input type="text" id="cfg_loan_return"> days
+                <input type="number" required id="cfg_loan_return"> days
+              </td>
+            </tr>
+            <tr>
+              <th>O2 cost per litre</th>
+              <td class="widest">
+                £<input type="text" required id="cfg_o2_price">
               </td>
             </tr>
           </table>
