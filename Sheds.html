@@ -167,8 +167,8 @@
           <button id="loan_save" class="loan_control"><span class="ui-icon ui-icon-disk"></span> Save</button>
           <button id="loan_reset" class="loan_control"><span class="ui-icon ui-icon-arrowreturnthick-1-w"></span>Reset</button>
         </div>
-        <div style="clear:both" class="scroll_container">
-          <form name="loans" class="validated_form">
+        <form name="loans" class="validated_form">
+          <div style="clear:both" class="scroll_container">
             <table id="loans_table" class="zebra tablesorter">
               <thead>
                 <th>Date</th>
@@ -181,68 +181,104 @@
               </thead>
               <tbody>
               </tbody>
-              <tfoot>
-                <td style="vertical-align:middle">
-                  <span class="date_display"></span>
-                </td>
-                <td style="vertical-align:middle">
-                  <textarea style="width:95%" rows="3" name="desc" required data-msg="<br>For example, BCD" data-with-info="#infoDescription"></textarea>
-                </td>
-                <td style="vertical-align:middle">
-                  <input type="text" name="id" required data-msg="<br>e.g. tag number" data-with-info="#infoIdentification">
-                </td>
-                <td style="vertical-align:middle">
-                  <select name="borrower" class="members" required data-msg="<br>Must be a current HSAC member" data-with-info="#infoBorrower">
-                    <option></option>
-                  </select>
-                </td>
-                <td style="vertical-align:middle">
-                  <select name="lender" class="operators" required data-msg="<br>Must be a trained operator" data-with-info="#infoLender">
-                    <option></option>
-                  </select>
-                </td>
-                <td style="vertical-align:middle">
-                  <input type="number" name="donation" data-with-info="#infoDonation">
-                </td>
-                <td style="vertical-align:middle">
-                  <input type="submit" value="Add:" data-with-info="#infoAdd">
-                </td>
-              </tfoot>
             </table>
-          </form>
-        </div>
+          </div>
+          <table id="loan_entry_table">
+            <tr>
+              <th>
+                Date
+              </th>
+              <th>
+                <span data-with-info="#infoDescription">
+                  Description
+                </span>
+              </th>
+              <th>
+                <span data-with-info="#infoIdentification">
+                  ID
+                </span>
+              </th>
+              <th>
+                <span data-with-info="#infoBorrower">
+                  Borrower
+                </span>
+              </th>
+              <th>
+                <span data-with-info="#infoLender">
+                  Lender
+                </span>
+              </th>
+              <th>
+                <span data-with-info="#infoDonation">
+                  Donation
+                </span>
+              </th>
+              <th>
+                <span data-with-info="#infoAdd">
+                </span>
+              </th>
+            </tr>
+            <tr>
+              <td>
+                <span class="date_display"></span>
+              </td>
+              <td>
+                <textarea style="width:95%" rows="3" name="desc" required data-msg="<br>For example, BCD"></textarea>
+              </td>
+              <td>
+                <input type="text" name="id" required data-msg="<br>e.g. tag number">
+              </td>
+              <td>
+                <select name="borrower" class="members" required data-msg="<br>Must be a current HSAC member">
+                  <option></option>
+                </select>
+              </td>
+              <td>
+                <select name="lender" class="operators" required data-msg="<br>Must be a trained operator" data-with-info="#infoLender">
+                  <option></option>
+                </select>
+              </td>
+              <td>
+                <input type="number" name="donation" data-with-info="#infoDonation">
+              </td>
+              <td>
+                <input type="submit" value="Add:">
+              </td>
+            </tr>
+          </table>
+        </form>
         <div class="hidden" id="infoAdd">
-          Enter details of the loan in the fields to the right and
-          click "Add" to add it to the database.
+          Enter details of the loan in the fields and
+          click "Add" to add a new row to the table
         </div>
         <div class="hidden" id="infoLender">
-          Equipment loans must be authorised by a member of the kit rota.
+          Equipment loans must be authorised by a member of the kit rota
         </div>
         <div class="hidden" id="infoBorrower">
           Only current members of the club can borrow equipment. If
           the borrower's name does not appear on this list, select
-          their instructor instead.
+          their instructor instead
         </div>
         <div class="hidden" id="infoDescription">
-          Enter a description of the item of equipment borrowed.
+          Enter a description of the item of equipment borrowed
         </div>
         <div class="hidden" id="infoIdentification">
           If the equipment has a unique identifying mark e.g. a number
           on the shoulder of BCDs, or a tag on regulators, or a
-          regulator serial number, enter that here.
+          regulator serial number, enter that here
         </div>
         <div class="hidden" id="infoDonation">
           All members except those currently on the Ocean Diver course
           are asked to make a donation to the club to help with
           equipment maintenance. See the notices on the wall for the
-          current recommended donations.
+          current recommended donations
         </div>
         <div class="hidden" id="infoReturned">
           Members are requested to make an additional donation if
           items are returned late. See the notices on the wall for the
           current recommended donations. In special circumstances You
           can extend this to a later agreed date with the
-          authorisation of the Diving Officer.
+          authorisation of the Diving Officer
         </div>
       </div>
 
