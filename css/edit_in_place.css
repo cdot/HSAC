@@ -1,0 +1,24 @@
+/* In-place text editor */
+.in_place_editor {
+}
+
+/* In-place select menu. Like a select, but you can blur it */
+.sip_menu_dlg {
+    border-width: 0px;
+    padding: 0;
+}
+.sip_menu_dlg > .ui-dialog-titlebar {
+    display: none;
+}
+.sip_menu_dlg > .ui-dialog-content {
+    padding: 0;
+}
+
+.sip_menu > ul {
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.sip_menu_current_item {
+    background-color: red;
+}

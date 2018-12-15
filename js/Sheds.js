@@ -561,6 +561,7 @@
         
         $("button").button();
         $(".spinner").spinner();
+        $("select").selectmenu();
         $('.ui-spinner-button').click(function() {
             $(this).siblings('input').change();
         });

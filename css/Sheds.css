@@ -7,6 +7,10 @@ Chill #AED9DA
 Glass #EDFAFD
 */
 
+body {
+    font-size: 18pt;
+}
+
 .hidden {
     display: none;
 }
@@ -46,6 +50,10 @@ Glass #EDFAFD
     overflow: scroll;
 }
 
+#Whereis_tab {
+    margin-top: 1em;
+}
+
 .time_display {
     width: 100%;
     color: white;
@@ -68,6 +76,7 @@ table {
     table-layout: auto;
     border-collapse: collapse;
     width: 100%;
+    font-size: 18pt;
 }
 
 table td,th {
@@ -77,7 +86,7 @@ table td,th {
 }
 
 .store_tab {
-    padding: 0 !important;
+    padding: 0.1em !important;
 }
 
 .widest {

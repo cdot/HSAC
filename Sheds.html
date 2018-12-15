@@ -55,6 +55,7 @@
     <link href="libs/jquery-ui/jquery-ui.min.css" rel="stylesheet">
     
     <link rel="stylesheet" href="libs/tablesorter/css/theme.jui.min.css">
+    <link class="compressable" rel="stylesheet" href="css/edit_in_place.css">
     <link class="compressable" rel="stylesheet" href="css/Sheds.css">
 
   </head>
@@ -69,7 +70,6 @@
         <li><a href="#Configuration_tab">Configuration</a></li>
       </ul>
       <div id="Compressor_tab" class="store_tab">
-        <h1>Compressor</h1>
         <form name="compressor" class="validated_form">
           <table class="form_table zebra">
             <tr>
@@ -157,7 +157,7 @@
             <input type="checkbox" value="false" id="show_all_loans">
           </div>
           <div>
-            <em>Enter details of new loans on the bottom line of the table.
+            <em>Enter details of new loans below the table.
             You can also edit older loans e.g. to indicate when a loan was
             returned. Just touch the item you want to edit (touch empty space
             to cancel)</em>
@@ -283,15 +283,16 @@
       </div>
 
       <div id="Whereis_tab" class="store_tab">
-        <h1>Where is...?</h1>
         <form name="whereis" class="validated_form">
           <label for="search">Search</label>
           <input name="search" id="search" required>
-          <input type="submit" value="Search">
+          <input type="submit" value="Search" data-with-info="#searchInfo">
         </form>
+        <div class="hidden" id="searchInfo">
+          Enter a description or equipment ID to search for
+        </div>
       </div>
       <div id="Nitrox_tab" class="store_tab">
-        <h1>Nitrox Blending</h1>
         <form name="nitrox" class="validated_form">
           <table class="form_table zebra">
             <tr>
@@ -342,9 +343,8 @@
         </div>
       </div>
       <div id="Configuration_tab" class="store_tab">
-        <h1>Configuration</h1>
-        Please don't change the configuration unless you know what you are
-        doing! The configuration is cookied.
+        <em>Please don't change the configuration unless you know what you are
+        doing!</em>
         <form name="cfg_form">
           <table class="form_table zebra">
             <tr>
