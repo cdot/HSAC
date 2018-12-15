@@ -183,6 +183,7 @@
             title: titleMsg,
             resizable: true,
             modal: true,
+            width: "100%",
             buttons: {
                 "OK": function () {
                     $(this).dialog("close");
