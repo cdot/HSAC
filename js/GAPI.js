@@ -32,7 +32,7 @@ function GAPI(scopes, apis) {
 
     return new Promise((resolve, reject) => {
         // Don't resolve until global gapi_loader has finished
-        gapi_loader = async function () {
+        gapi_loader = function () {
             function subLoader() {
                 gapi.client
                     .init({

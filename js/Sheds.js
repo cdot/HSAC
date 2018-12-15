@@ -207,10 +207,10 @@
         
         $icon.data("info", i);
         $icon.on("click", function() {
-            var info = $icon.data("info");
+            var info = $(this).data("info");
             if (info.charAt(0) === '#')
                 info = $(info).text();
-            infoDialog(info);
+            infoDialog(info, "Information");
         });
         return $thing;
     }

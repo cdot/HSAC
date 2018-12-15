@@ -18,7 +18,7 @@ function WebDAVStore() {
 WebDAVStore.prototype = Object.create(AbstractStore.prototype);
 
 /** url, username and password */
-WebDAVStore.prototype.connect = async function(params) {
+WebDAVStore.prototype.connect = function(params) {
     "use strict";
     if (!params || !params.url)
         return Promise.reject(

@@ -24,8 +24,12 @@ Real Gas nitrox calculations using Van der Waals equation of state.
 
 Database of loans with complete editable history.
 
-## Compressor events
+## Compressor
 
 Database of compressor events with tracking of filter usage.
+
+## Inventory
+
+Search the latest inventory for equipment locations.
 
 

@@ -38,6 +38,7 @@ Glass #EDFAFD
 }
 
 .scroll_container {
+    height: 60%;
     overflow: scroll;
 }
 
@@ -69,6 +70,10 @@ table td,th {
     white-space: nowrap;
     padding: 0.5em;
     text-align: left;
+}
+
+.store_tab {
+    padding: 0 !important;
 }
 
 .widest {
