@@ -1,34 +1,44 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
-/* global AbstractStore */
+/* eslint-env jquery */
+/* global AbstractStore:true */
+/* global require */
+/* global dav */
+/* global module */
 
 /**
  * Store on a remote webdav server
  * Requires libs/davclient.js
  */
 if (typeof module !== "undefined") {
-    var AbstractStore = require("./AbstractStore");
+    AbstractStore = require("./AbstractStore");
 }
 
 function WebDAVStore() {
     "use strict";
+
     AbstractStore.call(self);
 }
 
 WebDAVStore.prototype = Object.create(AbstractStore.prototype);
 
 /** url, username and password */
-WebDAVStore.prototype.connect = function(params) {
+WebDAVStore.prototype.connect = function (params) {
     "use strict";
+
     if (!params || !params.url)
-        return Promise.reject(
-            "No configuration defined, cannot start WebDAVStore");
+        return Promise.reject(new Error(
+            "No configuration defined, cannot start WebDAVStore"));
 
     if (params.url.lastIndexOf('/') !== params.url.length - 1)
         params.url += '/';
     var self = this;
-    self.params = $.extend({}, params);
-    console.debug("WebDAVStore: connecting to",params.url);
+    self.params = {
+        url: params.url,
+        userName: params.username,
+        password: params.password
+    };
+    console.debug("WebDAVStore: connecting to", params.url);
     self.DAV = new dav.Client({
         baseUrl: self.params.url,
         userName: self.params.username,
@@ -37,8 +47,9 @@ WebDAVStore.prototype.connect = function(params) {
     return Promise.resolve();
 };
 
-WebDAVStore.prototype.disconnect = function() {
+WebDAVStore.prototype.disconnect = function () {
     "use strict";
+
     this.params = {};
     this.DAV = null;
 };
@@ -52,8 +63,7 @@ WebDAVStore.prototype.read = function (path) {
         .then((res) => {
             if (200 <= res.status && res.status < 300)
                 return Promise.resolve(res.body);
-            else
-                return Promise.reject(res.status);
+            return Promise.reject(res.status);
         });
 };
 
@@ -68,44 +78,45 @@ WebDAVStore.prototype._mkpath = function (path) {
 
     var self = this;
 
-    return this.DAV.request('PROPFIND', path.join('/'), { Depth: 1 })
+    return this.DAV
+        .request('PROPFIND', path.join('/'), {
+            Depth: 1
+        })
         .then(
             (res) => {
                 if (200 <= res.status && res.status < 300) {
                     return Promise.resolve();
-                }
-                else if (res.status === 404) {
+                } else if (res.status === 404) {
                     var p = path.slice();
                     p.pop();
                     return self._mkpath(p).then(() => {
                         return self.DAV.request('MKCOL', path.join('/'));
                     });
                 }
-                else
-                    return Promise.reject(
-                        "_mkpath failed on " + path.join('.')
-                            + ": " + res.status);
+                return Promise.reject(
+                    new Error("_mkpath failed on " + path.join('.') +
+                              ": " + res.status));
             });
 };
 
 WebDAVStore.prototype.write = function (path, data) {
     "use strict";
+
     var self = this;
-    
+
     console.debug("WebDAVStore: Writing", path);
 
     path = path.replace(/^\/+/, "").split('/');
     var folder = path.slice();
     folder.pop();
-    
+
     return self._mkpath(folder)
         .then(() => {
             return self.DAV.request('PUT', path.join('/'), {}, data)
                 .then((res) => {
                     if (200 <= res.status && res.status < 300)
                         return Promise.resolve(res.body);
-                    else
-                        return Promise.reject(res.status);
+                    return Promise.reject(res.status);
                 });
         })
 };

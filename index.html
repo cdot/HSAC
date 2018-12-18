@@ -1,16 +1,17 @@
 <html>
+  <!-- BUILD_DATE -->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
     <meta name="expires" content="Mon, 2 Apr 2018 09:00:00 GMT">
     
     <link rel="shortcut icon" sizes="196x196" href="images/yellow-shedsvg.svg"/>
-    <link rel="icon" href="images/favicon.png" type="image/x-icon" />
+    <link rel="icon" href="images/favicon.png?version=0" type="image/x-icon" />
     
     <!-- for ios 7 style, multi-resolution icon of 152x152 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-barstyle" content="black-translucent">
-    <link rel="apple-touch-icon" href="images/yellow-shedsvg.svg">
+    <link rel="apple-touch-icon" href="images/yellow-shedsvg.svg?version=0">
 
     <!-- for Chrome on Android, multi-resolution icon of 196x196 -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -18,56 +19,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     <title>HSAC Sheds</title>
-    <link rel="icon" href="images/favicon.png" />
+    <link rel="icon" href="images/favicon.png?version=0" />
 
     <!-- from //cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1 -->
-    <script src="libs/jquery.min.js"></script>
+    <script src="libs/jquery.min.js?version=0"></script>
 
     <!-- from //cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1 -->
-    <script src="libs/jquery-ui/jquery-ui.min.js"></script>
+    <script src="libs/jquery-ui/jquery-ui.min.js?version=0"></script>
     
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.18.0/jquery.validate.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.18.0/additional-methods.min.js"></script>
-    <!-- from //cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.18.0 -->
-<!--
-    <script src="libs/jquery-validate/jquery.validate.min.js"></script>
-    <script src="libs/jquery-validate/additional-methods.min.js"></script>
--->
+    <!-- from https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0 -->
+    <script src="libs/jquery-validate/jquery.validate.min.js?version=0"></script>
+    <script src="libs/jquery-validate/additional-methods.min.js?version=0"></script>
     
     <!-- from //cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0 -->
-    <script src="libs/js.cookie.min.js"></script>
+    <script src="libs/js.cookie.min.js?version=0"></script>
     
     <!-- from https://github.com/evanplaice/jquery-csv/tree/master/src -->
-    <script src="libs/jquery.csv.min.js"></script>
+    <script src="libs/jquery.csv.min.js?version=0"></script>
     
     <!-- from https://github.com/Mottie/tablesorter -->
-    <script src="libs/tablesorter/js/jquery.tablesorter.min.js"></script>
-    <script src="libs/tablesorter/js/jquery.tablesorter.widgets.min.js"></script>
+    <script src="libs/tablesorter/js/jquery.tablesorter.min.js?version=0"></script>
+    <script src="libs/tablesorter/js/jquery.tablesorter.widgets.min.js?version=0"></script>
 
-    <script class="compressable" src="libs/davclient.js"></script>
-    <script class="compressable" src="js/AbstractStore.js"></script>
-    <script class="compressable" src="js/WebDAVStore.js"></script>
-    <script class="compressable" src="js/Nitrox.js"></script>
-    <script class="compressable" src="js/edit_in_place.js"></script>
-    <script class="compressable" src="js/Sheds.js"></script>
+    <script class="compressable" src="libs/davclient.js?version=0"></script>
+    <script class="compressable" src="js/AbstractStore.js?version=0"></script>
+    <script class="compressable" src="js/WebDAVStore.js?version=0"></script>
+    <script class="compressable" src="js/Nitrox.js?version=0"></script>
+    <script class="compressable" src="js/edit_in_place.js?version=0"></script>
+    <script class="compressable" src="js/Sheds.js?version=0"></script>
 
     <!-- from //code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css -->
-    <link href="libs/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+    <link href="libs/jquery-ui/jquery-ui.min.css?version=0" rel="stylesheet">
     
-    <link rel="stylesheet" href="libs/tablesorter/css/theme.jui.min.css">
-    <link class="compressable" rel="stylesheet" href="css/edit_in_place.css">
-    <link class="compressable" rel="stylesheet" href="css/Sheds.css">
+    <link rel="stylesheet" href="libs/tablesorter/css/theme.jui.min.css?version=0">
+    <link rel="stylesheet" href="libs/jquery-icon-font/jquery-ui.icon-font.min.css?version=0" />
+    
+    <link class="compressable" rel="stylesheet" href="css/edit_in_place.css?version=0">
+    <link class="compressable" rel="stylesheet" href="css/Sheds.css?version=0">
 
   </head>
   <body>
-    <div class="ui-widget time_display"></div>
+    <div class="ui-widget">
+      <span id="settings" style="float:right" class="ui-icon ui-icon-gear"></span>
+      <span class="time_display"></span>
+    </div>
     <div id="tabs">
       <ul>
         <li><a href="#Compressor_tab">Compressor</a></li>
         <li><a href="#Loans_tab">Loans</a></li>
         <li><a href="#Whereis_tab">Where is...?</a></li>
         <li><a href="#Nitrox_tab">Nitrox</a></li>
-        <li><a href="#Configuration_tab">Configuration</a></li>
       </ul>
       <div id="Compressor_tab" class="store_tab">
         <form name="compressor" class="validated_form">
@@ -111,7 +112,7 @@
                 </span>
               </th>
               <td class="widest">
-                <input type="text" name="runtime" data-msg="<br>Must be runtime from compressor counter" min="0" required>
+                <input type="number" step="0.01" name="runtime" data-msg="<br>Must be greater than the last recorded runtime" min="0" required>
                 minutes
               </td>
             </tr>
@@ -136,7 +137,8 @@
         </div>
         <div class="hidden info" id="infoRuntime">
           Runtime is read from the counter on the right of the compressor
-          control panel.
+          control panel. The value entered must be greater than the last recorded
+          runtime.
         </div>
         <div class="hidden info" id="infoFilterEfficiency">
           Filter lifetime depends on intake air temperature and
@@ -157,10 +159,7 @@
             <input type="checkbox" value="false" id="show_all_loans">
           </div>
           <div>
-            <em>Enter details of new loans below the table.
-            You can also edit older loans e.g. to indicate when a loan was
-            returned. Just touch the item you want to edit (touch empty space
-            to cancel)</em>
+            <button data-with-info="#infoLoans">Help</button>
           </div>
         </div>
         <div id="loan_controls">
@@ -229,17 +228,17 @@
                 <input type="text" name="id" required data-msg="<br>e.g. tag number">
               </td>
               <td>
-                <select name="borrower" class="members" required data-msg="<br>Must be a current HSAC member">
+                <select name="borrower" class="members" required>
                   <option></option>
                 </select>
               </td>
               <td>
-                <select name="lender" class="operators" required data-msg="<br>Must be a trained operator" data-with-info="#infoLender">
+                <select name="lender" class="operators" required>
                   <option></option>
                 </select>
               </td>
               <td>
-                <input type="number" name="donation" data-with-info="#infoDonation">
+                <input type="number" name="donation" step="0.01">
               </td>
               <td>
                 <input type="submit" value="Add:">
@@ -247,6 +246,12 @@
             </tr>
           </table>
         </form>
+        <div class="hidden info" id="infoLoans">
+          Enter details of new loans below the table.
+          You can also edit older loans e.g. to indicate when a loan was
+          returned. Just touch the item you want to edit (touch empty space
+          to cancel)
+        </div>
         <div class="hidden info" id="infoAdd">
           Enter details of the loan in the fields and
           click "Add" to add a new row to the table
@@ -342,44 +347,42 @@
         <div id="nitrox_report">
         </div>
       </div>
-      <div id="Configuration_tab" class="store_tab">
-        <em>Please don't change the configuration unless you know what you are
-        doing!</em>
-        <form name="cfg_form">
-          <table class="form_table zebra">
-            <tr>
-              <th>WebDAV URL</th>
-              <td class="widest">
-                <input type="text" id="cfg_webdav_url" name="webdav_url">
-              </td>
-            </tr>
-            <tr>
-              <th>WebDAV User</th>
-              <td class="widest">
-                <input type="text" required id="cfg_webdav_user" name="webdav_user">
-              </td>
-            </tr>
-            <tr>
-              <th>WebDAV Pass</th>
-              <td class="widest">
-                <input type="text" required id="cfg_webdav_pass" name="webdav_pass">
-              </td>
-            </tr>
-            <tr>
-              <th>Loan return deadline</th>
-              <td class="widest">
-                <input type="number" required id="cfg_loan_return"> days
-              </td>
-            </tr>
-            <tr>
-              <th>O2 cost per litre</th>
-              <td class="widest">
-                £<input type="text" required id="cfg_o2_price">
-              </td>
-            </tr>
-          </table>
-          <input type="submit" value="Save">
-        </form>
+      <div id="Configuration_dialog" class="hidden">
+        <em id="connect_error"></em>
+        Please don't change the configuration unless you really know what you are
+        doing!
+        <table class="form_table zebra">
+          <tr>
+            <th>WebDAV URL</th>
+            <td class="widest">
+              <input type="text" id="cfg_webdav_url" name="webdav_url">
+            </td>
+          </tr>
+          <tr>
+            <th>WebDAV User</th>
+            <td class="widest">
+              <input type="text" required id="cfg_webdav_user" name="webdav_user">
+            </td>
+          </tr>
+          <tr>
+            <th>WebDAV Pass</th>
+            <td class="widest">
+              <input type="text" required id="cfg_webdav_pass" name="webdav_pass">
+            </td>
+          </tr>
+          <tr>
+            <th>Loan return deadline</th>
+            <td class="widest">
+              <input type="number" required id="cfg_loan_return"> days
+            </td>
+          </tr>
+          <tr>
+            <th>O2 cost per litre</th>
+            <td class="widest">
+              £<input type="number" step="any" required id="cfg_o2_price">
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   </body>

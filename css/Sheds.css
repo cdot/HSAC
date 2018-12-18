@@ -1,4 +1,3 @@
-
 /*
 Marina #135589
 Bondi Blue #2A93D5
@@ -8,14 +7,18 @@ Glass #EDFAFD
 */
 
 body {
-    font-size: 18pt;
+    font-size: 16pt;
+}
+
+.error {
+    color: red;
 }
 
 .hidden {
     display: none;
 }
 
-.error {
+.late {
     color: red;
 }
 
@@ -23,13 +26,8 @@ body {
     border: 1px dotted grey;
 }
 
-.modified {
-    color: white;
-    background-color: #135589;
-}
-
-.late {
-    color: red;
+#loan_entry_table td input {
+    width: 100%;
 }
 
 #loan_controls {
@@ -45,13 +43,22 @@ body {
     vertical-align: top;
 }
 
+.modified {
+    color: white;
+    background-color: #135589;
+}
+
 .scroll_container {
     height: 60%;
     overflow: scroll;
 }
 
-#Whereis_tab {
-    margin-top: 1em;
+#settings {
+    float: right;
+}
+
+.store_tab {
+    padding: 0.1em !important;
 }
 
 .time_display {
@@ -85,8 +92,8 @@ table td,th {
     text-align: left;
 }
 
-.store_tab {
-    padding: 0.1em !important;
+#Whereis_tab {
+    margin-top: 1em;
 }
 
 .widest {

@@ -29,7 +29,7 @@ AbstractStore.NODATA = "not found";
  * @param params
  */
 AbstractStore.prototype.connect = function (params) {
-    return Promise.reject("Store has no connect method");    
+    return Promise.reject("Store has no connect method");
 };
 
 /**

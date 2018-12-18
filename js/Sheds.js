@@ -1,7 +1,14 @@
+/*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
+
 /**
  *
  * Shed management application
  */
+
+/* eslint-env jquery */
+/* global WebDAVStore */
+/* global Cookies */
+/* global Nitrox */
 
 (($) => {
     /**
@@ -44,7 +51,6 @@
         d: -24.03492
     };
 
-    const dav_client = new dav.Client();
     const dav_store = new WebDAVStore();
 
     /*
@@ -62,17 +68,17 @@
         this.fields = fields;
         this.types = types;
     }
-    
-    Entries.prototype.load = function() {
+
+    Entries.prototype.load = function () {
         return new Promise((resolve, reject) => {
             if (this.entries) {
                 resolve();
                 return;
             }
-            
+
             return dav_store.read('/' + this.name + '.csv')
                 .then((list) => {
-                    data = $.csv.toArrays(list);
+                    var data = $.csv.toArrays(list);
                     this.entries = [];
                     for (var i = 0; i < data.length; i++) {
                         this.entries.push(this.getFields(data[i]));
@@ -87,10 +93,10 @@
         });
     };
 
-    Entries.prototype.getFields = function(data) {
+    Entries.prototype.getFields = function (data) {
         var datum = {};
-        for (var j = 0; j < this.fields.length; j++) {      
-            var fieldname = this.fields[j];
+        for (var j = 0; j < this.fields.length; j++) {
+            var fieldname = this.fields[j], d;
             if (data instanceof Array) {
                 d = data[j]; // arrays are indexed by column
             } else {
@@ -122,8 +128,8 @@
         }
         return datum;
     };
-    
-    Entries.prototype.save = function() {
+
+    Entries.prototype.save = function () {
         var data = [];
         for (var i = 0; i < this.entries.length; i++) {
             var datum = [];
@@ -133,36 +139,33 @@
             data.push(datum);
         }
         return dav_store.write(
-            '/' + this.name + '.csv', $.csv.fromArrays(data))
-            .catch((e) => {
-                debugger;
-            });
+            '/' + this.name + '.csv', $.csv.fromArrays(data));
     };
 
-    Entries.prototype.add = function(r) {
+    Entries.prototype.add = function (r) {
         this.entries.push(r);
         this.save();
         this.update_ui();
     };
-    
-    Entries.prototype.submit = function(values) {
+
+    Entries.prototype.submit = function (values) {
         if (!values)
             values = {};
-        $("form[name='" + this.name + "'] :input").each(function() {
+        $("form[name='" + this.name + "'] :input").each(function () {
             values[this.name] = $(this).val();
         });
         this.add(this.getFields(values));
     }
 
     var lists = {};
-    
+
     /**
      * Update time displays
      */
     function tick() {
         var now = new Date();
-        $(".time_display").text(now.toLocaleDateString()
-                       + " " + now.toLocaleTimeString());
+        $(".time_display").text(now.toLocaleDateString() +
+            " " + now.toLocaleTimeString());
         $(".date_display").text(now.toLocaleDateString());
         var when = 1000 - (Date.now() % 1000);
         window.setTimeout(tick, when);
@@ -171,7 +174,7 @@
     function formatDate(date) {
         return date.toISOString().replace(/T.*/, "");
     }
-    
+
     function infoDialog(outputMsg, titleMsg, onCloseCallback) {
         if (!titleMsg)
             titleMsg = 'Alert';
@@ -189,7 +192,7 @@
                     $(this).dialog("close");
                 }
             },
-            close: function() {
+            close: function () {
                 /* Cleanup node(s) from DOM */
                 $(this).dialog('destroy').remove();
                 if (onCloseCallback)
@@ -202,12 +205,12 @@
         var i = data || $thing.data("with-info");
         if (i.charAt(0) === '#' && $(i).length === 0)
             throw "Missing " + i;
-        
-        $icon = $("<span class='ui-icon ui-icon-info'></span>");
+
+        var $icon = $("<span class='ui-icon ui-icon-info'></span>");
         $thing.after($icon);
-        
+
         $icon.data("info", i);
-        $icon.on("click", function() {
+        $icon.on("click", function () {
             var info = $(this).data("info");
             if (info.charAt(0) === '#')
                 info = $(info).text();
@@ -239,8 +242,8 @@
 
     Compressor.prototype = Object.create(Entries.prototype);
     Compressor.prototype.constructor = Compressor;
-    
-    Compressor.prototype.update_ui = function() {
+
+    Compressor.prototype.update_ui = function () {
         this.load().then(() => {
             // predict filter life remaining at current temperature
             var cur = this.entries[this.entries.length - 1];
@@ -251,36 +254,37 @@
             $("input[name='runtime']")
                 .rules("remove", "min");
             $("input[name='runtime']")
-                .rules("add", { min: cur.runtime });
+                .rules("add", {
+                    min: cur.runtime
+                });
         });
     };
-    
-    Compressor.prototype.add = function(r) {
+
+    Compressor.prototype.add = function (r) {
         this.load().then(() => {
-            var flr = 1, dt = 0;
+            var flr = 1,
+                dt = 0;
             if (this.entries.length > 0) {
                 var le = this.entries[this.entries.length - 1];
                 flr = le.filterlife;
                 dt = (r.runtime - le.runtime) / 60; // hours
 
-                if (dt < 0) {
-                    debugger;
+                if (dt < 0)
                     throw "Bad runtime";
-                }
-                
+
                 // Predicted filter lifetime at this temperature
-                var lifetime = filter_coeff.d
-                    + (filter_coeff.a - filter_coeff.d)
-                    / (1 + Math.pow(le.temperature
-                                    / filter_coeff.c, filter_coeff.b));
+                var lifetime = filter_coeff.d +
+                    (filter_coeff.a - filter_coeff.d) /
+                    (1 + Math.pow(le.temperature /
+                        filter_coeff.c, filter_coeff.b));
                 // Fraction of filter change hours consumed
                 var fraction = dt / lifetime;
                 flr -= fraction; // remaining filter life
                 console.debug(
-                    "Old filter life was",flr,", runtime was",dt,"hours.",
+                    "Old filter life was", flr, ", runtime was", dt, "hours.",
                     "Predicted lifetime at", le.temperature,
-                              "is",lifetime,"or",fraction,"of a filter, so",
-                              "new prediction is", flr);
+                    "is", lifetime, "or", fraction, "of a filter, so",
+                    "new prediction is", flr);
             }
             r.date = new Date();
             r.filterlife = flr;
@@ -301,7 +305,7 @@
             "donation",
             "returned"
         ], {
-            date : "Date",
+            date: "Date",
             donation: "Number",
             returned: "Date"
         });
@@ -310,10 +314,10 @@
     Loans.prototype = Object.create(Entries.prototype);
     Loans.prototype.constructor = Loans;
 
-    Loans.prototype.mod_text = function(row, field) {
+    Loans.prototype.mod_text = function (row, field) {
         var entry = this.entries[row];
         var type = this.types[field];
-        
+
         var $span = $("<span></span>");
 
         var text = entry[field];
@@ -321,7 +325,7 @@
             text = formatDate(text);
         $span.text(text);
 
-        $span.on("click", function() {
+        $span.on("click", function () {
             $(this).edit_in_place({
                 changed: function (s) {
                     if (s !== entry[field]) {
@@ -337,15 +341,15 @@
         return $span;
     };
 
-    Loans.prototype.mod_select = function(row, field, set) {
+    Loans.prototype.mod_select = function (row, field, set) {
         var entry = this.entries[row];
         var $span = $("<span></span>");
         var text = entry[field];
         $span.text(text);
 
-        $span.on("click", function() {
+        $span.on("click", function () {
             $(this).select_in_place({
-                changed: function(s) {
+                changed: function (s) {
                     if (s != entry[field]) {
                         entry[field] = s;
                         $span.text(s);
@@ -360,8 +364,8 @@
         });
         return $span;
     };
-    
-    Loans.prototype.mod_date = function(row, field) {
+
+    Loans.prototype.mod_date = function (row, field) {
         var entry = this.entries[row];
         var date = entry[field];
         var $span = $('<div style="width:100%;height:100%"></div>');
@@ -373,10 +377,10 @@
             with_info($pencil, '#infoReturned');
         }
 
-        $span.on("click", function(e) {
+        $span.on("click", function (e) {
             $(this).datepicker(
                 "dialog", entry[field],
-                function(date, dp) {
+                function (date, dp) {
                     date = new Date(date);
                     if (date != entry[field]) {
                         entry[field] = date;
@@ -384,8 +388,7 @@
                         $span.addClass("modified");
                         $("#loan_controls").show();
                     }
-                },
-                {
+                }, {
                     dateFormat: "yy-mm-dd"
                 },
                 e);
@@ -393,17 +396,17 @@
         return $span;
     };
 
-    Loans.prototype.update_ui = function() {
+    Loans.prototype.update_ui = function () {
         var self = this;
         this.load().then(() => {
-            $("#loans_table>tbody").empty().each(function() {
+            $("#loans_table>tbody").empty().each(function () {
                 var list = self.entries;
                 var show_all = $("#show_all_loans").is(':checked');
                 var $row;
                 for (var i = 0; i < list.length; i++) {
                     var row = list[i];
-                    var active = (typeof row.returned === "undefined"
-                                  || row.returned.valueOf() > Date.now());
+                    var active = (typeof row.returned === "undefined" ||
+                        row.returned.valueOf() > Date.now());
                     if (!active && !show_all)
                         continue;
                     $row = $("<tr></tr>");
@@ -411,8 +414,8 @@
                     $td.append(self.mod_date(i, "date"));
                     if (typeof row.returned === "undefined") {
                         var due = row.date.valueOf() +
-                        (Cookies.get("loan_return") || 10)
-                            * 24 * 60 * 60 * 1000;
+                            (Cookies.get("loan_return") || 10) *
+                            24 * 60 * 60 * 1000;
                         if (due < Date.now())
                             $row.addClass("late");
                     }
@@ -442,8 +445,7 @@
                     selectorHeaders: "> thead th",
                     selectorSort: "th",
                     headerTemplate: '{content}<a href="#">{icon}</a>',
-                    selectorSort: "a",
-		    widgets: ['zebra', 'columns', 'uitheme'],
+                    widgets: ['zebra', 'columns', 'uitheme'],
                     theme: 'jui',
                     delayInit: true,
                     dateFormat: "ddmmyyyy"
@@ -452,31 +454,28 @@
         });
     };
 
-    Loans.prototype.add = function(r) {
+    Loans.prototype.add = function (r) {
         r.date = new Date();
         Entries.prototype.add.call(this, r);
     };
-    
-    Loans.prototype.save_changes = function() {
+
+    Loans.prototype.save_changes = function () {
         this.save();
         this.update_ui();
     };
-    
+
     var loans = new Loans();
 
-    function Whereis() {
-    }
+    function Whereis() {}
 
-    Whereis.prototype.submit = function() {
-    };
-    
-    function NitroxForm() {
-    };
+    Whereis.prototype.submit = function () {};
 
-    NitroxForm.prototype.submit = function() {
+    function NitroxForm() {}
+
+    NitroxForm.prototype.submit = function () {
         $("#nitrox_report").empty();
         var conditions = {};
-        $("form[name='nitrox'] :input").each(function() {
+        $("form[name='nitrox'] :input").each(function () {
             if (this.type === "number")
                 conditions[this.name] = parseFloat($(this).val());
             else
@@ -487,22 +486,22 @@
         switch (result.status) {
         case Nitrox.MIX_ACHIEVABLE:
             mess = "Add " + Math.floor(result.add_real_O2_bar) + " bar of O<sub>2</sub>. This will use " +
-                Math.round(result.O2_needed_litres) + " litres of O<sub>2</sub> at a cost of £"
-                + (Math.round(100 * (result.O2_needed_litres * Cookies.get("o2_price"))) / 100);
+                Math.round(result.O2_needed_litres) + " litres of O<sub>2</sub> at a cost of £" +
+                (Math.round(100 * (result.O2_needed_litres * Cookies.get("o2_price"))) / 100);
             break;
         case Nitrox.BANK_LACKS_O2:
             mess = "There is not enough O2 in the bank for this fill.";
             break;
         case Nitrox.TOO_MUCH_O2:
-            mess = "There is too much gas already in the cylinder for this fill. To use this bank you"
-                + " will have to bleed it down below " + result.bleed + " bar"
+            mess = "There is too much gas already in the cylinder for this fill. To use this bank you" +
+                " will have to bleed it down below " + result.bleed + " bar"
             break;
         default:
-            debugger;
+            throw "Bad Nitrox response result.status";
         }
         $("#nitrox_report").append(mess + "<br>");
     }
-    
+
     var nitrox = new NitroxForm();
 
     function dav_connect() {
@@ -510,63 +509,118 @@
             url: Cookies.get("webdav_url"),
             username: Cookies.get("webdav_user"),
             password: Cookies.get("webdav_pass")
-        }).then(() => {
-            var promises = [];
-            
-            // Populate operators and members drop-downs.
-            ['operators', 'members', 'blenders'].forEach((f) => {
-                promises.push(
-                    dav_store.read('/' + f + '.csv')
-                        .then((list) => {
-                            list = $.csv.toArrays(list);
-                            lists[f] = list.map(x => x[0]).sort();
-                            return f;
-                        })
-                        .then((f) => {
-                            $("select." + f).html(
-                                "<option></option><option>"
-                                    + lists[f]
-                                    .join("</option><option>")
-                                    + "</option>");
-                        }));
-            });
+        })
+            .then(() => {
+                var promises = [];
 
-            // Populate equipment descriptions
-            promises.push(dav_store.read('/descriptions.csv')
-                .then((list) => {
-                    list = $.csv.toArrays(list);
-                    $("input[name='description']").autocomplete({
-                        source: list.map(x => x[0])
-                    });
-                }));
-            
-            return Promise.all(promises);
-        })
-        .then(() => {
-            compressor.update_ui();
-            loans.update_ui();
-            $("#tabs").tabs("option","disabled", []);
-        })
-        .catch((e) => {
-            $("#tabs").tabs("option","disabled", [0, 1, 2, 3]);
-            $("#tabs").tabs("option", "active", 4);
-        });
+                // Populate operators and members drop-downs.
+                promises.push(
+                    dav_store.read('/Members - Lists For Sheds.csv')
+                    .then((list) => {
+                        list = $.csv.toArrays(list);
+                        for (var col = 0; col < list[0].length; col++) {
+                            var f = list[0][col];
+                            lists[f] = [];
+                            for (var row = 1; row < list.length; row++) {
+                                var e = list[row][col];
+                                if (e)
+                                    lists[f].push(e);
+                            }
+                            $("select." + f).html(
+                                "<option></option><option>" +
+                                lists[f]
+                                .join("</option><option>") +
+                                "</option>");
+                        }
+                    }));
+
+                // Populate equipment descriptions
+                promises.push(
+                    dav_store.read('/descriptions.csv')
+                    .then((list) => {
+                        list = $.csv.toArrays(list);
+                        $("input[name='description']").autocomplete({
+                            source: list.map(x => x[0])
+                        });
+                    }));
+
+                return Promise.all(promises);
+            })
+            .then(() => {
+                compressor.update_ui();
+                loans.update_ui();
+                $("#tabs").tabs("option", "disabled", []);
+            })
+            .catch((e) => {
+                $("#tabs").tabs("option", "disabled", [0, 1, 2, 3]);
+                $("#connect_error").text(e);
+                $("#Configuration_dialog").dialog("open");
+            });
     }
-          
+
     $(document).ready(() => {
         // Start the clock
         tick();
 
         // Build UI components
-        $('#tabs').tabs();
-        
+        $('#tabs').tabs({});
+
         $("button").button();
         $(".spinner").spinner();
         $("select").selectmenu();
-        $('.ui-spinner-button').click(function() {
+        $('.ui-spinner-button').click(function () {
             $(this).siblings('input').change();
         });
-        
+
+        $("#Configuration_dialog").dialog({
+            title: "Settings",
+            autoOpen: false,
+            resizable: true,
+            modal: true,
+            width: "100%",
+            buttons: {
+                Save: function () {
+                    $(this).dialog("close");
+                    var lr = $("#cfg_loan_return").val();
+                    Cookies.set("loan_return", lr);
+                    var o2 = $("#cfg_o2_price").val();
+                    Cookies.set("o2_price", o2);
+                    var url = $("#cfg_webdav_url").val();
+                    var user = $("#cfg_webdav_user").val();
+                    var pass = $("#cfg_webdav_pass").val();
+                    if (url !== Cookies.get("webdav_url") ||
+                        user !== Cookies.get("webdav_user") ||
+                        pass !== Cookies.get("webdav_pass")) {
+
+                        Cookies.set("webdav_url", url, {
+                            expires: 365
+                        });
+                        Cookies.set("webdav_user", user, {
+                            expires: 365
+                        });
+                        Cookies.set("webdav_pass", pass, {
+                            expires: 365
+                        });
+
+                        dav_store.disconnect().then(() => {
+                            dav_connect();
+                        });
+                    }
+                }
+            },
+            open: function (e, ui) {
+                $("#cfg_webdav_url").val(Cookies.get("webdav_url"));
+                $("#cfg_webdav_user").val(Cookies.get("webdav_user"));
+                $("#cfg_webdav_pass").val(Cookies.get("webdav_pass"));
+                $("#cfg_loan_return").val(Cookies.get("loan_return"));
+                $("#cfg_o2_price").val(Cookies.get("o2_price"));
+            }
+        });
+
+        $("#settings").on("click", function () {
+            $("#Configuration_dialog").dialog("open");
+        });
+
         $(".validated_form").validate();
 
         $(".validated_form").on("submit", (e) => {
@@ -580,42 +634,14 @@
             loans.update_ui();
         });
 
-        $("#cfg_webdav_url").val(Cookies.get("webdav_url"));
-        $("#cfg_webdav_user").val(Cookies.get("webdav_user"));
-        $("#cfg_webdav_pass").val(Cookies.get("webdav_pass"));
-        $("#cfg_loan_return").val(Cookies.get("loan_return"));
-        $("#cfg_o2_price").val(Cookies.get("o2_price"));
-
-        $("form[name='cfg_form']").on("submit", (e) => {
-            var lr = $("#cfg_loan_return").val();
-            Cookies.set("loan_return", lr);
-            var o2 = $("#cfg_o2_price").val();
-            Cookies.set("o2_price", o2);
-            var url = $("#cfg_webdav_url").val();
-            var user = $("#cfg_webdav_user").val();
-            var pass = $("#cfg_webdav_pass").val();
-            if (url !== Cookies.get("webdav_url")
-                || user !== Cookies.get("webdav_user")
-                || pass !== Cookies.get("webdav_pass")) {
-                
-                Cookies.set("webdav_url", url, { expires: 365 });
-                Cookies.set("webdav_user", user, { expires: 365 });
-                Cookies.set("webdav_pass", pass, { expires: 365 });
-
-                dav_store.disconnect().then(() => {
-                    dav_connect();
-                });
-            }
-        });
-        
-        $("[data-with-info]").each(function() {
+        $("[data-with-info]").each(function () {
             with_info($(this));
         });
 
         $("#loan_controls").hide();
-        
-        $("#loan_save").on("click", function() {
-            $(".modified").each(function() {
+
+        $("#loan_save").on("click", function () {
+            $(".modified").each(function () {
                 $(this).removeClass("modified");
             })
             // Save to file
@@ -624,9 +650,9 @@
                     $("#loan_controls").hide();
                 });
         });
-        
-        $("#loan_reset").on("click", function() {
-            $(".modified").each(function() {
+
+        $("#loan_reset").on("click", function () {
+            $(".modified").each(function () {
                 $(this).removeClass("modified");
             })
             // Reload from file
@@ -634,9 +660,8 @@
             loans.update_ui();
             $("#loan_controls").hide();
         });
-        
+
         // Try and connect, enable tabs if successful
         dav_connect();
     });
 })(jQuery);
-

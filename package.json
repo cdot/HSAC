@@ -1,0 +1,19 @@
+{
+  "name": "hsac",
+  "version": "1.0.0",
+  "description": "HSAC Sheds",
+  "main": "js/Sheds.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cdot/HSAC.git"
+  },
+  "author": "Crawford Currie",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cdot/HSAC/issues"
+  },
+  "homepage": "https://github.com/cdot/HSAC#readme"
+}

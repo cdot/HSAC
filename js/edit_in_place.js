@@ -1,17 +1,19 @@
-/*@preserve Copyright (C) 2015 Crawford Currie http://c-dot.co.uk license MIT*/
+/*@preserve Copyright (C) 2015-2018 Crawford Currie http://c-dot.co.uk license MIT*/
+/* eslint-env jquery */
 
 /**
- * Simple in-place editing widget
+ * Simple in-place editing widgets
  */
 (function ($) {
     "use strict";
+    
     $.fn.edit_in_place = function (options) {
 
         var $this = $(this);
         var h = options.height || $this.parent().innerHeight() || "1em";
         var w = options.width || $this.parent().innerWidth() || "1em";
         var changed = options.changed ||
-            function ( /*text*/ ) {
+            function (text) {
                 return $this.text();
             };
         var closed = options.closed || function () {};
@@ -48,8 +50,8 @@
                         .val() === text)) {
                     blurb();
                     return false;
-                } else
-                    return true;
+                }
+                return true;
             })
 
             .blur(blurb)
@@ -73,7 +75,8 @@
                 resizable: false,
                 draggable: false,
                 position: {
-                    my: "left top", at: "left top"
+                    my: "left top",
+                    at: "left top"
                 },
                 open: function (event, ui) {
                     $(".ui-widget-overlay").on("click", function () {
@@ -83,20 +86,20 @@
             });
         }
         var $ul = $dlg.children("ul");
- 
+        var $this = $(this);
+
         var changed = options.changed ||
-            function ( /*text*/ ) {
+            function (text) {
                 return $this.text();
             };
         var closed = options.closed || function () {};
-        
+
         // Action on blur
         function blurb() {
             $dlg.dialog("close");
             closed();
         }
 
-        var $this = $(this);
         var text = $this.text();
         $ul.empty();
         for (var i = 0; i < options.options.length; i++) {
