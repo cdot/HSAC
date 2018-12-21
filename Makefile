@@ -1,14 +1,13 @@
 # Copyright (C) 2018 Crawford Currie http://c-dot.co.uk / MIT
 # Main targets are:
 #
-# make version - update the version number and defeat caches
-# make tidy    - beautify code
+# make version - update the version number to defeat caches
 # make clean   - remove intermediates and derived objects
 # make lint    - run eslint
 
 # Macros using shell commands
 FIND      := find . -name 'jquery*' -prune -o -name
-REVERSION := sed -e 's/BUILD_DATE/$(shell date)/g;s/\?version=[0-9]+/?version==$(shell date +%s)/g'
+REVERSION := sed -e 's/\?version=[0-9]+/?version=$(shell date +%s)/g'
 JS        := $(shell cat index.html | \
 		grep '<script class="compressable" src=' $^ | \
 		sed -e 's/.*src="//;s/[?"].*//g' )
@@ -17,9 +16,8 @@ CSS       := $(shell cat index.html | \
 		sed -e 's/.*href="//;s/[?"].*//g' )
 
 %.map %.min.js : %.js
-	uglifyjs \
+	babel-minify \
 		--comments \
-		--compress \
 		-o $@ \
 		-- $^
 
@@ -33,7 +31,9 @@ CSS       := $(shell cat index.html | \
 %.map : %.min.js
 
 version:
-	cat index.html | $(REVERSION) > tmp.html
+	sed -e 's/\?version=[0-9]*/?version=$(shell date +%s)/g' index.html \
+	| sed -e 's/BUILD_DATE .*-/BUILD_DATE $(shell date) -/g' index.html \
+	> tmp.html
 	mv tmp.html index.html
 
 min:	$(patsubst %.js,%.min.js,$(JS)) \
@@ -49,9 +49,9 @@ index.html : $(JS)
 clean:
 	$(FIND) '*~' -exec rm \{\} \;
 	$(FIND) '*.esl' -exec rm \{\} \;
-	rm $(patsubst %.js,%.min.js,$(JS))
-	rm $(patsubst %.js,%.map,$(JS))
-	rm $(patsubst %.css,%.min.css,$(CSS))
+	rm -f $(patsubst %.js,%.min.js,$(JS)) \
+		$(patsubst %.js,%.map,$(JS)) \
+		$(patsubst %.css,%.min.css,$(CSS))
 
 # Formatting
 

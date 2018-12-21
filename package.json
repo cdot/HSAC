@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/cdot/HSAC/issues"
   },
-  "homepage": "https://github.com/cdot/HSAC#readme"
+    "homepage": "https://github.com/cdot/HSAC#readme",
+    "devDependencies": {
+        "babel-minify": ">=0.5.0",
+        "cleancss": ">=1.0.12",
+        "js-beautify": ">=1.8.9"
+    }
 }

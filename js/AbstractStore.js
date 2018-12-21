@@ -29,7 +29,7 @@ AbstractStore.NODATA = "not found";
  * @param params
  */
 AbstractStore.prototype.connect = function (params) {
-    return Promise.reject("Store has no connect method");
+    return Promise.reject(new Error("Store has no connect method"));
 };
 
 /**
@@ -51,7 +51,7 @@ AbstractStore.prototype.connect = function () {
 AbstractStore.prototype.write = function (path, data) {
     "use strict";
 
-    return Promise.reject("Store has no write method");
+    return Promise.reject(new Error("Store has no write method"));
 };
 
 /**
@@ -63,8 +63,5 @@ AbstractStore.prototype.write = function (path, data) {
 AbstractStore.prototype.read = function (path, ok, fail) {
     "use strict";
 
-    return Promise.reject("Store has no read method");
+    return Promise.reject(new Error("Store has no read method"));
 };
-
-if (typeof module !== "undefined")
-    module.exports = AbstractStore;

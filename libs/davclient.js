@@ -3,7 +3,9 @@
  */
 
 /* global dav */
-if (typeof dav === 'undefined') { dav = {}; };
+if (typeof dav === 'undefined') {
+    dav = {};
+};
 
 dav._XML_CHAR_MAP = {
     '<': '&lt;',
@@ -13,15 +15,15 @@ dav._XML_CHAR_MAP = {
     "'": '&apos;'
 };
 
-dav._escapeXml = function(s) {
+dav._escapeXml = function (s) {
     return s.replace(/[<>&"']/g, function (ch) {
         return dav._XML_CHAR_MAP[ch];
     });
 };
 
-dav.Client = function(options) {
+dav.Client = function (options) {
     var i;
-    for(i in options) {
+    for (i in options) {
         this[i] = options[i];
     }
 
@@ -29,15 +31,15 @@ dav.Client = function(options) {
 
 dav.Client.prototype = {
 
-    baseUrl : null,
+    baseUrl: null,
 
-    userName : null,
+    userName: null,
 
-    password : null,
+    password: null,
 
 
-    xmlNamespaces : {
-        'DAV:' : 'd'
+    xmlNamespaces: {
+        'DAV:': 'd'
     },
 
     /**
@@ -49,9 +51,9 @@ dav.Client.prototype = {
      * @param {Object} [headers] headers
      * @return {Promise}
      */
-    propFind : function(url, properties, depth, headers) {
+    propFind: function (url, properties, depth, headers) {
 
-        if(typeof depth === "undefined") {
+        if (typeof depth === "undefined") {
             depth = '0';
         }
 
@@ -73,24 +75,24 @@ dav.Client.prototype = {
         body += '>\n' +
             '  <d:prop>\n';
 
-        for(var ii in properties) {
+        for (var ii in properties) {
             if (!properties.hasOwnProperty(ii)) {
                 continue;
             }
 
             var property = this.parseClarkNotation(properties[ii]);
             if (this.xmlNamespaces[property.namespace]) {
-                body+='    <' + this.xmlNamespaces[property.namespace] + ':' + property.name + ' />\n';
+                body += '    <' + this.xmlNamespaces[property.namespace] + ':' + property.name + ' />\n';
             } else {
-                body+='    <x:' + property.name + ' xmlns:x="' + property.namespace + '" />\n';
+                body += '    <x:' + property.name + ' xmlns:x="' + property.namespace + '" />\n';
             }
 
         }
-        body+='  </d:prop>\n';
-        body+='</d:propfind>';
+        body += '  </d:prop>\n';
+        body += '</d:propfind>';
 
         return this.request('PROPFIND', url, headers, body).then(
-            function(result) {
+            function (result) {
 
                 if (depth === '0') {
                     return {
@@ -117,11 +119,11 @@ dav.Client.prototype = {
      * @param {Object.<String,String>} properties
      * @return {String} XML "<d:set>" block
      */
-    _renderPropSet: function(properties) {
+    _renderPropSet: function (properties) {
         var body = '  <d:set>\n' +
             '   <d:prop>\n';
 
-        for(var ii in properties) {
+        for (var ii in properties) {
             if (!properties.hasOwnProperty(ii)) {
                 continue;
             }
@@ -142,8 +144,8 @@ dav.Client.prototype = {
             }
             body += '      <' + propName + '>' + propValue + '</' + propName + '>\n';
         }
-        body +='    </d:prop>\n';
-        body +='  </d:set>\n';
+        body += '    </d:prop>\n';
+        body += '  </d:set>\n';
         return body;
     },
 
@@ -155,7 +157,7 @@ dav.Client.prototype = {
      * @param {Object} [headers] headers
      * @return {Promise}
      */
-    propPatch : function(url, properties, headers) {
+    propPatch: function (url, properties, headers) {
         headers = headers || {};
 
         headers['Content-Type'] = 'application/xml; charset=utf-8';
@@ -171,7 +173,7 @@ dav.Client.prototype = {
         body += '</d:propertyupdate>';
 
         return this.request('PROPPATCH', url, headers, body).then(
-            function(result) {
+            function (result) {
                 return {
                     status: result.status,
                     body: result.body,
@@ -191,7 +193,7 @@ dav.Client.prototype = {
      * @param {Object} [headers] headers
      * @return {Promise}
      */
-    mkcol : function(url, properties, headers) {
+    mkcol: function (url, properties, headers) {
         var body = '';
         headers = headers || {};
         headers['Content-Type'] = 'application/xml; charset=utf-8';
@@ -205,11 +207,11 @@ dav.Client.prototype = {
                 body += ' xmlns:' + this.xmlNamespaces[namespace] + '="' + namespace + '"';
             }
             body += '>\n' + this._renderPropSet(properties);
-            body +='</d:mkcol>';
+            body += '</d:mkcol>';
         }
 
         return this.request('MKCOL', url, headers, body).then(
-            function(result) {
+            function (result) {
                 return {
                     status: result.status,
                     body: result.body,
@@ -229,7 +231,7 @@ dav.Client.prototype = {
      * @param {string} body HTTP request body.
      * @return {Promise}
      */
-    request : function(method, url, headers, body) {
+    request: function (method, url, headers, body) {
 
         var self = this;
         var xhr = this.xhrProvider();
@@ -240,7 +242,7 @@ dav.Client.prototype = {
         var turl = new URL(url, this.baseUrl).toString();
         xhr.open(method, turl, true);
         var ii;
-        for(ii in headers) {
+        for (ii in headers) {
             xhr.setRequestHeader(ii, headers[ii]);
         }
 
@@ -251,9 +253,9 @@ dav.Client.prototype = {
             xhr.send(body);
         }
 
-        return new Promise(function(fulfill, reject) {
+        return new Promise(function (fulfill, reject) {
 
-            xhr.onreadystatechange = function() {
+            xhr.onreadystatechange = function () {
 
                 if (xhr.readyState !== 4) {
                     return;
@@ -272,7 +274,7 @@ dav.Client.prototype = {
 
             };
 
-            xhr.ontimeout = function() {
+            xhr.ontimeout = function () {
 
                 reject(new Error('Timeout exceeded'));
 
@@ -289,7 +291,7 @@ dav.Client.prototype = {
      *
      * @return {XMLHttpRequest}
      */
-    xhrProvider : function() {
+    xhrProvider: function () {
 
         return new XMLHttpRequest();
 
@@ -304,7 +306,7 @@ dav.Client.prototype = {
      * @param {Object} propNode node to parse
      * @return {string|Array} text content as string or array of subnodes, excluding text nodes
      */
-    _parsePropNode: function(propNode) {
+    _parsePropNode: function (propNode) {
         var content = null;
         if (propNode.childNodes && propNode.childNodes.length > 0) {
             var subNodes = [];
@@ -329,14 +331,14 @@ dav.Client.prototype = {
      * @param {string} xmlBody
      * @param {Array}
      */
-    parseMultiStatus : function(xmlBody) {
+    parseMultiStatus: function (xmlBody) {
 
         var parser = new DOMParser();
         var doc = parser.parseFromString(xmlBody, "application/xml");
 
-        var resolver = function(foo) {
+        var resolver = function (foo) {
             var ii;
-            for(ii in this.xmlNamespaces) {
+            for (ii in this.xmlNamespaces) {
                 if (this.xmlNamespaces[ii] === foo) {
                     return ii;
                 }
@@ -348,11 +350,11 @@ dav.Client.prototype = {
         var result = [];
         var responseNode = responseIterator.iterateNext();
 
-        while(responseNode) {
+        while (responseNode) {
 
             var response = {
-                href : null,
-                propStat : []
+                href: null,
+                propStat: []
             };
 
             response.href = doc.evaluate('string(d:href)', responseNode, resolver, XPathResult.ANY_TYPE, null).stringValue;
@@ -360,16 +362,16 @@ dav.Client.prototype = {
             var propStatIterator = doc.evaluate('d:propstat', responseNode, resolver, XPathResult.ANY_TYPE, null);
             var propStatNode = propStatIterator.iterateNext();
 
-            while(propStatNode) {
+            while (propStatNode) {
                 var propStat = {
-                    status : doc.evaluate('string(d:status)', propStatNode, resolver, XPathResult.ANY_TYPE, null).stringValue,
-                    properties : {},
+                    status: doc.evaluate('string(d:status)', propStatNode, resolver, XPathResult.ANY_TYPE, null).stringValue,
+                    properties: {},
                 };
 
                 var propIterator = doc.evaluate('d:prop/*', propStatNode, resolver, XPathResult.ANY_TYPE, null);
 
                 var propNode = propIterator.iterateNext();
-                while(propNode) {
+                while (propNode) {
                     var content = this._parsePropNode(propNode);
                     propStat.properties['{' + propNode.namespaceURI + '}' + propNode.localName] = content;
                     propNode = propIterator.iterateNext();
@@ -390,7 +392,7 @@ dav.Client.prototype = {
 
     },
 
-    parseClarkNotation : function(propertyName) {
+    parseClarkNotation: function (propertyName) {
 
         var result = propertyName.match(/^{([^}]+)}(.*)$/);
         if (!result) {
@@ -398,8 +400,8 @@ dav.Client.prototype = {
         }
 
         return {
-            name : result[2],
-            namespace : result[1]
+            name: result[2],
+            namespace: result[1]
         };
 
     }

@@ -95,7 +95,7 @@ WebDAVStore.prototype._mkpath = function (path) {
                 }
                 return Promise.reject(
                     new Error("_mkpath failed on " + path.join('.') +
-                              ": " + res.status));
+                        ": " + res.status));
             });
 };
 

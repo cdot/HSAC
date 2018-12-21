@@ -6,7 +6,7 @@
  */
 (function ($) {
     "use strict";
-    
+
     $.fn.edit_in_place = function (options) {
 
         var $this = $(this);

@@ -53,6 +53,17 @@
 
     const dav_store = new WebDAVStore();
 
+    /**
+     * Promise to connect to webdav
+     */
+    function dav_connect() {
+        return dav_store.connect({
+                    url: Cookies.get("webdav_url"),
+                    username: Cookies.get("webdav_user"),
+                    password: Cookies.get("webdav_pass")
+        });
+    }
+    
     /*
      * Generic handling for items in lists (compressor events, loan events)
      * stored in CSV files.
@@ -96,7 +107,8 @@
     Entries.prototype.getFields = function (data) {
         var datum = {};
         for (var j = 0; j < this.fields.length; j++) {
-            var fieldname = this.fields[j], d;
+            var fieldname = this.fields[j],
+                d;
             if (data instanceof Array) {
                 d = data[j]; // arrays are indexed by column
             } else {
@@ -171,10 +183,14 @@
         window.setTimeout(tick, when);
     }
 
+    /** Make a simple date string */
     function formatDate(date) {
         return date.toISOString().replace(/T.*/, "");
     }
 
+    /**
+     * Informational dialog for use with data-with-info
+     */
     function infoDialog(outputMsg, titleMsg, onCloseCallback) {
         if (!titleMsg)
             titleMsg = 'Alert';
@@ -201,6 +217,10 @@
         });
     }
 
+    /**
+     * An element with data-with-info will be displayed with an information
+     * symbol which, when clicked, will bring up an infoDialog
+     */
     function with_info($thing, data) {
         var i = data || $thing.data("with-info");
         if (i.charAt(0) === '#' && $(i).length === 0)
@@ -219,8 +239,10 @@
         return $thing;
     }
 
-    // Entries for Compressor runtime events. This is a stack - the only
-    // editing available is to delete the last entry.
+    /**
+     * Entries for Compressor runtime events. This is a stack - the only
+     * editing available is to delete the last entry.
+     */
     function Compressor() {
         this.entries = undefined;
 
@@ -294,7 +316,9 @@
 
     var compressor = new Compressor();
 
-    // Entries for Loan events. These can be edited in place.
+    /**
+     * Entries for Loan events. These can be edited in place.
+     */
     function Loans() {
         Entries.call(this, "loans", [
             "date",
@@ -396,6 +420,12 @@
         return $span;
     };
 
+    Loans.prototype.mod_pick_item = function(row, field) {
+        // Something like the Google Docs "Move To" would be good?
+        // So, a dialog posted over the line item
+        
+    };
+    
     Loans.prototype.update_ui = function () {
         var self = this;
         this.load().then(() => {
@@ -421,10 +451,7 @@
                     }
                     $row.append($td);
                     $td = $("<td></td>");
-                    $td.append(self.mod_text(i, "desc"));
-                    $row.append($td);
-                    $td = $("<td></td>");
-                    $td.append(self.mod_text(i, "id"));
+                    $td.append(self.mod_pick_item(i, "desc"));
                     $row.append($td);
                     $td = $("<td></td>");
                     $td.append(self.mod_select(i, "borrower", "members"));
@@ -466,10 +493,9 @@
 
     var loans = new Loans();
 
-    function Whereis() {}
-
-    Whereis.prototype.submit = function () {};
-
+    /**
+     * Nitrox calculation tab
+     */
     function NitroxForm() {}
 
     NitroxForm.prototype.submit = function () {
@@ -485,16 +511,20 @@
         var mess;
         switch (result.status) {
         case Nitrox.MIX_ACHIEVABLE:
-            mess = "Add " + Math.floor(result.add_real_O2_bar) + " bar of O<sub>2</sub>. This will use " +
-                Math.round(result.O2_needed_litres) + " litres of O<sub>2</sub> at a cost of £" +
-                (Math.round(100 * (result.O2_needed_litres * Cookies.get("o2_price"))) / 100);
+            mess = "Add " + Math.floor(result.add_real_O2_bar)
+                + " bar of O<sub>2</sub>. This will use " +
+                Math.round(result.O2_needed_litres)
+                + " litres of O<sub>2</sub> at a cost of &pound;" +
+                (Math.round(100 * (result.O2_needed_litres
+                                   * Cookies.get("o2_price"))) / 100);
             break;
         case Nitrox.BANK_LACKS_O2:
             mess = "There is not enough O2 in the bank for this fill.";
             break;
         case Nitrox.TOO_MUCH_O2:
-            mess = "There is too much gas already in the cylinder for this fill. To use this bank you" +
-                " will have to bleed it down below " + result.bleed + " bar"
+            mess = "There is too much gas already in the cylinder for "
+                + "this fill. To use this bank you will have to bleed "
+                + "the cylinder down below " + result.bleed + " bar"
             break;
         default:
             throw "Bad Nitrox response result.status";
@@ -504,18 +534,13 @@
 
     var nitrox = new NitroxForm();
 
-    function dav_connect() {
-        return dav_store.connect({
-            url: Cookies.get("webdav_url"),
-            username: Cookies.get("webdav_user"),
-            password: Cookies.get("webdav_pass")
-        })
+    /**
+     * Promise to populate dropdown lists of member roles
+     */
+    function populate_dropdowns() {
+        dav_connect()
             .then(() => {
-                var promises = [];
-
-                // Populate operators and members drop-downs.
-                promises.push(
-                    dav_store.read('/Members - Lists For Sheds.csv')
+                return dav_store.read('/roles.csv')
                     .then((list) => {
                         list = $.csv.toArrays(list);
                         for (var col = 0; col < list[0].length; col++) {
@@ -523,28 +548,16 @@
                             lists[f] = [];
                             for (var row = 1; row < list.length; row++) {
                                 var e = list[row][col];
-                                if (e)
+                                if (e && e.length > 0)
                                     lists[f].push(e);
                             }
                             $("select." + f).html(
                                 "<option></option><option>" +
-                                lists[f]
-                                .join("</option><option>") +
-                                "</option>");
+                                    lists[f]
+                                    .join("</option><option>") +
+                                    "</option>");
                         }
-                    }));
-
-                // Populate equipment descriptions
-                promises.push(
-                    dav_store.read('/descriptions.csv')
-                    .then((list) => {
-                        list = $.csv.toArrays(list);
-                        $("input[name='description']").autocomplete({
-                            source: list.map(x => x[0])
-                        });
-                    }));
-
-                return Promise.all(promises);
+                    });
             })
             .then(() => {
                 compressor.update_ui();
@@ -558,6 +571,179 @@
             });
     }
 
+    var inventory;
+
+    function load_inventory() {
+        return dav_connect()
+            .then(() => {
+                return dav_store.read('/inventory.json');
+            })
+            .then((data) => {
+                inventory = JSON.parse(data);
+                return inventory;
+            });
+    }
+    
+    /**
+     * Promise to populate the inventory. The inventory is held as a data
+     */
+    function populate_inventory() {
+        return load_inventory()
+            .then((inventory) => {
+                var $it = $("#Inventory_tab>div");
+                if ($it.children().length > 0) {
+                    $it.tabs("destroy");
+                    $it.empty();
+                }
+                var $it_ul = $("<ul></ul>");
+                $it.append($it_ul);
+                for (var i in inventory) {
+                    var inv = inventory[i];
+                    var sht = inv.Class.replace(/\s+/,"_");
+                    $it_ul.append("<li><a href='#inventory_" + sht + "'>"
+                                  + inv.Class + "</a></li>");
+                    var $div = $("<div class='inventory_class' id='inventory_" + sht + "'></div>");
+                    $it.append($div);
+                    var $table = $("<table class='inventory_table zebra'></table>");
+                    $div.append($table);
+                    var $tr = $("<tr></tr>");
+                    var nc = inv.heads.length, ci;
+                    for (ci = 0; ci < nc; ci++) {
+                        $tr.append("<th>" + inv.heads[ci] + "</th>");
+                    }
+                    $table.append($tr);
+                    var ne = inv.entries.length, ei; 
+                    for (ei = 0; ei < ne; ei++) {
+                        $tr = $("<tr></tr>");
+                        for (ci = 0; ci < nc; ci++) {
+                            $tr.append("<td>"+inv.entries[ei][ci]+"</td>");
+                        }
+                        $table.append($tr);
+                    }
+                }
+                $it.tabs({});
+            });
+    }
+
+    function update_webdav() {
+        // Committee/Equipment/Sheds/Sheets contains two sheets that
+        // summarise information from Drive. The first, "Roles",
+        // contains columns for the member lists - at least members,
+        // operators and blenders, and maybe more. This is created by
+        // doing an IMPORTRANGE of data from the Members database.
+        //
+        // A second sheet, "Inventory", contains a mapping from the
+        // name of each of the inventory sheets to the publishing URL
+        // of a spreadsheet that extracts that sheet from the
+        // inventory.  These sheets act as the source material for the
+        // data files on webdav that the Sheds app uses to populate
+        // the UI.
+        
+        // Done this convoluted way because CSV publishing only
+        // publishes the first sheet in a spreadsheet. Hey, it works,
+        // don't knock it.
+        
+        const roles_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRB9rTpKqexsJ9UE_78FJI9sFrZWtXRMi2St-wuxofyVwufMHzzpxQuTRnzH0xhoXhhgL6W_QVA_vNZ/pub?output=csv";
+
+        $("#progress_messages").empty();
+        $("#progress_dialog").dialog({
+            title: "Updating from Drive",
+            modal: true,
+            width: "90%",
+            close: function(e, ui) {
+                $("#progress_dialog").dialog("destroy");
+            }
+        }).dialog("open");
+        
+        var now = Date.now(); // default caches
+        
+        var p1 = $.ajax({
+            url: roles_url + "&t=" + now,
+            method: "GET",
+            dataType: "text"
+        })
+            .then((response) => {
+                $("#progress_messages")
+                    .append("<div>Read roles from Drive</div>");
+                var l = response;
+                return dav_connect()
+                    .then(() => {
+                        return dav_store.write('/roles.csv', response)
+                            .then(() => {
+                                $("#progress_messages")
+                                    .append("<div>Updated roles</div>");
+                                populate_dropdowns();
+                            });
+                    });
+            })
+            .catch((e) => {
+                $("#progress_messages").append(
+                    "<div class='error'>Error reading roles from Drive: "
+                        + (e.status ? e.status : e) + "</div>");
+            });
+
+        const sheets_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5d0yb4xLj024S35YUCnMQZmblbuAOZ5sO_wGn8gm9bgQeLgMXIUiMGQIPrN0wPvnmsM_fzQ0kzglD/pub?output=csv";
+        
+        var p2 = $.ajax({
+            url: sheets_url + "&t=" + now,
+            method: "GET",
+            dataType: "text",
+        })
+            .then((response) => {
+                $("#progress_messages")
+                    .append("<div>Read sheets list from Drive</div>");
+                var sheets = $.csv.toArrays(response);
+                var promises = [];
+                
+                sheets.forEach(function(sheet) {
+                    var id = sheet[0];
+                    var url = sheet[1] + "&t=" + now;
+
+                    promises.push(new Promise((resolve, reject) => {
+                        var clas = id;
+                        // Get the published CSV
+                        $.ajax({
+                            url: url,
+                            method: "GET",
+                            dataType: "text",
+                        })
+                            .then((response) => {
+                                $("#progress_messages")
+                                    .append("<div>Read " + id
+                                            + " from Drive</div>");
+                                var res = { "Class": id };
+                                var data = $.csv.toArrays(response);
+                                res.heads = data.shift();
+                                res.entries = data;
+                                resolve(res);
+                            });
+                    }));
+                });
+        
+                return Promise.all(promises).then(function(iv) {
+                    return dav_connect().then(() => {
+                        return dav_store.write(
+                            '/inventory.json', JSON.stringify(iv))
+                            .then(() => {
+                                $("#progress_messages")
+                                    .append("<div>Updated inventory.json</div>");
+                                populate_inventory();
+                            });
+                    });
+                });
+            })
+            .catch((e) => {
+                $("#progress_messages").append(
+                    "<div class='error'>Error reading sheets from Drive: "
+                        + (e.status ? e.status : e )+ "</div>");
+            });
+        
+        Promise.all([p1, p2]).then(() => {
+            $("#progress_messages").append(
+                "<div>Update finished</div>");
+        });
+    }
+    
     $(document).ready(() => {
         // Start the clock
         tick();
@@ -603,7 +789,7 @@
                         });
 
                         dav_store.disconnect().then(() => {
-                            dav_connect();
+                            populate_dropdowns();
                         });
                     }
                 }
@@ -661,7 +847,9 @@
             $("#loan_controls").hide();
         });
 
-        // Try and connect, enable tabs if successful
-        dav_connect();
+        $("#update_webdav").on("click", update_webdav);
+
+        populate_dropdowns();
+        populate_inventory();
     });
 })(jQuery);

@@ -22,7 +22,7 @@ GAPI.setup = function(params) {
 }
 
 /**
- * Return a promise to authorise the given scopes and laod the given APIs
+ * Return a promise to authorise the given scopes and load the given APIs
  */
 function GAPI(scopes, apis) {
     var promise = Promise.resolve();
@@ -63,6 +63,10 @@ function GAPI(scopes, apis) {
             });
     }).then(GAPI._auth(scopes, apis));
 }
+
+module.exports = GAPI;
+
+GAPI.authScopes = [];
 
 /**
  * Return a Promise to authorise the requested scopes and load

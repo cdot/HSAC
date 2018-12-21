@@ -1,17 +1,18 @@
+<!DOCTYPE html>
 <html>
-  <!-- BUILD_DATE -->
+  <!-- BUILD_DATE Tue 18 Dec 15:02:58 GMT 2018 ->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
     <meta name="expires" content="Mon, 2 Apr 2018 09:00:00 GMT">
     
     <link rel="shortcut icon" sizes="196x196" href="images/yellow-shedsvg.svg"/>
-    <link rel="icon" href="images/favicon.png?version=0" type="image/x-icon" />
+    <link rel="icon" href="images/favicon.png?version=1545127482" type="image/x-icon" />
     
     <!-- for ios 7 style, multi-resolution icon of 152x152 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-barstyle" content="black-translucent">
-    <link rel="apple-touch-icon" href="images/yellow-shedsvg.svg?version=0">
+    <link rel="apple-touch-icon" href="images/yellow-shedsvg.svg?version=1545127482">
 
     <!-- for Chrome on Android, multi-resolution icon of 196x196 -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -19,43 +20,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     <title>HSAC Sheds</title>
-    <link rel="icon" href="images/favicon.png?version=0" />
+    <link rel="icon" href="images/favicon.png?version=1545127482" />
 
     <!-- from //cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1 -->
-    <script src="libs/jquery.min.js?version=0"></script>
+    <script src="libs/jquery.min.js?version=1545127482"></script>
 
     <!-- from //cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1 -->
-    <script src="libs/jquery-ui/jquery-ui.min.js?version=0"></script>
+    <script src="libs/jquery-ui/jquery-ui.min.js?version=1545127482"></script>
     
     <!-- from https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0 -->
-    <script src="libs/jquery-validate/jquery.validate.min.js?version=0"></script>
-    <script src="libs/jquery-validate/additional-methods.min.js?version=0"></script>
+    <script src="libs/jquery-validate/jquery.validate.min.js?version=1545127482"></script>
+    <script src="libs/jquery-validate/additional-methods.min.js?version=1545127482"></script>
     
     <!-- from //cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0 -->
-    <script src="libs/js.cookie.min.js?version=0"></script>
+    <script src="libs/js.cookie.min.js?version=1545127482"></script>
     
     <!-- from https://github.com/evanplaice/jquery-csv/tree/master/src -->
-    <script src="libs/jquery.csv.min.js?version=0"></script>
+    <script src="libs/jquery.csv.min.js?version=1545127482"></script>
     
     <!-- from https://github.com/Mottie/tablesorter -->
-    <script src="libs/tablesorter/js/jquery.tablesorter.min.js?version=0"></script>
-    <script src="libs/tablesorter/js/jquery.tablesorter.widgets.min.js?version=0"></script>
+    <script src="libs/tablesorter/js/jquery.tablesorter.min.js?version=1545127482"></script>
+    <script src="libs/tablesorter/js/jquery.tablesorter.widgets.min.js?version=1545127482"></script>
 
-    <script class="compressable" src="libs/davclient.js?version=0"></script>
-    <script class="compressable" src="js/AbstractStore.js?version=0"></script>
-    <script class="compressable" src="js/WebDAVStore.js?version=0"></script>
-    <script class="compressable" src="js/Nitrox.js?version=0"></script>
-    <script class="compressable" src="js/edit_in_place.js?version=0"></script>
-    <script class="compressable" src="js/Sheds.js?version=0"></script>
+    <script src="libs/davclient.min.js?version=1545127482"></script>
+    <script class="compressable" src="js/AbstractStore.js?version=1545127482"></script>
+    <script class="compressable" src="js/WebDAVStore.js?version=1545127482"></script>
+    <script class="compressable" src="js/Nitrox.js?version=1545127482"></script>
+    <script class="compressable" src="js/edit_in_place.js?version=1545127482"></script>
+    <script class="compressable" src="js/Entries.js?version=1545127482"></script>
+    <script class="compressable" src="js/Sheds.js?version=1545127482"></script>
 
     <!-- from //code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css -->
-    <link href="libs/jquery-ui/jquery-ui.min.css?version=0" rel="stylesheet">
+    <link href="libs/jquery-ui/jquery-ui.min.css?version=1545127482" rel="stylesheet">
     
-    <link rel="stylesheet" href="libs/tablesorter/css/theme.jui.min.css?version=0">
-    <link rel="stylesheet" href="libs/jquery-icon-font/jquery-ui.icon-font.min.css?version=0" />
+    <link rel="stylesheet" href="libs/tablesorter/css/theme.jui.min.css?version=1545127482">
+    <link rel="stylesheet" href="libs/jquery-icon-font/jquery-ui.icon-font.min.css?version=1545127482" />
     
-    <link class="compressable" rel="stylesheet" href="css/edit_in_place.css?version=0">
-    <link class="compressable" rel="stylesheet" href="css/Sheds.css?version=0">
+    <link class="compressable" rel="stylesheet" href="css/edit_in_place.css?version=1545127482">
+    <link class="compressable" rel="stylesheet" href="css/Sheds.css?version=1545127482">
 
   </head>
   <body>
@@ -67,7 +69,7 @@
       <ul>
         <li><a href="#Compressor_tab">Compressor</a></li>
         <li><a href="#Loans_tab">Loans</a></li>
-        <li><a href="#Whereis_tab">Where is...?</a></li>
+        <li><a href="#Inventory_tab">Inventory</a></li>
         <li><a href="#Nitrox_tab">Nitrox</a></li>
       </ul>
       <div id="Compressor_tab" class="store_tab">
@@ -92,7 +94,7 @@
                 </span>
               </th>
               <td class="widest">
-                <input type="number" id="cur_temp" name="temperature" data-msg="<br>Must be between 4°C and 40°C" required min="4" max="40" value="20" > °C
+                <input type="number" id="cur_temp" name="temperature" data-msg="<br>Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20"> &deg;C
               </td>
             </tr>
             <tr>
@@ -172,7 +174,6 @@
               <thead>
                 <th>Date</th>
                 <th class="widest">Description</th>
-                <th>ID</th>
                 <th>Borrower</th>
                 <th>Lender</th>
                 <th>Donation</th>
@@ -287,16 +288,11 @@
         </div>
       </div>
 
-      <div id="Whereis_tab" class="store_tab">
-        <form name="whereis" class="validated_form">
-          <label for="search">Search</label>
-          <input name="search" id="search" required>
-          <input type="submit" value="Search" data-with-info="#searchInfo">
-        </form>
-        <div class="hidden" id="searchInfo">
-          Enter a description or equipment ID to search for
+      <div id="Inventory_tab" class="store_tab">
+        <div>
         </div>
       </div>
+      
       <div id="Nitrox_tab" class="store_tab">
         <form name="nitrox" class="validated_form">
           <table class="form_table zebra">
@@ -306,7 +302,7 @@
               </th>
               <th colspan="2">
                 Temperature
-                <input id="nox_t" name="temperature" data-msg="<br>Must be between 4°C and 40°C" required type="number" min="4" max="40" value="20"> °C
+                <input id="nox_t" name="temperature" data-msg="<br>Must be between 4&deg;C and 40&deg;C" required type="number" min="4" max="40" value="20"> &deg;C
               </th>
             </tr>
             <tr>
@@ -379,10 +375,17 @@
           <tr>
             <th>O2 cost per litre</th>
             <td class="widest">
-              £<input type="number" step="any" required id="cfg_o2_price">
+              &pound;<input type="number" step="any" required id="cfg_o2_price">
             </td>
           </tr>
+          <tr>
+            <td colspan="2"><button id="update_webdav">Update</button> local lists from Google Drive (must be connected to the internet)</td>
+          </tr>
         </table>
+      </div>
+    </div>
+    <div class="hidden" id="progress_dialog">
+      <div id="progress_messages">
       </div>
     </div>
   </body>

@@ -18,6 +18,25 @@ body {
     display: none;
 }
 
+.inventory_class {
+    padding: 0.25em 0 0 0 !important;
+    margin: 0;
+}
+
+.inventory_table {
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.inventory_table th {
+    background-color: #AED9DA;
+    border: 1px dotted black;
+}
+
+.inventory_table td {
+    border: 1px dotted black;
+}
+
 .late {
     color: red;
 }
@@ -46,6 +65,9 @@ body {
 .modified {
     color: white;
     background-color: #135589;
+}
+
+#progress_dialog {
 }
 
 .scroll_container {
