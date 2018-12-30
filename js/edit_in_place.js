@@ -10,8 +10,8 @@
     $.fn.edit_in_place = function (options) {
 
         var $this = $(this);
-        var h = options.height || $this.parent().innerHeight() || "1em";
-        var w = options.width || $this.parent().innerWidth() || "1em";
+        var h = options.height || $this.innerHeight() || "1em";
+        var w = options.width || $this.innerWidth() || "1em";
         var changed = options.changed ||
             function (text) {
                 return $this.text();
@@ -33,8 +33,8 @@
             .insertBefore($this)
             .addClass("in_place_editor")
             .val(text)
-            .css("height", h)
-            .css("width", w)
+            .css("height", h - 6)
+            .css("width", w - 4)
 
             .on("change", function () {
                 var val = $(this)
@@ -60,64 +60,63 @@
 
     $.fn.select_in_place = function (options) {
 
-        var $dlg = $("#sip_menu");
-        if ($dlg.length == 0) {
-            $dlg = $("<div id='sip_menu'><ul></ul></div>");
-            $("body").append($dlg);
-            $dlg.dialog({
-                modal: false,
-                autoOpen: false,
-                closeOnEscape: true,
-                title: false,
-                dialogClass: "sip_menu_dlg",
-                width: "auto",
-                height: "auto",
-                resizable: false,
-                draggable: false,
-                position: {
-                    my: "left top",
-                    at: "left top"
-                },
-                open: function (event, ui) {
-                    $(".ui-widget-overlay").on("click", function () {
-                        $("#dialog").dialog("close");
-                    });
-                }
-            });
-        }
-        var $ul = $dlg.children("ul");
+        var $ul = $("<ul class='sip_menu_ul'></ul>");
+        var $div = $("<div class='sip_div'></div>");
+        var $dlg = $("<div id='sip_menu'></div>");
+        $div.append($ul);
+        $dlg.append($div);
+        $("body").append($dlg);
+
         var $this = $(this);
-
-        var changed = options.changed ||
-            function (text) {
-                return $this.text();
-            };
-        var closed = options.closed || function () {};
-
-        // Action on blur
-        function blurb() {
-            $dlg.dialog("close");
-            closed();
-        }
-
         var text = $this.text();
-        $ul.empty();
+
         for (var i = 0; i < options.options.length; i++) {
-            var $opt = $("<li>" + options.options[i] + "</li>");
-            if (options.options[i] === text)
+            var opt = options.options[i];
+            var $opt = $("<li>" + opt + "</li>");
+            if (opt === text) {
                 $opt.addClass("ui-state-disabled");
+                $opt[0].scrollIntoView();
+            }
             $ul.append($opt);
         }
-        $dlg.dialog("option", "maxHeight", $("body").height() - 10);
-        $dlg.dialog("option", "position.of", $this);
+
         $ul.menu({
             select: function (event, ui) {
                 var val = ui.item.text();
-                blurb();
-                text = changed.call($this, val);
+                if (options.changed)
+                    options.changed.call($this, val);
+                $dlg.dialog("close");
             }
-        }).blur(blurb);
-        $dlg.dialog("open");
-        $ul.select();
+        });
+        var vo = $this.offset();
+        
+        $dlg.dialog({
+            modal: true,
+            autoOpen: true,
+            closeOnEscape: true,
+            title: false,
+            dialogClass: "sip_menu_dlg",
+            position: {
+                my: "left top",
+                at: "left top",
+                of: $this,
+                collision: "none"
+            },
+            width: "auto",
+            height: window.innerHeight - vo.top,
+            resizable: false,
+            draggable: false,
+            open: function (event, ui) {
+                // Blur when clicking outside the menu
+                $(".ui-widget-overlay").on("click", function () {
+                    $dlg.dialog("close");
+                });
+                $ul.select();
+            },
+            close: function() {
+                $dlg.dialog("destroy");
+                $dlg.remove();
+            }
+        });
     };
 })(jQuery);

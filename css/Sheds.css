@@ -11,20 +11,21 @@ body {
 }
 
 .error {
-    color: red;
+    color: white;
+    background-color: red;
 }
 
 .hidden {
     display: none;
 }
 
-/* Applied to each page in an inventory */
-.inventory_class {
+/* Applied to each sheet in an inventory */
+.inventory_sheet {
     padding: 0.25em 0 0 0 !important;
     margin: 0;
 }
 
-/* The table within an inventory page */
+/* The table within an inventory sheet */
 .inventory_table {
     margin: 0;
     border-collapse: collapse;
@@ -39,16 +40,27 @@ body {
     border: 1px dotted black;
 }
 
+label.error {
+    float:right;
+}
+
+.loan_chosen {
+    color: red;
+}
+
 .loan_late {
     color: red;
 }
 
-.loan_table {
+#loan_table {
     border: 1px dotted grey;
+    margin: 0;
+    border-collapse: collapse;
 }
 
-#loan_controls {
-    display: inline;
+#loan_table > tfoot th {
+    border: 1px dotted grey;
+    color: #135589;
 }
 
 /* A single cell in a loan table */
@@ -62,12 +74,13 @@ body {
     color: white;
 }
 
+#loan_controls {
+    display: inline;
+}
+
 .modified {
     color: white;
     background-color: #135589;
-}
-
-#progress_dialog {
 }
 
 .scroll_container {

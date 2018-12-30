@@ -5,6 +5,7 @@
 /* global require */
 /* global dav */
 /* global module */
+/* global WebDAVStore: true */
 
 /**
  * Store on a remote webdav server
@@ -52,6 +53,7 @@ WebDAVStore.prototype.disconnect = function () {
 
     this.params = {};
     this.DAV = null;
+    return Promise.resolve();
 };
 
 WebDAVStore.prototype.read = function (path) {

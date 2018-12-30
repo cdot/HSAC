@@ -11,6 +11,7 @@
 /* global Nitrox */
 /* global Compressor */
 /* global Loans */
+/* global Inventory */
 
 (($) => {
     const dav_store = new WebDAVStore();
@@ -85,20 +86,22 @@
 
     var nitrox = new NitroxForm();
 
+    var inventory = new Inventory(dav_store);
+
     /**
      * Update all UIs from webdav
      */
     function reload_ui() {
-	console.debug("Reloading UI");
+        console.debug("Reloading UI");
         Promise.all([
-	    compressor.reload_ui(),
-	    loans.reload_ui(),
-	    inventory.reload_ui()
-	])
-	    .then(() => {
-		console.debug("Reloading roles");
-		return dav_store.read('/roles.csv');
-	    })
+            compressor.reload_ui(),
+            loans.reload_ui(),
+            inventory.reload_ui(loans)
+        ])
+            .then(() => {
+                console.debug("Reloading roles");
+                return dav_store.read('/roles.csv');
+            })
             .then((list) => {
                 list = $.csv.toArrays(list);
                 for (var col = 0; col < list[0].length; col++) {
@@ -111,18 +114,16 @@
                     }
                     $("select." + f).html(
                         "<option></option><option>" +
-                            roles[f]
-                            .join("</option><option>") +
-                            "</option>");
+                        roles[f]
+                        .join("</option><option>") +
+                        "</option>");
                 }
             })
-	    .catch((e) => {
-		console.error("Roles load failed:", e);
-	    });
+            .catch((e) => {
+                console.error("Roles load failed:", e);
+            });
         $("#tabs").tabs("option", "disabled", []);
     }
-
-    var inventory = new Inventory(dav_store);
 
     function update_webdav(report) {
         // The Committee/Equipment/Sheds folder contains two sheets
@@ -137,7 +138,7 @@
         // the sheet of the same name from
         // Committee/Equipment/Sheds/Equipment & Servicing Schedules
         // These CSV files are downloaded and saved to webdav for
-	// the Sheds app to use to populate the UI when offline.
+        // the Sheds app to use to populate the UI when offline.
 
         // Done this convoluted way because we want to be able to
         // serve the data to anyone who connects to the network in the
@@ -164,7 +165,7 @@
                         return dav_store.write('/roles.csv', response)
                             .then(() => {
                                 report("info", "Updated roles");
-                                populate_dropdowns();
+                                reload_ui();
                             });
                     });
             })
@@ -199,7 +200,7 @@
                             })
                             .then((response) => {
                                 report("info", "Read " + id +
-                                        " from Drive");
+                                    " from Drive");
                                 var res = {
                                     "Class": id
                                 };
@@ -217,7 +218,7 @@
                                 '/inventory.json', JSON.stringify(iv))
                             .then(() => {
                                 report("info", "Updated inventory.json");
-                               inventory.populate_tab();
+                                reload_ui();
                             });
                     });
                 });
@@ -236,15 +237,19 @@
     function config(field) {
         var sel = "#cfg_" + field;
         $(sel).on("change", function () {
-            var v = $(sel).val();
-            if (v !== Cookies.get(field))
-                Cookies.set(field, v, {
-                    expires: 365
-                });
-        })
+                var v = $(sel).val();
+                if (v !== Cookies.get(field))
+                    Cookies.set(field, v, {
+                        expires: 365
+                    });
+            })
             .val(Cookies.get(field));
     }
 
+    $.validator.addMethod("notempty", function(v, e, p) {
+        debugger;
+    });
+    
     $(() => {
         // Start the clock
         tick();
@@ -273,16 +278,25 @@
             width: "100%",
             close: function () {
                 dav_store.disconnect().then(() => {
-                    populate_dropdowns();
+                    reload_ui();
                 });
             }
         });
 
+/*        $("#Compressor_tab select[name='operator']").rules(
+            "add", { required: true }
+        );*/
+       
+        $("#check_compressor_record").click(function() {
+            var form = $("#compressor_form");
+            alert( "Valid: " + form.valid() );
+        });
+        
         $("#settings").on("click", function () {
             $("#Configuration_dialog").dialog("open");
         });
 
-        $(".validated_form").validate();
+        $(".validated_form").validate({ ignore: "" });
 
         $(".validated_form").on("submit", (e) => {
             e.preventDefault();
@@ -295,26 +309,26 @@
             $(this).with_info();
         });
 
-        $("#update_webdav").on("click", function() {
-            $("#progress_messages").empty();
-            $("#progress_dialog").dialog({
-		title: "Updating from Drive",
-		modal: true,
-		width: "90%",
-		close: function (e, ui) {
-                    $("#progress_dialog").dialog("destroy");
-		}
+        $("#update_webdav").on("click", function () {
+            $("#alert_messages").empty();
+            $("#alert_dialog").dialog({
+                title: "Updating from Drive",
+                modal: true,
+                width: "90%",
+                close: function (e, ui) {
+                    $("#alert_dialog").dialog("destroy");
+                }
             }).dialog("open");
-	    update_webdav(function(clss, m) {
-		$("#progress_messages").append("<div class='" + clss + "'>"
-					       + m + "</div>");
-	    });
-	});
+            update_webdav(function (clss, m) {
+                $("#alert_messages").append("<div class='" + clss + "'>" +
+                    m + "</div>");
+            });
+        });
 
         dav_connect()
-	    .then(function() {
-		reload_ui();
-	    })
+            .then(function () {
+                reload_ui();
+            })
             .catch((e) => {
                 $("#tabs").tabs("option", "disabled", [0, 1, 2, 3]);
                 $("#cfg_connect_error").text(e);

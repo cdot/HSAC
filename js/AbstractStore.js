@@ -11,6 +11,7 @@
  * (which is an AbstractStore in which an underlying "engine" store provides
  * the actual storage services)
  */
+/* global AbstractStore: true */
 
 /**
  * @class

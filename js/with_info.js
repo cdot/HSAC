@@ -8,7 +8,7 @@
     "use strict";
 
     function infoDialog(outputMsg, titleMsg) {
-	var $element = $(this);
+        var $element = $(this);
 
         if (!titleMsg)
             titleMsg = 'Alert';
@@ -38,7 +38,7 @@
      * symbol which, when clicked, will bring up an infoDialog
      */
     $.fn.with_info = function (data) {
-	var $thing = $(this);
+        var $thing = $(this);
         var i = data || $thing.data("with-info");
         if (i.charAt(0) === '#' && $(i).length === 0)
             throw "Missing " + i;

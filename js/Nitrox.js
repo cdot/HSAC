@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
 /* eslint-env jquery */
-/* global Nitrox */
+/* global Nitrox: true */
 /* global module */
 
 "use strict";
@@ -70,6 +70,9 @@ var Nitrox = {
         // @param a correction for intermolecular forces
         // @param b correction for finite molecular size
         function realP(name, P, V, a, b) {
+
+            if (P == 0)
+                return V;
 
             const N = 1; // Number of moles
             console.log(name + ": Pressure", P, "Volume", V);

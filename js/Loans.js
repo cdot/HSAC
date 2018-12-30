@@ -1,6 +1,9 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
 /* eslint-env jquery */
+/* global Entries */
+/* global Cookies */
+/* global Loans: true */
 
 "use strict";
 
@@ -18,21 +21,31 @@ function Loans(store, roles) {
         "returned"
     ], {
         date: "Date",
-	count: "Number",
+        count: "Number",
         donation: "Number",
         returned: "Date"
     });
 
+    // Defaults used to populate the new entry row
+    this.defaults = {
+        date: new Date(),
+        item: "select",
+        count: 1,
+        borrower: "select",
+        lender: "select",
+        donation: 0
+    };
+
     var self = this;
     self.roles = roles;
-    $(function() {
+    $(function () {
         $("#loan_controls").hide();
 
         $("#loan_save").on("click", function () {
             $(".modified").each(function () {
                 $(this).removeClass("modified");
             });
-	    // Save to file
+            // Save to file
             self.save()
                 .then(() => {
                     $("#loan_controls").hide();
@@ -52,18 +65,56 @@ function Loans(store, roles) {
         $("#loan_show_all").on("change", () => {
             self.reload_ui();
         });
+
+        $("#loan_add").on("click", () => {
+            var bad = [];
+            try {
+                if (new Date(self.capture.date) > new Date())
+                    bad.push("date");
+            } catch (e) {
+                bad.push("date");
+            }
+            if (self.capture.item == self.defaults.item)
+                bad.push("item");
+            try {
+                if (parseInt(self.capture.count) < 0)
+                    bad.push("count");
+            } catch (e) {
+                bad.push("count");
+            }
+            if (self.roles.members.indexOf(self.capture.borrower) < 0)
+                bad.push("borrower");
+            if (self.roles.operators.indexOf(self.capture.lender) < 0)
+                bad.push("lender");
+            try {
+                if (parseFloat(self.capture.donation) < 0)
+                    bad.push("donation");
+            } catch (e) {
+                bad.push("donation");
+            }
+            if (bad.length == 0)
+                self.add(self.capture);
+            else {
+                bad.forEach(function(e) {
+                    $("#loan_dlg_" + e).addClass("error");
+                })
+            }
+        });
     });
 }
 
 Loans.prototype = Object.create(Entries.prototype);
 Loans.prototype.constructor = Loans;
 
-Loans.prototype.mod_number = function (row, field, integer) {
-    var $td = $("<td></td>");
-    var entry = this.entries[row];
+Loans.prototype.mod_number = function ($td, field, isInteger) {
+    var entry = this.capture;
+    if (typeof $td === "number") {
+        entry = this.entries[$td];
+        $td = $("<td></td>");
+    }
     var type = this.types[field];
-
     var text = entry[field];
+
     if (type === "Date")
         text = Entries.formatDate(text);
     $td.text(text);
@@ -73,8 +124,16 @@ Loans.prototype.mod_number = function (row, field, integer) {
             changed: function (s) {
                 if (s !== entry[field]) {
                     entry[field] = s;
-		    // TODO: number validation
                     $td.text(s);
+                    try {
+                        if (isInteger)
+                            parseInt(s);
+                        else
+                            parseFloat(s);
+                        $td.removeClass("error");
+                    } catch (e) {
+                        $td.addClass("error");
+                    }
                     $td.addClass("modified");
                     $("#loan_controls").show();
                 }
@@ -85,11 +144,15 @@ Loans.prototype.mod_number = function (row, field, integer) {
     return $td;
 };
 
-Loans.prototype.mod_select = function (row, field, set) {
-    var $td = $("<td></td>");
-    var entry = this.entries[row];
+Loans.prototype.mod_select = function ($td, field, set) {
+    var entry = this.capture;
+    if (typeof $td === "number") {
+        entry = this.entries[$td];
+        $td = $("<td></td>");
+    }
     var text = entry[field];
     $td.text(text);
+    var self = this;
 
     $td.on("click", function () {
         $(this).select_in_place({
@@ -97,22 +160,26 @@ Loans.prototype.mod_select = function (row, field, set) {
                 if (s != entry[field]) {
                     entry[field] = s;
                     $td.text(s);
+                    $td.removeClass("error");
                     $td.addClass("modified");
                     $("#loan_controls").show();
                 }
                 return s;
             },
-            options: set,
+            options: self.roles[set],
             initial: text
         });
     });
     return $td;
 };
 
-Loans.prototype.mod_date = function (row, field) {
-    var entry = this.entries[row];
+Loans.prototype.mod_date = function ($td, field) {
+    var entry = this.capture;
+    if (typeof $td === "number") {
+        entry = this.entries[$td];
+        $td = $("<td></td>");
+    }
     var date = entry[field];
-    var $td = $("<td></td>");
     if (typeof date !== "undefined")
         $td.text(Entries.formatDate(date));
     else {
@@ -129,6 +196,7 @@ Loans.prototype.mod_date = function (row, field) {
                 if (date != entry[field]) {
                     entry[field] = date;
                     $td.text(Entries.formatDate(date));
+                    $td.removeClass("error");
                     $td.addClass("modified");
                     $("#loan_controls").show();
                 }
@@ -140,83 +208,97 @@ Loans.prototype.mod_date = function (row, field) {
     return $td;
 };
 
-Loans.prototype.mod_item = function(row) {
-    var entry = this.entries[row];
-    var $td = $("<td></td>");
-    $td.text(entry.item);
-    $td.on("click", function() {
-	$("#inventory_pick_dialog")
-	    .data("picked", entry.item)
-	    .data("handler", function(item) {
+Loans.prototype.mod_item = function ($td, field) {
+    var entry = this.capture;
+    if (typeof $td === "number") {
+        entry = this.entries[$td];
+        $td = $("<td></td>");
+    }
+    $td.text(entry[field]);
+    $td.on("click", function () {
+        $("#inventory_pick_dialog")
+            .data("picked", entry.item)
+            .data("handler", function (item) {
                 entry.item = item;
-		$td.text(item);
+                $td.text(item);
+                $td.removeClass("error");
                 $td.addClass("modified");
                 $("#loan_controls").show();
-	    })
-	    .dialog("open");
+            })
+            .dialog("open");
     });
     return $td;
 };
 
-Loans.prototype.reload_ui = function () {
-    var self = this;
-    return this.load()
-	.then(() => {
-	    console.debug("Loading",self.entries.length,"loan records");
-            $(".loan_table>tbody").empty().each(function () {
-		var list = self.entries;
-		var show_all = $("#show_all_loans").is(':checked');
-		var $row;
-		for (var i = 0; i < list.length; i++) {
-                    var row = list[i];
-                    var active = (typeof row.returned === "undefined" ||
-				  row.returned.valueOf() > Date.now());
-                    if (!active && !show_all)
-			continue;
-                    $row = $("<tr></tr>");
-                    if (typeof row.returned === "undefined") {
-			var due = row.date.valueOf() +
-                            (Cookies.get("loan_return") || 10) *
-                            24 * 60 * 60 * 1000;
-			if (due < Date.now())
-                            $row.addClass("loan_late");
-                    }
-                    $row.append(self.mod_date(i, "date"));
-                    $row.append(self.mod_item(i));
-                    $row.append(self.mod_number(
-			i, "count", true));
-                    $row.append(self.mod_select(
-			i, "borrower",
-			self.roles["members"]));
-                    $row.append(self.mod_select(
-			i, "lender",
-			self.roles["operators"]));
-                    $row.append(self.mod_number(
-			i, "donation", false));
-                    $row.append(self.mod_date(
-			i, "returned"));
-                    $(this).append($row);
-		}
-		$(this).parent().tablesorter({
-                    cancelSelection: true,
-                    selectorHeaders: "> thead th",
-                    selectorSort: "th",
-                    headerTemplate: '{content}<a href="#">{icon}</a>',
-                    widgets: ['zebra', 'columns', 'uitheme'],
-                    theme: 'jui',
-                    delayInit: true,
-                    dateFormat: "ddmmyyyy"
-		});
-            });
-	})
-	.catch((e) => {
-	    console.error("Loans load failed:", e);
-	});
+Loans.prototype.load_tbody = function () {
+    var $tbody = $("#loan_table>tbody");
+    $tbody.empty();
+
+    var list = this.entries;
+    var show_all = $("#loan_show_all").is(':checked');
+    var $row;
+    for (var i = 0; i < list.length; i++) {
+        var row = list[i];
+        var active = (typeof row.returned === "undefined" ||
+            row.returned.valueOf() > Date.now());
+        if (!active && !show_all)
+            continue;
+        $row = $("<tr></tr>");
+        if (typeof row.returned === "undefined") {
+            var due = row.date.valueOf() +
+                (Cookies.get("loan_return") || 10) *
+                24 * 60 * 60 * 1000;
+            if (due < Date.now())
+                $row.addClass("loan_late");
+        }
+        $row.append(this.mod_date(i, "date"));
+        $row.append(this.mod_item(i, "item"));
+        $row.append(this.mod_number(i, "count", true));
+        $row.append(this.mod_select(i, "borrower", "members"));
+        $row.append(this.mod_select(i, "lender", "operators"));
+        $row.append(this.mod_number(i, "donation", false));
+        $row.append(this.mod_date(i, "returned"));
+        $tbody.append($row);
+    }
 };
 
-Loans.prototype.add = function (r) {
-    r.date = new Date();
-    Entries.prototype.add.call(this, r);
+Loans.prototype.load_tfoot = function () {
+    $("#loan_table>tfoot").find(".modified").removeClass("modified");
+    var $col = $("#loan_table>tfoot th").first();
+    this.mod_date($col, "date");
+    $col = $col.next();
+    this.mod_item($col, "item");
+    $col = $col.next();
+    this.mod_number($col, "count", true);
+    $col = $col.next();
+    this.mod_select($col, "borrower", "members");
+    $col = $col.next();
+    this.mod_select($col, "lender", "operators");
+    $col = $col.next();
+    this.mod_number($col, "donation", false);
+};
+
+Loans.prototype.reload_ui = function () {
+    return this.load()
+        .then(() => {
+            console.debug("Loading", this.entries.length, "loan records");
+            this.load_tbody();
+            this.capture = $.extend({}, this.defaults);
+            this.load_tfoot();
+            $("#loan_table").tablesorter({
+                cancelSelection: true,
+                selectorHeaders: "> thead th",
+                selectorSort: "th",
+                headerTemplate: '{content}<a href="#">{icon}</a>',
+                widgets: ['zebra', 'columns', 'uitheme'],
+                theme: 'jui',
+                delayInit: true,
+                dateFormat: "ddmmyyyy"
+            });
+        })
+        .catch((e) => {
+            console.error("Loans load failed:", e);
+        });
 };
 
 Loans.prototype.save_changes = function () {
