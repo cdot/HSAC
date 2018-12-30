@@ -9,48 +9,10 @@
 /* global WebDAVStore */
 /* global Cookies */
 /* global Nitrox */
+/* global Compressor */
+/* global Loans */
 
 (($) => {
-    /**
-       The 2001 manual predicts filter life to be 50 hours at 20C and
-       provides a table of factors from which a lifetime can be
-       calculated:
-       T (C), Factor, Lifetime
-       0,  3.8, 190
-       5,  2.6, 130
-       10, 1.85, 92.5
-       20, 1, 50
-       30, 0.57, 28.5
-       40, 0.34, 17
-       50, 0.2, 10
-       It also states the pumping rate is 260lpm.
-       
-       The latest manual provided by Coltri explicitly for this
-       compressor records a radically different filter life:
-       -5, 84
-       0, 53
-       10, 29
-       20, 19
-       30, 12
-       40, 7
-       and gives a pumping rate of 315 lpm.
-       
-       Let's assume the older manual is correct, as there are reasons
-       to assume the newer one is unreliable. We want a curve that will
-       predict the filter lifetime in hours, based on the
-       temperature. Using a symmetric sigmoidal curve fit,
-       
-       y = d + (a - d) / (1 + (x / c) ^ b)
-       
-       https://mycurvefit.com gives us an excellent fit.
-    */
-    const filter_coeff = {
-        a: 189.9102,
-        b: 1.149582,
-        c: 11.50844,
-        d: -24.03492
-    };
-
     const dav_store = new WebDAVStore();
 
     /**
@@ -58,118 +20,14 @@
      */
     function dav_connect() {
         return dav_store.connect({
-                    url: Cookies.get("webdav_url"),
-                    username: Cookies.get("webdav_user"),
-                    password: Cookies.get("webdav_pass")
+            url: Cookies.get("webdav_url"),
+            username: Cookies.get("webdav_user"),
+            password: Cookies.get("webdav_pass")
         });
     }
-    
-    /*
-     * Generic handling for items in lists (compressor events, loan events)
-     * stored in CSV files.
-     * @param name list name
-     * @param fields array of column names
-     * @param types map from column names to types. Types supported are
-     * "Date" and "Number". Date is an integer epoch ms, or a string. Number
-     * is a float.
-     */
-    function Entries(name, fields, types) {
-        this.entries = undefined;
-        this.name = name;
-        this.fields = fields;
-        this.types = types;
-    }
 
-    Entries.prototype.load = function () {
-        return new Promise((resolve, reject) => {
-            if (this.entries) {
-                resolve();
-                return;
-            }
 
-            return dav_store.read('/' + this.name + '.csv')
-                .then((list) => {
-                    var data = $.csv.toArrays(list);
-                    this.entries = [];
-                    for (var i = 0; i < data.length; i++) {
-                        this.entries.push(this.getFields(data[i]));
-                    }
-                    resolve();
-                })
-                .catch((e) => {
-                    console.debug("Error reading " + this.name + ".csv", e);
-                    this.entries = [];
-                    resolve();
-                });
-        });
-    };
-
-    Entries.prototype.getFields = function (data) {
-        var datum = {};
-        for (var j = 0; j < this.fields.length; j++) {
-            var fieldname = this.fields[j],
-                d;
-            if (data instanceof Array) {
-                d = data[j]; // arrays are indexed by column
-            } else {
-                d = data[fieldname]; // maps are indexed by name
-            }
-            if (typeof d === "undefined")
-                continue; // ignore undefined
-            if (this.types[fieldname]) {
-                switch (this.types[fieldname]) {
-                case 'Date':
-                    if (d === "")
-                        continue; // ignore empty date columns
-                    if (/^[0-9]+$/.test(d))
-                        // Numeric date
-                        datum[fieldname] = new Date(parseInt(d));
-                    else
-                        // String date
-                        datum[fieldname] = new Date(d);
-                    break;
-                case 'Number':
-                    if (d === "")
-                        continue; // ignore empty numbers
-                    datum[fieldname] = parseFloat(d);
-                    break;
-                }
-            } else
-                // Assume string
-                datum[fieldname] = d;
-        }
-        return datum;
-    };
-
-    Entries.prototype.save = function () {
-        var data = [];
-        for (var i = 0; i < this.entries.length; i++) {
-            var datum = [];
-            for (var j = 0; j < this.fields.length; j++) {
-                datum[j] = this.entries[i][this.fields[j]];
-            }
-            data.push(datum);
-        }
-        return dav_store.write(
-            '/' + this.name + '.csv', $.csv.fromArrays(data));
-    };
-
-    Entries.prototype.add = function (r) {
-        this.entries.push(r);
-        this.save();
-        this.update_ui();
-    };
-
-    Entries.prototype.submit = function (values) {
-        if (!values)
-            values = {};
-        $("form[name='" + this.name + "'] :input").each(function () {
-            values[this.name] = $(this).val();
-        });
-        this.add(this.getFields(values));
-    }
-
-    var lists = {};
+    var roles = {};
 
     /**
      * Update time displays
@@ -183,315 +41,8 @@
         window.setTimeout(tick, when);
     }
 
-    /** Make a simple date string */
-    function formatDate(date) {
-        return date.toISOString().replace(/T.*/, "");
-    }
-
-    /**
-     * Informational dialog for use with data-with-info
-     */
-    function infoDialog(outputMsg, titleMsg, onCloseCallback) {
-        if (!titleMsg)
-            titleMsg = 'Alert';
-
-        if (!outputMsg)
-            outputMsg = 'No Message to Display.';
-
-        $("<div></div>").html(outputMsg).dialog({
-            title: titleMsg,
-            resizable: true,
-            modal: true,
-            width: "100%",
-            buttons: {
-                "OK": function () {
-                    $(this).dialog("close");
-                }
-            },
-            close: function () {
-                /* Cleanup node(s) from DOM */
-                $(this).dialog('destroy').remove();
-                if (onCloseCallback)
-                    onCloseCallback();
-            }
-        });
-    }
-
-    /**
-     * An element with data-with-info will be displayed with an information
-     * symbol which, when clicked, will bring up an infoDialog
-     */
-    function with_info($thing, data) {
-        var i = data || $thing.data("with-info");
-        if (i.charAt(0) === '#' && $(i).length === 0)
-            throw "Missing " + i;
-
-        var $icon = $("<span class='ui-icon ui-icon-info'></span>");
-        $thing.after($icon);
-
-        $icon.data("info", i);
-        $icon.on("click", function () {
-            var info = $(this).data("info");
-            if (info.charAt(0) === '#')
-                info = $(info).text();
-            infoDialog(info, "Information");
-        });
-        return $thing;
-    }
-
-    /**
-     * Entries for Compressor runtime events. This is a stack - the only
-     * editing available is to delete the last entry.
-     */
-    function Compressor() {
-        this.entries = undefined;
-
-        Entries.call(this, "compressor", [
-            "date",
-            "operator",
-            "humidity",
-            "temperature",
-            "runtime",
-            "filterlife"
-        ], {
-            date: "Date",
-            humidity: "Number",
-            temperature: "Number",
-            runtime: "Number",
-            filterlife: "Number"
-        });
-    }
-
-    Compressor.prototype = Object.create(Entries.prototype);
-    Compressor.prototype.constructor = Compressor;
-
-    Compressor.prototype.update_ui = function () {
-        this.load().then(() => {
-            // predict filter life remaining at current temperature
-            var cur = this.entries[this.entries.length - 1];
-            $("#cr_operator").text(cur.operator);
-            $("#cr_time").text(formatDate(cur.date));
-            $("#cr_flr").text(Math.round(cur.filterlife * 100));
-            $("#cr_runtime").text(cur.runtime);
-            $("input[name='runtime']")
-                .rules("remove", "min");
-            $("input[name='runtime']")
-                .rules("add", {
-                    min: cur.runtime
-                });
-        });
-    };
-
-    Compressor.prototype.add = function (r) {
-        this.load().then(() => {
-            var flr = 1,
-                dt = 0;
-            if (this.entries.length > 0) {
-                var le = this.entries[this.entries.length - 1];
-                flr = le.filterlife;
-                dt = (r.runtime - le.runtime) / 60; // hours
-
-                if (dt < 0)
-                    throw "Bad runtime";
-
-                // Predicted filter lifetime at this temperature
-                var lifetime = filter_coeff.d +
-                    (filter_coeff.a - filter_coeff.d) /
-                    (1 + Math.pow(le.temperature /
-                        filter_coeff.c, filter_coeff.b));
-                // Fraction of filter change hours consumed
-                var fraction = dt / lifetime;
-                flr -= fraction; // remaining filter life
-                console.debug(
-                    "Old filter life was", flr, ", runtime was", dt, "hours.",
-                    "Predicted lifetime at", le.temperature,
-                    "is", lifetime, "or", fraction, "of a filter, so",
-                    "new prediction is", flr);
-            }
-            r.date = new Date();
-            r.filterlife = flr;
-            Entries.prototype.add.call(this, r);
-        });
-    };
-
-    var compressor = new Compressor();
-
-    /**
-     * Entries for Loan events. These can be edited in place.
-     */
-    function Loans() {
-        Entries.call(this, "loans", [
-            "date",
-            "desc",
-            "id",
-            "borrower",
-            "lender",
-            "donation",
-            "returned"
-        ], {
-            date: "Date",
-            donation: "Number",
-            returned: "Date"
-        });
-    }
-
-    Loans.prototype = Object.create(Entries.prototype);
-    Loans.prototype.constructor = Loans;
-
-    Loans.prototype.mod_text = function (row, field) {
-        var entry = this.entries[row];
-        var type = this.types[field];
-
-        var $span = $("<span></span>");
-
-        var text = entry[field];
-        if (type === "Date")
-            text = formatDate(text);
-        $span.text(text);
-
-        $span.on("click", function () {
-            $(this).edit_in_place({
-                changed: function (s) {
-                    if (s !== entry[field]) {
-                        entry[field] = s;
-                        $span.text(s);
-                        $span.addClass("modified");
-                        $("#loan_controls").show();
-                    }
-                    return s;
-                }
-            });
-        });
-        return $span;
-    };
-
-    Loans.prototype.mod_select = function (row, field, set) {
-        var entry = this.entries[row];
-        var $span = $("<span></span>");
-        var text = entry[field];
-        $span.text(text);
-
-        $span.on("click", function () {
-            $(this).select_in_place({
-                changed: function (s) {
-                    if (s != entry[field]) {
-                        entry[field] = s;
-                        $span.text(s);
-                        $span.addClass("modified");
-                        $("#loan_controls").show();
-                    }
-                    return s;
-                },
-                options: lists[set],
-                initial: text
-            });
-        });
-        return $span;
-    };
-
-    Loans.prototype.mod_date = function (row, field) {
-        var entry = this.entries[row];
-        var date = entry[field];
-        var $span = $('<div style="width:100%;height:100%"></div>');
-        if (typeof date !== "undefined")
-            $span.text(formatDate(date));
-        else {
-            var $pencil = $("<span class='ui-icon ui-icon-pencil'></span>");
-            $span.append($pencil);
-            with_info($pencil, '#infoReturned');
-        }
-
-        $span.on("click", function (e) {
-            $(this).datepicker(
-                "dialog", entry[field],
-                function (date, dp) {
-                    date = new Date(date);
-                    if (date != entry[field]) {
-                        entry[field] = date;
-                        $span.text(formatDate(date));
-                        $span.addClass("modified");
-                        $("#loan_controls").show();
-                    }
-                }, {
-                    dateFormat: "yy-mm-dd"
-                },
-                e);
-        });
-        return $span;
-    };
-
-    Loans.prototype.mod_pick_item = function(row, field) {
-        // Something like the Google Docs "Move To" would be good?
-        // So, a dialog posted over the line item
-        
-    };
-    
-    Loans.prototype.update_ui = function () {
-        var self = this;
-        this.load().then(() => {
-            $("#loans_table>tbody").empty().each(function () {
-                var list = self.entries;
-                var show_all = $("#show_all_loans").is(':checked');
-                var $row;
-                for (var i = 0; i < list.length; i++) {
-                    var row = list[i];
-                    var active = (typeof row.returned === "undefined" ||
-                        row.returned.valueOf() > Date.now());
-                    if (!active && !show_all)
-                        continue;
-                    $row = $("<tr></tr>");
-                    var $td = $("<td></td>");
-                    $td.append(self.mod_date(i, "date"));
-                    if (typeof row.returned === "undefined") {
-                        var due = row.date.valueOf() +
-                            (Cookies.get("loan_return") || 10) *
-                            24 * 60 * 60 * 1000;
-                        if (due < Date.now())
-                            $row.addClass("late");
-                    }
-                    $row.append($td);
-                    $td = $("<td></td>");
-                    $td.append(self.mod_pick_item(i, "desc"));
-                    $row.append($td);
-                    $td = $("<td></td>");
-                    $td.append(self.mod_select(i, "borrower", "members"));
-                    $row.append($td);
-                    $td = $("<td></td>");
-                    $td.append(self.mod_select(i, "lender", "operators"));
-                    $row.append($td);
-                    $td = $("<td></td>");
-                    $td.append(self.mod_text(i, "donation"));
-                    $row.append($td);
-                    $td = $("<td></td>");
-                    $td.append(self.mod_date(i, "returned"));
-                    $row.append($td);
-                    $(this).append($row);
-                }
-                $(this).parent().tablesorter({
-                    cancelSelection: true,
-                    selectorHeaders: "> thead th",
-                    selectorSort: "th",
-                    headerTemplate: '{content}<a href="#">{icon}</a>',
-                    widgets: ['zebra', 'columns', 'uitheme'],
-                    theme: 'jui',
-                    delayInit: true,
-                    dateFormat: "ddmmyyyy"
-                });
-            });
-        });
-    };
-
-    Loans.prototype.add = function (r) {
-        r.date = new Date();
-        Entries.prototype.add.call(this, r);
-    };
-
-    Loans.prototype.save_changes = function () {
-        this.save();
-        this.update_ui();
-    };
-
-    var loans = new Loans();
+    var compressor = new Compressor(dav_store, roles);
+    var loans = new Loans(dav_store, roles);
 
     /**
      * Nitrox calculation tab
@@ -511,20 +62,20 @@
         var mess;
         switch (result.status) {
         case Nitrox.MIX_ACHIEVABLE:
-            mess = "Add " + Math.floor(result.add_real_O2_bar)
-                + " bar of O<sub>2</sub>. This will use " +
-                Math.round(result.O2_needed_litres)
-                + " litres of O<sub>2</sub> at a cost of &pound;" +
-                (Math.round(100 * (result.O2_needed_litres
-                                   * Cookies.get("o2_price"))) / 100);
+            mess = "Add " + Math.floor(result.add_real_O2_bar) +
+                " bar of O<sub>2</sub>. This will use " +
+                Math.round(result.O2_needed_litres) +
+                " litres of O<sub>2</sub> at a cost of &pound;" +
+                (Math.round(100 * (result.O2_needed_litres *
+                    Cookies.get("o2_price"))) / 100);
             break;
         case Nitrox.BANK_LACKS_O2:
             mess = "There is not enough O2 in the bank for this fill.";
             break;
         case Nitrox.TOO_MUCH_O2:
-            mess = "There is too much gas already in the cylinder for "
-                + "this fill. To use this bank you will have to bleed "
-                + "the cylinder down below " + result.bleed + " bar"
+            mess = "There is too much gas already in the cylinder for " +
+                "this fill. To use this bank you will have to bleed " +
+                "the cylinder down below " + result.bleed + " bar"
             break;
         default:
             throw "Bad Nitrox response result.status";
@@ -535,167 +86,106 @@
     var nitrox = new NitroxForm();
 
     /**
-     * Promise to populate dropdown lists of member roles
+     * Update all UIs from webdav
      */
-    function populate_dropdowns() {
-        dav_connect()
-            .then(() => {
-                return dav_store.read('/roles.csv')
-                    .then((list) => {
-                        list = $.csv.toArrays(list);
-                        for (var col = 0; col < list[0].length; col++) {
-                            var f = list[0][col];
-                            lists[f] = [];
-                            for (var row = 1; row < list.length; row++) {
-                                var e = list[row][col];
-                                if (e && e.length > 0)
-                                    lists[f].push(e);
-                            }
-                            $("select." + f).html(
-                                "<option></option><option>" +
-                                    lists[f]
-                                    .join("</option><option>") +
-                                    "</option>");
-                        }
-                    });
-            })
-            .then(() => {
-                compressor.update_ui();
-                loans.update_ui();
-                $("#tabs").tabs("option", "disabled", []);
-            })
-            .catch((e) => {
-                $("#tabs").tabs("option", "disabled", [0, 1, 2, 3]);
-                $("#connect_error").text(e);
-                $("#Configuration_dialog").dialog("open");
-            });
-    }
-
-    var inventory;
-
-    function load_inventory() {
-        return dav_connect()
-            .then(() => {
-                return dav_store.read('/inventory.json');
-            })
-            .then((data) => {
-                inventory = JSON.parse(data);
-                return inventory;
-            });
-    }
-    
-    /**
-     * Promise to populate the inventory. The inventory is held as a data
-     */
-    function populate_inventory() {
-        return load_inventory()
-            .then((inventory) => {
-                var $it = $("#Inventory_tab>div");
-                if ($it.children().length > 0) {
-                    $it.tabs("destroy");
-                    $it.empty();
-                }
-                var $it_ul = $("<ul></ul>");
-                $it.append($it_ul);
-                for (var i in inventory) {
-                    var inv = inventory[i];
-                    var sht = inv.Class.replace(/\s+/,"_");
-                    $it_ul.append("<li><a href='#inventory_" + sht + "'>"
-                                  + inv.Class + "</a></li>");
-                    var $div = $("<div class='inventory_class' id='inventory_" + sht + "'></div>");
-                    $it.append($div);
-                    var $table = $("<table class='inventory_table zebra'></table>");
-                    $div.append($table);
-                    var $tr = $("<tr></tr>");
-                    var nc = inv.heads.length, ci;
-                    for (ci = 0; ci < nc; ci++) {
-                        $tr.append("<th>" + inv.heads[ci] + "</th>");
+    function reload_ui() {
+	console.debug("Reloading UI");
+        Promise.all([
+	    compressor.reload_ui(),
+	    loans.reload_ui(),
+	    inventory.reload_ui()
+	])
+	    .then(() => {
+		console.debug("Reloading roles");
+		return dav_store.read('/roles.csv');
+	    })
+            .then((list) => {
+                list = $.csv.toArrays(list);
+                for (var col = 0; col < list[0].length; col++) {
+                    var f = list[0][col];
+                    roles[f] = [];
+                    for (var row = 1; row < list.length; row++) {
+                        var e = list[row][col];
+                        if (e && e.length > 0)
+                            roles[f].push(e);
                     }
-                    $table.append($tr);
-                    var ne = inv.entries.length, ei; 
-                    for (ei = 0; ei < ne; ei++) {
-                        $tr = $("<tr></tr>");
-                        for (ci = 0; ci < nc; ci++) {
-                            $tr.append("<td>"+inv.entries[ei][ci]+"</td>");
-                        }
-                        $table.append($tr);
-                    }
+                    $("select." + f).html(
+                        "<option></option><option>" +
+                            roles[f]
+                            .join("</option><option>") +
+                            "</option>");
                 }
-                $it.tabs({});
-            });
+            })
+	    .catch((e) => {
+		console.error("Roles load failed:", e);
+	    });
+        $("#tabs").tabs("option", "disabled", []);
     }
 
-    function update_webdav() {
-        // Committee/Equipment/Sheds/Sheets contains two sheets that
-        // summarise information from Drive. The first, "Roles",
+    var inventory = new Inventory(dav_store);
+
+    function update_webdav(report) {
+        // The Committee/Equipment/Sheds folder contains two sheets
+        // that summarise information from Drive. The first, "Roles",
         // contains columns for the member lists - at least members,
         // operators and blenders, and maybe more. This is created by
         // doing an IMPORTRANGE of data from the Members database.
         //
         // A second sheet, "Inventory", contains a mapping from the
-        // name of each of the inventory sheets to the publishing URL
-        // of a spreadsheet that extracts that sheet from the
-        // inventory.  These sheets act as the source material for the
-        // data files on webdav that the Sheds app uses to populate
-        // the UI.
-        
-        // Done this convoluted way because CSV publishing only
-        // publishes the first sheet in a spreadsheet. Hey, it works,
-        // don't knock it.
-        
+        // name of each of the inventory sheets to the CSV publishing
+        // URL of a sheet in Committee/Equipment/Sheds that extracts
+        // the sheet of the same name from
+        // Committee/Equipment/Sheds/Equipment & Servicing Schedules
+        // These CSV files are downloaded and saved to webdav for
+	// the Sheds app to use to populate the UI when offline.
+
+        // Done this convoluted way because we want to be able to
+        // serve the data to anyone who connects to the network in the
+        // sheds using the sheds app on their nown mobile device,
+        // which means we have to store the data persistently in
+        // webdav. Secondly, the only way to get structured data out
+        // of sheets without a google login is via CSV publishing,
+        // which only publishes the first sheet in a spreadsheet.
+
         const roles_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRB9rTpKqexsJ9UE_78FJI9sFrZWtXRMi2St-wuxofyVwufMHzzpxQuTRnzH0xhoXhhgL6W_QVA_vNZ/pub?output=csv";
 
-        $("#progress_messages").empty();
-        $("#progress_dialog").dialog({
-            title: "Updating from Drive",
-            modal: true,
-            width: "90%",
-            close: function(e, ui) {
-                $("#progress_dialog").dialog("destroy");
-            }
-        }).dialog("open");
-        
         var now = Date.now(); // default caches
-        
+
         var p1 = $.ajax({
-            url: roles_url + "&t=" + now,
-            method: "GET",
-            dataType: "text"
-        })
+                url: roles_url + "&t=" + now,
+                method: "GET",
+                dataType: "text"
+            })
             .then((response) => {
-                $("#progress_messages")
-                    .append("<div>Read roles from Drive</div>");
+                report("info", "Read roles from Drive");
                 var l = response;
                 return dav_connect()
                     .then(() => {
                         return dav_store.write('/roles.csv', response)
                             .then(() => {
-                                $("#progress_messages")
-                                    .append("<div>Updated roles</div>");
+                                report("info", "Updated roles");
                                 populate_dropdowns();
                             });
                     });
             })
             .catch((e) => {
-                $("#progress_messages").append(
-                    "<div class='error'>Error reading roles from Drive: "
-                        + (e.status ? e.status : e) + "</div>");
+                report("error", "Error reading roles from Drive: " +
+                    (e.status ? e.status : e));
             });
 
         const sheets_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5d0yb4xLj024S35YUCnMQZmblbuAOZ5sO_wGn8gm9bgQeLgMXIUiMGQIPrN0wPvnmsM_fzQ0kzglD/pub?output=csv";
-        
+
         var p2 = $.ajax({
-            url: sheets_url + "&t=" + now,
-            method: "GET",
-            dataType: "text",
-        })
+                url: sheets_url + "&t=" + now,
+                method: "GET",
+                dataType: "text"
+            })
             .then((response) => {
-                $("#progress_messages")
-                    .append("<div>Read sheets list from Drive</div>");
+                report("debug", "Read sheets list from Drive");
                 var sheets = $.csv.toArrays(response);
                 var promises = [];
-                
-                sheets.forEach(function(sheet) {
+
+                sheets.forEach(function (sheet) {
                     var id = sheet[0];
                     var url = sheet[1] + "&t=" + now;
 
@@ -703,15 +193,16 @@
                         var clas = id;
                         // Get the published CSV
                         $.ajax({
-                            url: url,
-                            method: "GET",
-                            dataType: "text",
-                        })
+                                url: url,
+                                method: "GET",
+                                dataType: "text"
+                            })
                             .then((response) => {
-                                $("#progress_messages")
-                                    .append("<div>Read " + id
-                                            + " from Drive</div>");
-                                var res = { "Class": id };
+                                report("info", "Read " + id +
+                                        " from Drive");
+                                var res = {
+                                    "Class": id
+                                };
                                 var data = $.csv.toArrays(response);
                                 res.heads = data.shift();
                                 res.entries = data;
@@ -719,32 +210,42 @@
                             });
                     }));
                 });
-        
-                return Promise.all(promises).then(function(iv) {
+
+                return Promise.all(promises).then(function (iv) {
                     return dav_connect().then(() => {
                         return dav_store.write(
-                            '/inventory.json', JSON.stringify(iv))
+                                '/inventory.json', JSON.stringify(iv))
                             .then(() => {
-                                $("#progress_messages")
-                                    .append("<div>Updated inventory.json</div>");
-                                populate_inventory();
+                                report("info", "Updated inventory.json");
+                               inventory.populate_tab();
                             });
                     });
                 });
             })
             .catch((e) => {
-                $("#progress_messages").append(
-                    "<div class='error'>Error reading sheets from Drive: "
-                        + (e.status ? e.status : e )+ "</div>");
+                report("error",
+                    "Error reading sheets from Drive: " +
+                    (e.status ? e.status : e));
             });
-        
+
         Promise.all([p1, p2]).then(() => {
-            $("#progress_messages").append(
-                "<div>Update finished</div>");
+            report("info", "Update finished");
         });
     }
-    
-    $(document).ready(() => {
+
+    function config(field) {
+        var sel = "#cfg_" + field;
+        $(sel).on("change", function () {
+            var v = $(sel).val();
+            if (v !== Cookies.get(field))
+                Cookies.set(field, v, {
+                    expires: 365
+                });
+        })
+            .val(Cookies.get(field));
+    }
+
+    $(() => {
         // Start the clock
         tick();
 
@@ -758,48 +259,22 @@
             $(this).siblings('input').change();
         });
 
+        config("webdav_url");
+        config("webdav_user");
+        config("webdav_pass");
+        config("loan_return");
+        config("o2_price");
+
         $("#Configuration_dialog").dialog({
             title: "Settings",
             autoOpen: false,
             resizable: true,
             modal: true,
             width: "100%",
-            buttons: {
-                Save: function () {
-                    $(this).dialog("close");
-                    var lr = $("#cfg_loan_return").val();
-                    Cookies.set("loan_return", lr);
-                    var o2 = $("#cfg_o2_price").val();
-                    Cookies.set("o2_price", o2);
-                    var url = $("#cfg_webdav_url").val();
-                    var user = $("#cfg_webdav_user").val();
-                    var pass = $("#cfg_webdav_pass").val();
-                    if (url !== Cookies.get("webdav_url") ||
-                        user !== Cookies.get("webdav_user") ||
-                        pass !== Cookies.get("webdav_pass")) {
-
-                        Cookies.set("webdav_url", url, {
-                            expires: 365
-                        });
-                        Cookies.set("webdav_user", user, {
-                            expires: 365
-                        });
-                        Cookies.set("webdav_pass", pass, {
-                            expires: 365
-                        });
-
-                        dav_store.disconnect().then(() => {
-                            populate_dropdowns();
-                        });
-                    }
-                }
-            },
-            open: function (e, ui) {
-                $("#cfg_webdav_url").val(Cookies.get("webdav_url"));
-                $("#cfg_webdav_user").val(Cookies.get("webdav_user"));
-                $("#cfg_webdav_pass").val(Cookies.get("webdav_pass"));
-                $("#cfg_loan_return").val(Cookies.get("loan_return"));
-                $("#cfg_o2_price").val(Cookies.get("o2_price"));
+            close: function () {
+                dav_store.disconnect().then(() => {
+                    populate_dropdowns();
+                });
             }
         });
 
@@ -816,40 +291,34 @@
             eval(e.target.name + ".submit()");
         });
 
-        $("#show_all_loans").on("change", () => {
-            loans.update_ui();
-        });
-
         $("[data-with-info]").each(function () {
-            with_info($(this));
+            $(this).with_info();
         });
 
-        $("#loan_controls").hide();
+        $("#update_webdav").on("click", function() {
+            $("#progress_messages").empty();
+            $("#progress_dialog").dialog({
+		title: "Updating from Drive",
+		modal: true,
+		width: "90%",
+		close: function (e, ui) {
+                    $("#progress_dialog").dialog("destroy");
+		}
+            }).dialog("open");
+	    update_webdav(function(clss, m) {
+		$("#progress_messages").append("<div class='" + clss + "'>"
+					       + m + "</div>");
+	    });
+	});
 
-        $("#loan_save").on("click", function () {
-            $(".modified").each(function () {
-                $(this).removeClass("modified");
-            })
-            // Save to file
-            loans.save()
-                .then(() => {
-                    $("#loan_controls").hide();
-                });
-        });
-
-        $("#loan_reset").on("click", function () {
-            $(".modified").each(function () {
-                $(this).removeClass("modified");
-            })
-            // Reload from file
-            loans.entries = null;
-            loans.update_ui();
-            $("#loan_controls").hide();
-        });
-
-        $("#update_webdav").on("click", update_webdav);
-
-        populate_dropdowns();
-        populate_inventory();
+        dav_connect()
+	    .then(function() {
+		reload_ui();
+	    })
+            .catch((e) => {
+                $("#tabs").tabs("option", "disabled", [0, 1, 2, 3]);
+                $("#cfg_connect_error").text(e);
+                $("#Configuration_dialog").dialog("open");
+            });
     });
 })(jQuery);

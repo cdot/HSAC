@@ -46,8 +46,12 @@
     <script class="compressable" src="js/AbstractStore.js?version=1545127482"></script>
     <script class="compressable" src="js/WebDAVStore.js?version=1545127482"></script>
     <script class="compressable" src="js/Nitrox.js?version=1545127482"></script>
+    <script class="compressable" src="js/with_info.js?version=1545127482"></script>
     <script class="compressable" src="js/edit_in_place.js?version=1545127482"></script>
     <script class="compressable" src="js/Entries.js?version=1545127482"></script>
+    <script class="compressable" src="js/Compressor.js?version=1545127482"></script>
+    <script class="compressable" src="js/Loans.js?version=1545127482"></script>
+    <script class="compressable" src="js/Inventory.js?version=1545127482"></script>
     <script class="compressable" src="js/Sheds.js?version=1545127482"></script>
 
     <!-- from //code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css -->
@@ -72,7 +76,7 @@
         <li><a href="#Inventory_tab">Inventory</a></li>
         <li><a href="#Nitrox_tab">Nitrox</a></li>
       </ul>
-      <div id="Compressor_tab" class="store_tab">
+      <div id="Compressor_tab">
         <form name="compressor" class="validated_form">
           <table class="form_table zebra">
             <tr>
@@ -154,11 +158,11 @@
         </div>
       </div>
 
-      <div id="Loans_tab" class="store_tab">
+      <div id="Loans_tab">
         <div>
           <div style="float:right">
-            <label for="show_all_loans">Show returned items</label>
-            <input type="checkbox" value="false" id="show_all_loans">
+            <label for="loan_show_all">Show returned items</label>
+            <input type="checkbox" value="false" id="loan_show_all">
           </div>
           <div>
             <button data-with-info="#infoLoans">Help</button>
@@ -168,85 +172,25 @@
           <button id="loan_save" class="loan_control"><span class="ui-icon ui-icon-disk"></span> Save</button>
           <button id="loan_reset" class="loan_control"><span class="ui-icon ui-icon-arrowreturnthick-1-w"></span>Reset</button>
         </div>
-        <form name="loans" class="validated_form">
-          <div style="clear:both" class="scroll_container">
-            <table id="loans_table" class="zebra tablesorter">
-              <thead>
-                <th>Date</th>
-                <th class="widest">Description</th>
-                <th>Borrower</th>
-                <th>Lender</th>
-                <th>Donation</th>
-                <th>Returned</th>
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
-          </div>
-          <table id="loan_entry_table">
-            <tr>
-              <th>
-                Date
-              </th>
-              <th>
-                <span data-with-info="#infoDescription">
-                  Description
-                </span>
-              </th>
-              <th>
-                <span data-with-info="#infoIdentification">
-                  ID
-                </span>
-              </th>
-              <th>
-                <span data-with-info="#infoBorrower">
-                  Borrower
-                </span>
-              </th>
-              <th>
-                <span data-with-info="#infoLender">
-                  Lender
-                </span>
-              </th>
-              <th>
-                <span data-with-info="#infoDonation">
-                  Donation
-                </span>
-              </th>
-              <th>
-                <span data-with-info="#infoAdd">
-                </span>
-              </th>
-            </tr>
-            <tr>
-              <td>
-                <span class="date_display"></span>
-              </td>
-              <td>
-                <textarea style="width:95%" rows="3" name="desc" required data-msg="<br>For example, BCD"></textarea>
-              </td>
-              <td>
-                <input type="text" name="id" required data-msg="<br>e.g. tag number">
-              </td>
-              <td>
-                <select name="borrower" class="members" required>
-                  <option></option>
-                </select>
-              </td>
-              <td>
-                <select name="lender" class="operators" required>
-                  <option></option>
-                </select>
-              </td>
-              <td>
-                <input type="number" name="donation" step="0.01">
-              </td>
-              <td>
-                <input type="submit" value="Add:">
-              </td>
-            </tr>
+        <div style="clear:both" class="scroll_container">
+          <table class="loan_table zebra tablesorter">
+            <thead>
+              <th>Date</th>
+              <th class="widest">Item</th>
+              <th>Count</th>
+              <th>Borrower</th>
+              <th>Lender</th>
+              <th>Donation</th>
+              <th>Returned</th>
+            </thead>
+            <tbody>
+            </tbody>
           </table>
-        </form>
+        </div>
+	<div id="inventory_pick_dialog" class="hidden">
+	  <div class="tabs ui-tabs-vertical ui-helper-clearfix inventory-tab inventory_tab">
+	  </div>
+	</div>
         <div class="hidden info" id="infoLoans">
           Enter details of new loans below the table.
           You can also edit older loans e.g. to indicate when a loan was
@@ -265,8 +209,8 @@
           the borrower's name does not appear on this list, select
           their instructor instead
         </div>
-        <div class="hidden info" id="infoDescription">
-          Enter a description of the item of equipment borrowed
+        <div class="hidden info" id="infoItem">
+          Select the item of equipment borrowed
         </div>
         <div class="hidden info" id="infoIdentification">
           If the equipment has a unique identifying mark e.g. a number
@@ -288,12 +232,12 @@
         </div>
       </div>
 
-      <div id="Inventory_tab" class="store_tab">
-        <div>
+      <div id="Inventory_tab" class="inventory_tab">
+        <div class="tabs main-inventory">
         </div>
       </div>
       
-      <div id="Nitrox_tab" class="store_tab">
+      <div id="Nitrox_tab">
         <form name="nitrox" class="validated_form">
           <table class="form_table zebra">
             <tr>
@@ -344,7 +288,7 @@
         </div>
       </div>
       <div id="Configuration_dialog" class="hidden">
-        <em id="connect_error"></em>
+        <em id="cfg_connect_error"></em>
         Please don't change the configuration unless you really know what you are
         doing!
         <table class="form_table zebra">
