@@ -2,7 +2,7 @@
 
 /* eslint-env jquery */
 /* global Entries */
-/* global Cookies */
+/* global Config */
 /* global Loans: true */
 
 "use strict";
@@ -10,8 +10,8 @@
 /**
  * Entries for Loan events. These can be edited in place.
  */
-function Loans(store, roles) {
-    Entries.call(this, store, "loans", [
+function Loans(config, roles) {
+    Entries.call(this, config, "loans", [
         "date",
         "item",
         "count",
@@ -92,10 +92,13 @@ function Loans(store, roles) {
             } catch (e) {
                 bad.push("donation");
             }
-            if (bad.length == 0)
+            if (bad.length == 0) {
+                $("#loan_table>tfoot")
+                    .find(".modified")
+                    .removeClass("modified");
                 self.add(self.capture);
-            else {
-                bad.forEach(function(e) {
+            } else {
+                bad.forEach(function (e) {
                     $("#loan_dlg_" + e).addClass("error");
                 })
             }
@@ -106,6 +109,13 @@ function Loans(store, roles) {
 Loans.prototype = Object.create(Entries.prototype);
 Loans.prototype.constructor = Loans;
 
+Loans.prototype.mark_modified = function ($td) {
+    if (!$td.hasClass("loan_foot")) {
+        $td.addClass("modified");
+        $("#loan_controls").show();
+    }
+};
+
 Loans.prototype.mod_number = function ($td, field, isInteger) {
     var entry = this.capture;
     if (typeof $td === "number") {
@@ -114,37 +124,43 @@ Loans.prototype.mod_number = function ($td, field, isInteger) {
     }
     var type = this.types[field];
     var text = entry[field];
+    var self = this;
 
     if (type === "Date")
         text = Entries.formatDate(text);
     $td.text(text);
 
-    $td.on("click", function () {
-        $(this).edit_in_place({
-            changed: function (s) {
-                if (s !== entry[field]) {
-                    entry[field] = s;
-                    $td.text(s);
-                    try {
-                        if (isInteger)
-                            parseInt(s);
-                        else
-                            parseFloat(s);
-                        $td.removeClass("error");
-                    } catch (e) {
-                        $td.addClass("error");
+    $td
+        .off("click")
+        .on("click", function () {
+            $(this).edit_in_place({
+                changed: function (s) {
+                    if (s !== entry[field]) {
+                        entry[field] = s;
+                        $td.text(s);
+                        try {
+                            if (isInteger)
+                                parseInt(s);
+                            else
+                                parseFloat(s);
+                            $td.removeClass("error");
+                        } catch (e) {
+                            $td.addClass("error");
+                        }
+                        if (!$td.hasClass("loan_foot")) {
+                            $td.addClass("modified");
+                        }
                     }
-                    $td.addClass("modified");
-                    $("#loan_controls").show();
+                    return s;
                 }
-                return s;
-            }
+            });
         });
-    });
+
     return $td;
 };
 
 Loans.prototype.mod_select = function ($td, field, set) {
+    var self = this;
     var entry = this.capture;
     if (typeof $td === "number") {
         entry = this.entries[$td];
@@ -152,28 +168,29 @@ Loans.prototype.mod_select = function ($td, field, set) {
     }
     var text = entry[field];
     $td.text(text);
-    var self = this;
 
-    $td.on("click", function () {
-        $(this).select_in_place({
-            changed: function (s) {
-                if (s != entry[field]) {
-                    entry[field] = s;
-                    $td.text(s);
-                    $td.removeClass("error");
-                    $td.addClass("modified");
-                    $("#loan_controls").show();
-                }
-                return s;
-            },
-            options: self.roles[set],
-            initial: text
+    $td
+        .off("click")
+        .on("click", function () {
+            $(this).select_in_place({
+                changed: function (s) {
+                    if (s != entry[field]) {
+                        entry[field] = s;
+                        $td.text(s);
+                        $td.removeClass("error");
+                        self.mark_modified($td);
+                    }
+                    return s;
+                },
+                options: self.roles[set],
+                initial: text
+            });
         });
-    });
     return $td;
 };
 
 Loans.prototype.mod_date = function ($td, field) {
+    var self = this;
     var entry = this.capture;
     if (typeof $td === "number") {
         entry = this.entries[$td];
@@ -188,45 +205,48 @@ Loans.prototype.mod_date = function ($td, field) {
         $pencil.with_info('#infoReturned');
     }
 
-    $td.on("click", function (e) {
-        $(this).datepicker(
-            "dialog", entry[field],
-            function (date, dp) {
-                date = new Date(date);
-                if (date != entry[field]) {
-                    entry[field] = date;
-                    $td.text(Entries.formatDate(date));
-                    $td.removeClass("error");
-                    $td.addClass("modified");
-                    $("#loan_controls").show();
-                }
-            }, {
-                dateFormat: "yy-mm-dd"
-            },
-            e);
-    });
+    $td
+        .off("click")
+        .on("click", function (e) {
+            $(this).datepicker(
+                "dialog", entry[field],
+                function (date, dp) {
+                    date = new Date(date);
+                    if (date != entry[field]) {
+                        entry[field] = date;
+                        $td.text(Entries.formatDate(date));
+                        $td.removeClass("error");
+                        self.mark_modified($td);
+                    }
+                }, {
+                    dateFormat: "yy-mm-dd"
+                },
+                e);
+        });
     return $td;
 };
 
 Loans.prototype.mod_item = function ($td, field) {
+    var self = this;
     var entry = this.capture;
     if (typeof $td === "number") {
         entry = this.entries[$td];
         $td = $("<td></td>");
     }
-    $td.text(entry[field]);
-    $td.on("click", function () {
-        $("#inventory_pick_dialog")
-            .data("picked", entry.item)
-            .data("handler", function (item) {
-                entry.item = item;
-                $td.text(item);
-                $td.removeClass("error");
-                $td.addClass("modified");
-                $("#loan_controls").show();
-            })
-            .dialog("open");
-    });
+    $td
+        .text(entry[field])
+        .off("click")
+        .on("click", function () {
+            $("#inventory_pick_dialog")
+                .data("picked", entry.item)
+                .data("handler", function (item) {
+                    entry.item = item;
+                    $td.text(item);
+                    $td.removeClass("error");
+                    self.mark_modified($td);
+                })
+                .dialog("open");
+        });
     return $td;
 };
 
@@ -246,8 +266,7 @@ Loans.prototype.load_tbody = function () {
         $row = $("<tr></tr>");
         if (typeof row.returned === "undefined") {
             var due = row.date.valueOf() +
-                (Cookies.get("loan_return") || 10) *
-                24 * 60 * 60 * 1000;
+                (this.cfg.get("loan_return") || 10) * 24 * 60 * 60 * 1000;
             if (due < Date.now())
                 $row.addClass("loan_late");
         }

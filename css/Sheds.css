@@ -79,7 +79,7 @@ label.error {
 }
 
 .modified {
-    color: white;
+    color: white !important;
     background-color: #135589;
 }
 

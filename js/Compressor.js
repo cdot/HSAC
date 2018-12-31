@@ -10,10 +10,10 @@
  * Entries for Compressor runtime events. This is a stack - the only
  * editing available is to delete the last entry.
  */
-function Compressor(store, roles) {
+function Compressor(config, roles) {
     this.entries = undefined;
 
-    Entries.call(this, store, "compressor", [
+    Entries.call(this, config, "compressor", [
         "date",
         "operator",
         "humidity",

@@ -5,8 +5,8 @@
 
 "use strict";
 
-function Inventory(store) {
-    this.store = store;
+function Inventory(config) {
+    this.cfg = config;
     var self = this;
     self.uid = 0;
     $(function () {
@@ -17,7 +17,7 @@ function Inventory(store) {
             width: "100vw",
             open: function () {
                 var $dlg = $("#inventory_pick_dialog");
-                var $tabs = $dlg.children(".tabs");
+                var $tabs = $dlg.children().first();
                 var picked = $dlg.data("picked");
                 if (typeof picked === "undefined" || picked == "")
                     return;
@@ -32,11 +32,11 @@ function Inventory(store) {
                 });
                 if (si < 0)
                     return;
-                
+
                 var $tab = $(($tabs.children())[si + 1]);
                 $tabs.tabs("option", "active", si);
 
-                
+
                 // Find the best match among the entries on this sheet
                 var ents = self.data[si].entries;
                 var best_match = -1;
@@ -67,9 +67,9 @@ function Inventory(store) {
 
 Inventory.prototype.reload_ui = function () {
     var self = this;
-    return this.store.read('/inventory.json')
+    return this.cfg.store.read('/inventory.json')
         .then((data) => {
-            this.data = JSON.parse(data);
+            self.data = JSON.parse(data);
             console.debug("Loading inventory");
             $(".inventory_tab").each(function () {
                 self.populate_tab($(this));
@@ -149,4 +149,61 @@ Inventory.prototype.populate_tab = function ($it) {
         }
     }
     $it.tabs();
+};
+
+Inventory.prototype.update_from_drive = function (report) {
+    const sheets_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5d0yb4xLj024S35YUCnMQZmblbuAOZ5sO_wGn8gm9bgQeLgMXIUiMGQIPrN0wPvnmsM_fzQ0kzglD/pub?output=csv";
+
+    var self = this;
+
+    return $.ajax({
+            url: sheets_url + "&t=" + Date.now(),
+            method: "GET",
+            dataType: "text"
+        })
+        .then((response) => {
+            report("debug", "Read sheets list from Drive");
+            var sheets = $.csv.toArrays(response);
+            var promises = [];
+
+            sheets.forEach(function (sheet) {
+                var id = sheet[0];
+                var url = sheet[1] + "&t=" + Date.now();
+
+                promises.push(new Promise((resolve, reject) => {
+                    var clas = id;
+                    // Get the published CSV
+                    $.ajax({
+                            url: url,
+                            method: "GET",
+                            dataType: "text"
+                        })
+                        .then((response) => {
+                            report("info", "Read " + id +
+                                " from Drive");
+                            var res = {
+                                "Class": id
+                            };
+                            var data = $.csv.toArrays(response);
+                            res.heads = data.shift();
+                            res.entries = data;
+                            resolve(res);
+                        });
+                }));
+            });
+
+            return Promise.all(promises)
+                .then(function (iv) {
+                    return self.cfg.store.write(
+                            '/inventory.json', JSON.stringify(iv))
+                        .then(() => {
+                            report("info", "Updated inventory.json");
+                        });
+                });
+        })
+        .catch((e) => {
+            report("error",
+                "Error reading sheets from Drive: " +
+                (e.status ? e.status : e));
+        });
 };

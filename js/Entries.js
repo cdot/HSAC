@@ -14,8 +14,8 @@
  * "Date" and "Number". Date is an integer epoch ms, or a string. Number
  * is a float.
  */
-function Entries(store, name, fields, types) {
-    this.store = store;
+function Entries(config, name, fields, types) {
+    this.cfg = config;
     this.entries = undefined;
     this.name = name;
     this.fields = fields;
@@ -34,7 +34,7 @@ Entries.prototype.load = function () {
             return;
         }
 
-        return this.store.read('/' + this.name + '.csv')
+        return this.cfg.store.read('/' + this.name + '.csv')
             .then((list) => {
                 var data = $.csv.toArrays(list);
                 this.entries = [];
@@ -97,7 +97,7 @@ Entries.prototype.save = function () {
         }
         data.push(datum);
     }
-    return this.store.write(
+    return this.cfg.store.write(
         '/' + this.name + '.csv', $.csv.fromArrays(data));
 };
 

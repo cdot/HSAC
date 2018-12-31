@@ -89,7 +89,7 @@
             }
         });
         var vo = $this.offset();
-        
+
         $dlg.dialog({
             modal: true,
             autoOpen: true,
@@ -113,7 +113,7 @@
                 });
                 $ul.select();
             },
-            close: function() {
+            close: function () {
                 $dlg.dialog("destroy");
                 $dlg.remove();
             }

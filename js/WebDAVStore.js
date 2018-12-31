@@ -33,19 +33,18 @@ WebDAVStore.prototype.connect = function (params) {
 
     if (params.url.lastIndexOf('/') !== params.url.length - 1)
         params.url += '/';
-    var self = this;
-    self.params = {
+    this.params = {
         url: params.url,
         userName: params.username,
         password: params.password
     };
     console.debug("WebDAVStore: connecting to", params.url);
-    self.DAV = new dav.Client({
-        baseUrl: self.params.url,
-        userName: self.params.username,
-        password: self.params.password
+    this.DAV = new dav.Client({
+        baseUrl: this.params.url,
+        userName: this.params.username,
+        password: this.params.password
     });
-    return Promise.resolve();
+    return Promise.resolve(this);
 };
 
 WebDAVStore.prototype.disconnect = function () {
