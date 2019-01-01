@@ -41,8 +41,8 @@ function Loans(params) {
         $("#loan_controls").hide();
 
         $("#loan_save").on("click", function () {
-            $(".modified").each(function () {
-                $(this).removeClass("modified");
+            $(".loan_modified").each(function () {
+                $(this).removeClass("loan_modified");
             });
             // Save to file
             self.save()
@@ -52,8 +52,8 @@ function Loans(params) {
         });
 
         $("#loan_reset").on("click", function () {
-            $(".modified").each(function () {
-                $(this).removeClass("modified");
+            $(".loan_modified").each(function () {
+                $(this).removeClass("loan_modified");
             })
             // Reload from file
             self.entries = null;
@@ -93,8 +93,8 @@ function Loans(params) {
             }
             if (bad.length == 0) {
                 $("#loan_table>tfoot")
-                    .find(".modified")
-                    .removeClass("modified");
+                    .find(".loan_modified")
+                    .removeClass("loan_modified");
                 self.entries.push($.extend({}, self.capture));
                 self.save();
                 self.reload_ui();
@@ -110,9 +110,9 @@ function Loans(params) {
 Loans.prototype = Object.create(Entries.prototype);
 Loans.prototype.constructor = Loans;
 
-Loans.prototype.mark_modified = function ($td) {
+Loans.prototype.mark_loan_modified = function ($td) {
     if (!$td.hasClass("loan_foot")) {
-        $td.addClass("modified");
+        $td.addClass("loan_modified");
         $("#loan_controls").show();
     }
 };
@@ -149,7 +149,7 @@ Loans.prototype.mod_number = function ($td, field, isInteger) {
                             $td.addClass("error");
                         }
                         if (!$td.hasClass("loan_foot")) {
-                            $td.addClass("modified");
+                            $td.addClass("loan_modified");
                         }
                     }
                     return s;
@@ -179,7 +179,7 @@ Loans.prototype.mod_select = function ($td, field, set) {
                         entry[field] = s;
                         $td.text(s);
                         $td.removeClass("error");
-                        self.mark_modified($td);
+                        self.mark_loan_modified($td);
                     }
                     return s;
                 },
@@ -216,7 +216,7 @@ Loans.prototype.mod_date = function ($td, field) {
                         entry[field] = date;
                         $td.text(Entries.formatDate(date));
                         $td.removeClass("error");
-                        self.mark_modified($td);
+                        self.mark_loan_modified($td);
                     }
                 }, {
                     dateFormat: "yy-mm-dd"
@@ -243,7 +243,7 @@ Loans.prototype.mod_item = function ($td, field) {
                     entry.item = item;
                     $td.text(item);
                     $td.removeClass("error");
-                    self.mark_modified($td);
+                    self.mark_loan_modified($td);
                 })
                 .dialog("open");
         });
@@ -292,7 +292,7 @@ Loans.prototype.load_tbody = function () {
 };
 
 Loans.prototype.load_tfoot = function () {
-    $("#loan_table>tfoot").find(".modified").removeClass("modified");
+    $("#loan_table>tfoot").find(".loan_modified").removeClass("modified");
     var $col = $("#loan_table>tfoot th").first();
     this.mod_date($col, "date");
     $col = $col.next();

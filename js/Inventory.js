@@ -25,7 +25,7 @@ function Inventory(config) {
                 // picked data is always in the order of the fields
                 // in the inventory, 
                 var sheet = picked.shift();
-                $(".loan_chosen").removeClass("loan_chosen");
+                $(".inventory_chosen").removeClass("inventory_chosen");
 
                 var si = self.data.findIndex((e) => {
                     return e.Class == sheet;
@@ -58,7 +58,7 @@ function Inventory(config) {
                     var $trs = $tab.find("tr");
                     // +1 to skip header row
                     var tr = $trs[best_match + 1];
-                    $(tr).addClass("loan_chosen");
+                    $(tr).addClass("inventory_chosen");
                 }
             }
         });

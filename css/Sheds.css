@@ -10,6 +10,7 @@ body {
     font-size: 16pt;
 }
 
+/* Used by validation */
 .error {
     color: white;
     background-color: red;
@@ -17,6 +18,11 @@ body {
 
 .hidden {
     display: none;
+}
+
+/* Used to highlight a chosen item in an inventory tab */
+.inventory_chosen {
+    color: red;
 }
 
 /* Applied to each sheet in an inventory */
@@ -40,14 +46,12 @@ body {
     border: 1px dotted black;
 }
 
+/* Float validation reports */
 label.error {
     float:right;
 }
 
-.loan_chosen {
-    color: red;
-}
-
+/* Used in the loan table to highlight a late loan */
 .loan_late {
     color: red;
 }
@@ -63,7 +67,7 @@ label.error {
     color: #135589;
 }
 
-/* A single cell in a loan table */
+/* A single cell in the loan table */
 .loan_cell {
     width: 100%;
     height: 100%;
@@ -78,11 +82,13 @@ label.error {
     display: inline;
 }
 
-.modified {
+/* Used when an entry in the loan table is modified */
+.loan_modified {
     color: white !important;
     background-color: #135589;
 }
 
+/* A scrollable container in a tab */
 .scroll_container {
     height: 70%;
     overflow: scroll;
@@ -100,10 +106,12 @@ label.error {
     background-color: #135589;
 }
 
+/* A right-aligned table in a data capture form */
 th.input_label {
     text-align: right;
 }
 
+/* And alternate-coloured table */
 table.zebra > tbody > tr:nth-child(odd) {
     background-color: #3DDAD7;
 }
@@ -125,44 +133,11 @@ table td,th {
     text-align: left;
 }
 
-.ui-tabs-vertical {
-/*    width: 55em;*/
+.warning {
+    color: orange;
 }
 
-.ui-tabs-vertical .ui-tabs-nav {
-    padding: .2em .1em .2em .2em;
-    float: left;
-/*    width: 12em;*/
-}
-
-.ui-tabs-vertical .ui-tabs-nav li {
-    clear: left;
-    width: 100%;
-    border-bottom-width: 1px !important;
-    border-right-width: 0 !important;
-    margin: 0 -1px .2em 0;
-}
-
-.ui-tabs-vertical .ui-tabs-nav li a {
-    display:block;
-}
-
-.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active {
-    padding-bottom: 0;
-    padding-right: .1em;
-    border-right-width: 1px;
-}
-
-.ui-tabs-vertical .ui-tabs-panel {
-    padding: 1em;
-    float: right;
-/*    width: 40em;*/
-}
-
-#Whereis_tab {
-    margin-top: 1em;
-}
-
+/* Used to widen a specific column in a table */
 .widest {
     width: 100%;
 }

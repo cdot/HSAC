@@ -136,13 +136,13 @@
                 <td class="widest">
                   <input type="number" step="0.01" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required>
                   minutes
-                  <div style="float:right">
-                    <label for="filters_changed">Filters changed</label>
-                    <input data-with-info="#infoFilters" type="checkbox" id="filters_changed" name="filters_changed">
-                  </div>
                 </td>
               </tr>
             </table>
+            <div style="float:right">
+              <label for="filters_changed">Filters changed</label>
+              <input data-with-info="#infoFilters" type="checkbox" id="filters_changed" name="filters_changed">
+            </div>
             <input type="submit" id="add_compressor_record" value="Record usage">
           </form>
           <div class="hidden info" id="infoOperator">
@@ -169,7 +169,7 @@
             records.  When it drops below 10%, inform a member of the
             committee so they can be changed (or, better, learn to
             change them yourself.)
-            <p class="error">
+            <p class="warning">
               <strong>NEVER</strong> use the compressor if the filter
               lifetime is negative!
             </p>
@@ -184,7 +184,7 @@
             </div>
             Enter new loans on the last row of the table. Select the
             pencil on the right to set the date when something is returned.
-            <div id="loan_some_late" class="hidden loan_late">
+            <div id="loan_some_late" class="hidden warning">
               One or more returns are <span data-with-info="#infoReturned">
                 late</span>
             </div>
@@ -257,8 +257,7 @@
           </div>
           <div class="hidden info" id="infoReturned">
             Members are requested to make an additional donation when
-            items are returned late. See the notices on the wall for the
-            current recommended donations.
+            items are returned late. <strong>This includes trainees</strong>
           </div>
         </div>
         
@@ -268,7 +267,9 @@
         </div>
         
         <div id="Nitrox_tab">
-          <form name="nitrox" class="validated_form">
+          Nitrox calculator using Van der Waal's real gas
+          equations. Only to be used by trained nitrox blenders.
+          <form name="nitrox">
             <p>
               <label for="nox_t"> Temperature</label>
               <input id="nox_t" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required type="number" min="4" max="40" value="20"> &deg;C
@@ -303,19 +304,31 @@
     <div id="Configuration_dialog" class="hidden">
       <table class="form_table zebra">
         <tr>
-          <th>Loan return deadline</th>
+          <th class="input_label">
+            <span data-with-info="#infoDeadline">
+              Loan return deadline
+            </span>
+          </th>
           <td class="widest">
             <input type="number" required class="cfg_control" name="loan_return"> days
           </td>
         </tr>
         <tr>
-          <th>O2 cost per litre</th>
+          <th class="input_label">
+            <span data-with-info="#infoO2Price">
+              O2 cost per litre &pound;
+            </span>
+          </th>
           <td class="widest">
-            &pound;<input type="number" class="cfg_control" step="any" required name="o2_price">
+            <input type="number" class="cfg_control" step="any" required name="o2_price">
           </td>
         </tr>
         <tr>
-          <th>Filter lifetime</th>
+          <th class="input_label">
+            <span data-with-info="#infoLifetime">
+              Filter lifetime
+            </span>
+          </th>
           <td class="widest">
             <input type="number" class="cfg_control" step="any" required name="filter_lifetime"> hours
           </td>
@@ -324,6 +337,16 @@
           <td colspan="2"><button id="update_webdav">Update</button> local lists from Google Drive (must be connected to the internet)</td>
         </tr>
       </table>
+      <div class="hidden info" id="infoDeadline">
+        Deadline beyond which an additional donation is requested for late loan returns.
+      </div>
+      <div class="hidden info" id="infoO2Price">
+        Price of 1 litre of O2, based on the replacement cost of the O2 cylinders.
+      </div>
+      <div class="hidden info" id="infoLifetime">
+        Predicted lifetime of a filter that is run at the optimum temperature. Filter lifetime
+        estimates are automatically adjusted for other temperatures.
+      </div>
     </div>
     <div class="hidden" id="alert_dialog">
       <div id="alert_messages">

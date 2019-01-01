@@ -10,6 +10,16 @@
  */
 function Nitrox(config) {
     this.cfg = config;
+    var self = this;
+
+    $(() => {
+        $("form[name='nitrox']").on("submit", (e) => {
+            e.preventDefault();
+            if (!$(e.target).valid())
+                return;
+            self.submit();
+        });
+    });
 }
 
 Nitrox.prototype.submit = function () {
