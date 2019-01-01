@@ -20,7 +20,7 @@ function Loans(params) {
             borrower: "string",
             lender: "string",
             donation: "number",
-            returned: "Date"
+            returned: "string"
         }
     }, params));
     this.roles = params.roles;
@@ -122,6 +122,7 @@ Loans.prototype.mod_number = function ($td, field, isInteger) {
     if (typeof $td === "number") {
         entry = this.entries[$td];
         $td = $("<td></td>");
+        $td.css("text-align", "center");
     }
     var type = this.keys[field];
     var text = entry[field];
@@ -200,10 +201,8 @@ Loans.prototype.mod_date = function ($td, field) {
     var date = entry[field];
     if (typeof date !== "undefined")
         $td.text(Entries.formatDate(date));
-    else {
-        var $pencil = $("<span class='ui-icon ui-icon-pencil'></span>");
-        $td.append($pencil);
-    }
+    else
+        $td.text("?");
 
     $td
         .off("click")
@@ -251,6 +250,7 @@ Loans.prototype.mod_item = function ($td, field) {
 };
 
 Loans.prototype.load_tbody = function () {
+    var order = $("#loan_table").data("order").split(",");
     var $tbody = $("#loan_table>tbody");
     $tbody.empty();
 
@@ -258,15 +258,14 @@ Loans.prototype.load_tbody = function () {
     var show_all = $("#loan_show_all").is(':checked');
     var $row;
     var someLate = false;
-    for (var i = 0; i < list.length; i++) {
-        var row = list[i];
-        var active = (typeof row.returned === "undefined" ||
-            row.returned.valueOf() > Date.now());
+    for (var r = 0; r < list.length; r++) {
+        var row = list[r];
+        var active = (typeof row.returned === "undefined" || row.returned === "");
         if (!active && !show_all)
             continue;
         $row = $("<tr></tr>");
         var isLate = false;
-        if (typeof row.returned === "undefined") {
+        if (active) {
             var due = row.date.valueOf() +
                 this.cfg.get("loan_return", 10) * 24 * 60 * 60 * 1000;
             if (due < Date.now()) {
@@ -274,37 +273,69 @@ Loans.prototype.load_tbody = function () {
                 someLate = true;
             }
         }
-        $row.append(this.mod_date(i, "date"));
-        $row.append(this.mod_item(i, "item"));
-        $row.append(this.mod_number(i, "count", true));
-        $row.append(this.mod_select(i, "borrower", "members"));
-        $row.append(this.mod_select(i, "lender", "operators"));
-        $row.append(this.mod_number(i, "donation", false));
-        $row.append(this.mod_date(i, "returned"));
+        for (var c = 0; c < order.length; c++) {
+            switch (order[c]) {
+            case 'date':
+                $row.append(this.mod_date(r, "date"));
+                break;
+            case 'count':
+                $row.append(this.mod_number(r, "count", true));
+                break;
+            case 'item':
+                $row.append(this.mod_item(r, "item"));
+                break;
+            case 'borrower':
+                $row.append(this.mod_select(r, "borrower", "members"));
+                break;
+            case 'lender':
+                $row.append(this.mod_select(r, "lender", "operators"));
+                break;
+            case 'donation':
+                $row.append(this.mod_number(r, "donation", false));
+                break;
+            case 'returned':
+                $row.append(this.mod_select(r, "returned", "operators"));
+                break;
+            }
+        }
         if (isLate)
-            $row.addClass("loan_late");
+            $row.find("td").addClass("loan_late");
         $tbody.append($row);
     }
     if (someLate)
         $("#loan_some_late").show();
     else
-        $("#loan_some_late").show();
+        $("#loan_some_late").hide();
 };
 
 Loans.prototype.load_tfoot = function () {
+    var order = $("#loan_table").data("order").split(",");
+
     $("#loan_table>tfoot").find(".loan_modified").removeClass("modified");
     var $col = $("#loan_table>tfoot th").first();
-    this.mod_date($col, "date");
-    $col = $col.next();
-    this.mod_item($col, "item");
-    $col = $col.next();
-    this.mod_number($col, "count", true);
-    $col = $col.next();
-    this.mod_select($col, "borrower", "members");
-    $col = $col.next();
-    this.mod_select($col, "lender", "operators");
-    $col = $col.next();
-    this.mod_number($col, "donation", false);
+    for (var i = 0; i < order.length; i++) {
+        switch (order[i]) {
+        case 'date':
+            this.mod_date($col, "date");
+            break;
+        case 'count':
+            this.mod_number($col, "count", true);
+            break;
+        case 'item':
+            this.mod_item($col, "item");
+            break;
+        case 'borrower':
+            this.mod_select($col, "borrower", "members");
+            break;
+        case 'lender':
+            this.mod_select($col, "lender", "operators");
+            break;
+        case 'donation':
+            this.mod_number($col, "donation", false);
+            break;
+        }
+        $col = $col.next();
+    }
 };
 
 Loans.prototype.reload_ui = function () {
@@ -314,7 +345,7 @@ Loans.prototype.reload_ui = function () {
             this.load_tbody();
             this.capture = $.extend({}, this.defaults);
             this.load_tfoot();
-            $("#loan_table thead th:eq(3)").data("sorter");
+            $("#loan_table").trigger("updateAll");
             $("#loan_table").tablesorter({
                 cancelSelection: true,
                 selectorHeaders: "> thead th",

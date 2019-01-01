@@ -1,10 +1,12 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
 /* eslint-env jquery */
-/* global Cookies */
 /* global WebDAVStore */
 /* global Config: true */
 
+/**
+ * Configuration items are stored in a file 'config.json' on WebDAV
+ */
 function Config(items) {
     this.store = new WebDAVStore()
     this.store_data = {};

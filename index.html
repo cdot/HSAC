@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <!-- BUILD_DATE Tue 18 Dec 15:02:58 GMT 2018 ->
+  <!-- BUILD_DATE Tue  1 Jan 19:38:38 GMT 2019 ->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
@@ -71,18 +71,23 @@
       Loading...
     </div>
     <div id="loaded" class="hidden">
-      <div class="ui-widget">
-        <span id="settings" style="float:right" class="ui-icon ui-icon-gear"></span>
-        <span class="time_display"></span>
-      </div>
+      <!--
+          <div class="ui-widget">
+            <span id="settings" class="ui-icon ui-icon-gear"></span>
+            <span class="time_display"></span>
+          </div>
+      -->
       <div id="main_tabs">
-        <ul>
+        <div style="display:inline-block;float:right">
+          <span id="settings" class="ui-icon ui-icon-gear"></span>
+        </div>
+        <ul style="margin-right:1em">
           <li><a href="#Compressor_tab">Compressor</a></li>
           <li><a href="#Loans_tab">Loans</a></li>
           <li><a href="#Inventory_tab">Inventory</a></li>
           <li><a href="#Nitrox_tab">Nitrox</a></li>
         </ul>
-        <div id="Compressor_tab">
+        <div id="Compressor_tab" class="crowded_tab">
           <div>
             The compressor was last run by <span id="cr_operator">?</span> on
             <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">?</span> minutes.
@@ -96,7 +101,7 @@
               <tr>
                 <th class="input_label">
                   <span data-with-info="#infoOperator">
-                    Operator name
+                    Operator
                   </span>
                 </th>
                 <td colspan="2" class="widest">
@@ -146,13 +151,14 @@
             <input type="submit" id="add_compressor_record" value="Record usage">
           </form>
           <div class="hidden info" id="infoOperator">
-            Only trained operators may use this compressor. Please select your
-            name from the list. If you are not there and want to be trained,
-            contact hsac.training@gmail.com
+            Only trained operators may use this compressor. Please
+            select your name from the list. If you are not there and
+            want to be trained, contact hsac.training@gmail.com
           </div>
           <div class="hidden info" id="infoTemperature">
-            Temperature must be taken from the thermometer on the compressor air
-            intake at the <strong>end</strong> of the filling session.
+            Temperature must be taken from the thermometer on the
+            compressor air intake at the <strong>end</strong> of the
+            filling session.
           </div>
           <div class="hidden info" id="infoFilters">
             Select this <strong>only</strong> if the filters have just
@@ -176,14 +182,14 @@
           </div>
         </div>
         
-        <div id="Loans_tab">
+        <div id="Loans_tab" class="crowded_tab">
           <div>
             <div style="float:right">
               <label for="loan_show_all">Show returned items</label>
               <input type="checkbox" value="false" id="loan_show_all">
             </div>
             Enter new loans on the last row of the table. Select the
-            pencil on the right to set the date when something is returned.
+            empty cell on the right when something is returned.
             <div id="loan_some_late" class="hidden warning">
               One or more returns are <span data-with-info="#infoReturned">
                 late</span>
@@ -200,22 +206,22 @@
             </button>
           </div>
           <div style="clear:both" class="scroll_container">
-            <table id="loan_table" class="zebra tablesorter">
+            <table id="loan_table" class="zebra tablesorter" data-order="date,count,item,borrower,lender,donation,returned">
               <thead>
                 <th>Date</th>
+                <th class="sorter-false isnumber">#</th>
                 <th class="widest">Item</th>
-                <th class="sorter-false">#</th>
                 <th>Borrower</th>
                 <th>Lender</th>
-                <th class="sorter-false">Donation</th>
-                <th class="sorter-false">Returned</th>
+                <th class="sorter-false isnumber">&pound;</th>
+                <th>Returned&nbsp;to</th>
               </thead>
               <tbody>
               </tbody>
               <tfoot>
                 <th class="loan_foot" id="loan_dlg_date"></th>
-                <th class="loan_foot" id="loan_dlg_item"></th>
                 <th class="loan_foot" id="loan_dlg_count"></th>
+                <th class="loan_foot" id="loan_dlg_item"></th>
                 <th class="loan_foot" id="loan_dlg_borrower"></th>
                 <th class="loan_foot" id="loan_dlg_lender"></th>
                 <th class="loan_foot" id="loan_dlg_donation"></th>
@@ -261,7 +267,7 @@
           </div>
         </div>
         
-        <div id="Inventory_tab" class="inventory_tab">
+        <div id="Inventory_tab" class="crowded_tab inventory_tab">
           <div>
           </div>
         </div>
@@ -334,18 +340,23 @@
           </td>
         </tr>
         <tr>
-          <td colspan="2"><button id="update_webdav">Update</button> local lists from Google Drive (must be connected to the internet)</td>
+          <td colspan="2"><button id="update_webdav">Update</button>
+          local caches from Google Drive (must be connected to the
+          internet)</td>
         </tr>
       </table>
       <div class="hidden info" id="infoDeadline">
-        Deadline beyond which an additional donation is requested for late loan returns.
+        Deadline beyond which an additional donation is requested for
+        late loan returns.
       </div>
       <div class="hidden info" id="infoO2Price">
-        Price of 1 litre of O2, based on the replacement cost of the O2 cylinders.
+        Price of 1 litre of O2, based on the replacement cost of the
+        O2 cylinders.
       </div>
       <div class="hidden info" id="infoLifetime">
-        Predicted lifetime of a filter that is run at the optimum temperature. Filter lifetime
-        estimates are automatically adjusted for other temperatures.
+        Predicted lifetime of a filter that is run at the optimum
+        temperature. Filter lifetime estimates are automatically
+        adjusted for other temperatures.
       </div>
     </div>
     <div class="hidden" id="alert_dialog">
@@ -353,7 +364,7 @@
       </div>
     </div>
     <div id="inventory_pick_dialog" class="hidden">
-      <div class="inventory_tab" data-hide-cols="Kit Pool,Location,Count">
+      <div class="crowded_tab inventory_tab" data-hide-cols="Kit Pool,Location,Count">
       </div>
     </div>
     <div id="connect_failed_dialog" class="hidden">
@@ -364,18 +375,6 @@
             <th>WebDAV URL</th>
             <td class="widest">
               <input type="text" url class="connect_control" name="webdav_url">
-            </td>
-          </tr>
-          <tr>
-            <th>WebDAV User</th>
-            <td class="widest">
-              <input type="text" required class="connect_control" name="webdav_user">
-            </td>
-          </tr>
-          <tr>
-            <th>WebDAV Pass</th>
-            <td class="widest">
-              <input type="text" required class="connect_control" name="webdav_pass">
             </td>
           </tr>
         </table>

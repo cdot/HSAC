@@ -94,7 +94,8 @@
         config.setup_UIs(reload_ui);
         $("#main_tabs").tabs();
 
-        $("#settings").on("click", function () {
+        var $gear = $('#settings');
+        $gear.on("click", function () {
             $("#Configuration_dialog").dialog("open");
         });
 
@@ -162,9 +163,7 @@
     function dav_connect() {
         return config.store
             .connect({
-                url: Cookies.get("webdav_url"),
-                username: Cookies.get("webdav_user"),
-                password: Cookies.get("webdav_pass")
+                url: Cookies.get("webdav_url")
             })
             .then(() => {
                 console.debug("WebDAV connected, loading config");

@@ -5,6 +5,9 @@
 
 "use strict";
 
+/**
+ * Inventory is read from inventory.json on webdav
+ */
 function Inventory(config) {
     this.cfg = config;
     var self = this;
@@ -16,54 +19,61 @@ function Inventory(config) {
             autoOpen: false,
             width: "100vw",
             open: function () {
-                var $dlg = $("#inventory_pick_dialog");
-                var $tabs = $dlg.children().first();
-                var picked = $dlg.data("picked");
-                if (typeof picked === "undefined" || picked == "")
-                    return;
-                picked = picked.split(/,\s*/);
-                // picked data is always in the order of the fields
-                // in the inventory, 
-                var sheet = picked.shift();
-                $(".inventory_chosen").removeClass("inventory_chosen");
-
-                var si = self.data.findIndex((e) => {
-                    return e.Class == sheet;
-                });
-                if (si < 0)
-                    return;
-
-                var $tab = $(($tabs.children())[si + 1]);
-                $tabs.tabs("option", "active", si);
-
-
-                // Find the best match among the entries on this sheet
-                var ents = self.data[si].entries;
-                var best_match = -1;
-                var best_matched = 0;
-                for (var j = 0; j < ents.length && picked.length > 0; j++) {
-                    var ent = ents[j];
-                    var m = 0
-                    for (var k = 0; k < ent.length; k++) {
-                        if (ents[j][k] == picked[m]) {
-                            m++;
-                            if (m > best_matched) {
-                                best_matched = m;
-                                best_match = j;
-                            }
-                        }
-                    }
-                }
-                if (best_match >= 0) {
-                    var $trs = $tab.find("tr");
-                    // +1 to skip header row
-                    var tr = $trs[best_match + 1];
-                    $(tr).addClass("inventory_chosen");
-                }
+                self.select_picked($(this));
             }
         });
     });
 }
+
+/**
+ * Highlight the inventory item identified by data-picked by adding the
+ * inventory_chosen class to it
+ */
+Inventory.prototype.select_picked = function ($dlg) {
+    var picked = $dlg.data("picked");
+    if (typeof picked === "undefined" || picked == "")
+        return;
+
+    picked = picked.split(/,\s*/);
+    // picked data is always in the order of the fields
+    // in the inventory, 
+    var sheet = picked.shift();
+    $dlg.find(".inventory_chosen").removeClass("inventory_chosen");
+
+    var si = this.data.findIndex((e) => {
+        return e.Class == sheet;
+    });
+    if (si < 0)
+        return;
+
+    var $tabs = $dlg.children().first();
+    var $tab = $(($tabs.children())[si + 1]);
+    $tabs.tabs("option", "active", si);
+
+    // Find the best match among the entries on this sheet
+    var ents = this.data[si].entries;
+    var best_match = -1;
+    var best_matched = 0;
+    for (var j = 0; j < ents.length && picked.length > 0; j++) {
+        var ent = ents[j];
+        var m = 0
+        for (var k = 0; k < ent.length; k++) {
+            if (ents[j][k] == picked[m]) {
+                m++;
+                if (m > best_matched) {
+                    best_matched = m;
+                    best_match = j;
+                }
+            }
+        }
+    }
+    if (best_match >= 0) {
+        var $trs = $tab.find("tr");
+        // +1 to skip header row
+        var tr = $trs[best_match + 1];
+        $(tr).addClass("inventory_chosen");
+    }
+};
 
 Inventory.prototype.reload_ui = function () {
     var self = this;
@@ -151,6 +161,11 @@ Inventory.prototype.populate_tab = function ($it) {
     $it.tabs();
 };
 
+/**
+ * Update the inventory on WebDAV by reading an updated version from Google Drive.
+ * The inventory index is read from a known URL, and then the URLs listed therein
+ * are read to get the individual sheets.
+ */
 Inventory.prototype.update_from_drive = function (report) {
     const sheets_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5d0yb4xLj024S35YUCnMQZmblbuAOZ5sO_wGn8gm9bgQeLgMXIUiMGQIPrN0wPvnmsM_fzQ0kzglD/pub?output=csv";
 

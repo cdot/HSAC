@@ -23,7 +23,6 @@ function WebDAVStore() {
 
 WebDAVStore.prototype = Object.create(AbstractStore.prototype);
 
-/** url, username and password */
 WebDAVStore.prototype.connect = function (params) {
     "use strict";
 
@@ -34,15 +33,11 @@ WebDAVStore.prototype.connect = function (params) {
     if (params.url.lastIndexOf('/') !== params.url.length - 1)
         params.url += '/';
     this.params = {
-        url: params.url,
-        userName: params.username,
-        password: params.password
+        url: params.url
     };
     console.debug("WebDAVStore: connecting to", params.url);
     this.DAV = new dav.Client({
-        baseUrl: this.params.url,
-        userName: this.params.username,
-        password: this.params.password
+        baseUrl: this.params.url
     });
     return Promise.resolve(this);
 };

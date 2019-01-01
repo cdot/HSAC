@@ -49,6 +49,7 @@ body {
 /* Float validation reports */
 label.error {
     float:right;
+    padding: 0 0.2em;
 }
 
 /* Used in the loan table to highlight a late loan */
@@ -62,9 +63,33 @@ label.error {
     border-collapse: collapse;
 }
 
-#loan_table > tfoot th {
+#loan_table td:last-child,
+#loan_table th:last-child,
+    text-align: center;
+}
+
+#loan_table td:nth-child(2),
+#loan_table td:nth-child(6) {
+    text-align: center;
+}
+
+#loan_table th.isnumber .tablesorter-header-inner {
+    padding: 0;
+}
+
+#loan_table th:nth-child(2),
+#loan_table th:nth-child(6) {
+    text-align: center;
+}
+
+#loan_table td,
+#loan_table th {
     border: 1px dotted grey;
+}
+
+#loan_table > tfoot th {
     color: #135589;
+    text-align: center;
 }
 
 /* A single cell in the loan table */
@@ -131,6 +156,11 @@ table td,th {
     white-space: nowrap;
     padding: 0.5em;
     text-align: left;
+}
+
+.crowded_tab {
+    padding: 0.2em 0 0 0 !important;
+    margin: 0;
 }
 
 .warning {

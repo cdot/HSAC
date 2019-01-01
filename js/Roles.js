@@ -3,10 +3,16 @@
 /* eslint-env jquery */
 /* global Roles: true */
 
+/**
+ * Roles are read from "roles.csv' on WebDAV
+ */
 function Roles(config) {
     this.cfg = config;
 }
 
+/**
+ * Reload the UI by re-reading the roles file from webdav
+ */
 Roles.prototype.reload_ui = function () {
     console.debug("Reloading roles");
     return this.cfg.store.read('/roles.csv')
@@ -21,6 +27,7 @@ Roles.prototype.reload_ui = function () {
                         this[f].push(e);
                 }
                 $("select." + f).html(
+                    "<option></option>" +
                     "<option>" +
                     this[f]
                     .join("</option><option>") +
@@ -32,6 +39,9 @@ Roles.prototype.reload_ui = function () {
         });
 };
 
+/**
+ * Update roles by reading from a known published file on Google Drive
+ */
 Roles.prototype.update_from_drive = function (report) {
     var now = Date.now(); // default caches
 
