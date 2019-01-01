@@ -10,21 +10,20 @@
 /**
  * Entries for Loan events. These can be edited in place.
  */
-function Loans(config, roles) {
-    Entries.call(this, config, "loans", [
-        "date",
-        "item",
-        "count",
-        "borrower",
-        "lender",
-        "donation",
-        "returned"
-    ], {
-        date: "Date",
-        count: "Number",
-        donation: "Number",
-        returned: "Date"
-    });
+function Loans(params) {
+    Entries.call(this, $.extend({
+        name: "loans",
+        keys: {
+            date: "Date",
+            item: "string",
+            count: "number",
+            borrower: "string",
+            lender: "string",
+            donation: "number",
+            returned: "Date"
+        }
+    }, params));
+    this.roles = params.roles;
 
     // Defaults used to populate the new entry row
     this.defaults = {
@@ -37,7 +36,7 @@ function Loans(config, roles) {
     };
 
     var self = this;
-    self.roles = roles;
+
     $(function () {
         $("#loan_controls").hide();
 
@@ -96,7 +95,9 @@ function Loans(config, roles) {
                 $("#loan_table>tfoot")
                     .find(".modified")
                     .removeClass("modified");
-                self.add(self.capture);
+                self.entries.push($.extend({}, self.capture));
+                self.save();
+                self.reload_ui();
             } else {
                 bad.forEach(function (e) {
                     $("#loan_dlg_" + e).addClass("error");
@@ -122,7 +123,7 @@ Loans.prototype.mod_number = function ($td, field, isInteger) {
         entry = this.entries[$td];
         $td = $("<td></td>");
     }
-    var type = this.types[field];
+    var type = this.keys[field];
     var text = entry[field];
     var self = this;
 
@@ -202,7 +203,6 @@ Loans.prototype.mod_date = function ($td, field) {
     else {
         var $pencil = $("<span class='ui-icon ui-icon-pencil'></span>");
         $td.append($pencil);
-        $pencil.with_info('#infoReturned');
     }
 
     $td
@@ -257,6 +257,7 @@ Loans.prototype.load_tbody = function () {
     var list = this.entries;
     var show_all = $("#loan_show_all").is(':checked');
     var $row;
+    var someLate = false;
     for (var i = 0; i < list.length; i++) {
         var row = list[i];
         var active = (typeof row.returned === "undefined" ||
@@ -264,11 +265,14 @@ Loans.prototype.load_tbody = function () {
         if (!active && !show_all)
             continue;
         $row = $("<tr></tr>");
+        var isLate = false;
         if (typeof row.returned === "undefined") {
             var due = row.date.valueOf() +
-                (this.cfg.get("loan_return") || 10) * 24 * 60 * 60 * 1000;
-            if (due < Date.now())
-                $row.addClass("loan_late");
+                this.cfg.get("loan_return", 10) * 24 * 60 * 60 * 1000;
+            if (due < Date.now()) {
+                isLate = true;
+                someLate = true;
+            }
         }
         $row.append(this.mod_date(i, "date"));
         $row.append(this.mod_item(i, "item"));
@@ -277,8 +281,14 @@ Loans.prototype.load_tbody = function () {
         $row.append(this.mod_select(i, "lender", "operators"));
         $row.append(this.mod_number(i, "donation", false));
         $row.append(this.mod_date(i, "returned"));
+        if (isLate)
+            $row.addClass("loan_late");
         $tbody.append($row);
     }
+    if (someLate)
+        $("#loan_some_late").show();
+    else
+        $("#loan_some_late").show();
 };
 
 Loans.prototype.load_tfoot = function () {
@@ -304,6 +314,7 @@ Loans.prototype.reload_ui = function () {
             this.load_tbody();
             this.capture = $.extend({}, this.defaults);
             this.load_tfoot();
+            $("#loan_table thead th:eq(3)").data("sorter");
             $("#loan_table").tablesorter({
                 cancelSelection: true,
                 selectorHeaders: "> thead th",

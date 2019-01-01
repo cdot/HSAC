@@ -60,7 +60,10 @@ WebDAVStore.prototype.read = function (path) {
 
     path = path.replace(/^\/+/, "");
     console.debug("WebDAVStore: Reading", path);
-    return this.DAV.request('GET', path, {})
+    return this.DAV
+        .request('GET', path, {
+            "Cache-Control": "no-cache"
+        })
         .then((res) => {
             if (200 <= res.status && res.status < 300)
                 return Promise.resolve(res.body);

@@ -8,76 +8,85 @@
 
 /**
  * Entries for Compressor runtime events. This is a stack - the only
- * editing available is to delete the last entry.
+ * editing available is to delete the last entry. Standard params same as
+ * Entries.
+ * @param roles Roles object
  */
-function Compressor(config, roles) {
-    this.entries = undefined;
-
-    Entries.call(this, config, "compressor", [
-        "date",
-        "operator",
-        "humidity",
-        "temperature",
-        "runtime",
-        "filterlife"
-    ], {
-        date: "Date",
-        humidity: "Number",
-        temperature: "Number",
-        runtime: "Number",
-        filterlife: "Number"
-    });
-    this.roles = roles;
+function Compressor(params) {
+    Entries.call(this, $.extend({
+        name: "compressor",
+        keys: {
+            date: "Date",
+            operator: "string",
+            temperature: "number",
+            runtime: "number",
+            filterlife: "number"
+        }
+    }, params));
+    this.roles = params.roles;
 }
 
 Compressor.prototype = Object.create(Entries.prototype);
 Compressor.prototype.constructor = Compressor;
 
 /**
-   The 2001 manual predicts filter life to be 50 hours at 20C and
-   provides a table of factors from which a lifetime can be
-   calculated:
-   T (C), Factor, Lifetime
-   0,  3.8, 190
-   5,  2.6, 130
-   10, 1.85, 92.5
-   20, 1, 50
-   30, 0.57, 28.5
-   40, 0.34, 17
-   50, 0.2, 10
-   It also states the pumping rate is 260lpm.
+ * The manual predicts filter life to be 50 hours at 20C and provides
+ * a table of factors from which a lifetime can be
+ * calculated:
+ * T (C), Factor
+ * 0, 3.8
+ * 5, 2.6
+ * 10, 1.85
+ * 20, 1
+ * 30, 0.57
+ * 40, 0.34
+ * 50, 0.2
+ * It also states the pumping rate is 260lpm.
    
-   Let's assume the older manual is correct, as there are reasons
-   to assume the newer one is unreliable. We want a curve that
-   will predict the filter lifetime in hours, based on the
-   temperature. Using a symmetric sigmoidal curve fit,
-   
-   y = d + (a - d) / (1 + (x / c) ^ b)
-   
-   https://mycurvefit.com gives us an excellent fit.
+ * We want a curve that will give the filter factor, based on the
+ * temperature. Using a symmetric sigmoidal curve fit,
+ *    
+ *    y = d + (a - d) / (1 + (x / c) ^ b)
+ *    
+ * https://mycurvefit.com gives us an excellent fit.
 */
 Compressor.filter_coeff = {
-    a: 189.9102,
+    a: 3.798205,
     b: 1.149582,
     c: 11.50844,
-    d: -24.03492
+    d: -0.4806983
 };
 
 Compressor.prototype.reload_ui = function () {
+    var self = this;
+    var $form = $("form[name='compressor']");
+
+    $form
+        .on("submit", (e) => {
+            console.log("Adding compressor record");
+            e.preventDefault();
+            if (!$(e.target).valid())
+                return;
+            var values = {};
+            $(e.target).find(":input").each(function () {
+                values[this.name] = self.deserialise(this.name, $(this).val());
+            });
+            this.add(values);
+        });
+
     return this.load()
         .then(() => {
             console.debug("Loading", this.entries.length, "compressor records");
             if (this.entries.length === 0)
                 return;
-            // predict filter life remaining at current temperature
             var cur = this.entries[this.entries.length - 1];
             $("#cr_operator").text(cur.operator);
             $("#cr_time").text(Entries.formatDate(cur.date));
-            $("#cr_flr").text(Math.round(cur.filterlife * 100));
+            $("#cr_flr").text(Math.floor(cur.filterlife * 100));
             $("#cr_runtime").text(cur.runtime);
-            $("input[name='runtime']")
+            $form.find("input[name='runtime']")
                 .rules("remove", "min");
-            $("input[name='runtime']")
+            $form.find("input[name='runtime']")
                 .rules("add", {
                     min: cur.runtime
                 });
@@ -93,18 +102,21 @@ Compressor.prototype.add = function (r) {
             dt = 0;
         if (this.entries.length > 0) {
             var le = this.entries[this.entries.length - 1];
-            flr = le.filterlife;
+            if (r.filters_changed !== "on")
+                flr = le.filterlife;
             dt = (r.runtime - le.runtime) / 60; // hours
-
             if (dt < 0)
-                throw "Bad runtime";
+                throw "Bad runtime"; // debug
 
-            // Predicted filter lifetime at this temperature
-            var lifetime = Compressor.filter_coeff.d +
+            // Calculate predicted filter lifetime at this temperature,
+            // in hours
+            var factor = Compressor.filter_coeff.d +
                 (Compressor.filter_coeff.a - Compressor.filter_coeff.d) /
                 (1 + Math.pow(
                     le.temperature / Compressor.filter_coeff.c,
                     Compressor.filter_coeff.b));
+            var lifetime = this.cfg.get("filter_lifetime", 40) * factor;
+
             // Fraction of filter change hours consumed
             var fraction = dt / lifetime;
             flr -= fraction; // remaining filter life
@@ -116,6 +128,9 @@ Compressor.prototype.add = function (r) {
         }
         r.date = new Date();
         r.filterlife = flr;
-        Entries.prototype.add.call(this, r);
+        this.entries.push(r);
+        this.save().then(() => {
+            this.reload_ui();
+        });
     });
 };

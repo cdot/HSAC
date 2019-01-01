@@ -50,7 +50,7 @@
         $icon.on("click", function () {
             var info = $(this).data("info");
             if (info.charAt(0) === '#')
-                info = $(info).text();
+                info = $(info).html();
             infoDialog(info, "Information");
         });
         return $thing;

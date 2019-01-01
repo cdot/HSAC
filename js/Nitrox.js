@@ -48,10 +48,10 @@ Nitrox.prototype.submit = function () {
             " bar with air.<br>");
         $report.append(
             "This will use " +
-            +Math.round(result.O2Needed_l) +
+            Math.round(result.O2Needed_l) +
             " litres of O<sub>2</sub> at a cost of <strong>&pound;" +
             (Math.round(100 * (result.O2Needed_l *
-                parseFloat(this.cfg.get("o2_price")))) / 100) +
+                parseFloat(this.cfg.get("o2_price", 0.02)))) / 100) +
             "</strong><br>");
         $report.append("There should be approximately " +
             Math.floor(result.bankLeft_b) +
@@ -83,7 +83,7 @@ Nitrox.prototype.blend = function (conditions) {
     // @param V total volume, litres
     // @param a correction for intermolecular forces
     // @param b correction for finite molecular size
-    function VanDerWaal(name, P, V, T, a, b) {
+    function vanDerWaal(name, P, V, T, a, b) {
 
         if (P == 0)
             return V;
@@ -174,7 +174,7 @@ Nitrox.prototype.blend = function (conditions) {
 
     // Calculate how many bar of O2 we'd have to add to make up the
     // difference, real gas
-    var realO2ToAdd_b = VanDerWaal(
+    var realO2ToAdd_b = vanDerWaal(
         "O2",
         idealO2ToAdd_b, // bar
         r.V, // litres
@@ -187,7 +187,7 @@ Nitrox.prototype.blend = function (conditions) {
 
     console.debug("Real O2 to add", realO2ToAdd_b, "bar");
 
-    /*var Air_pReal = VanDerWaal(
+    /*var Air_pReal = vanDerWaal(
         "Air",
         r.tgtP_b - (r.curP_b + idealO2ToAdd_b), // bar
         V, // litres

@@ -5,21 +5,36 @@
 
 "use strict";
 
-/*
- * Generic handling for items in lists (compressor events, loan events)
- * stored in CSV files.
- * @param name list name
- * @param fields array of column names
- * @param types map from column names to types. Types supported are
- * "Date" and "Number". Date is an integer epoch ms, or a string. Number
- * is a float.
+/**
+ * Generic handling for storing lists of key-value maps in CSV files.
+ * Requires the jQuery CSV plugin.
+ * For example, a data set such as:
+ *
+ * [
+ *    { a: 1, c: 2 },
+ *    { a: 3, b: 4, c: 5 }
+ * ]
+ *
+ * will be stored in CSV as:
+ *
+ * a,b,c
+ * 1,,2
+ * 3,5
+ *
+ * Note that the first item in the list is used to determine the keys.
+ *
+ * @param config Config object
+ * @param name list name, used as CSV file name
+ * @param csv array of column names
+ * @param types map from column names to types. Types supported are "string",
+ * "Date" and "number". Date is an integer epoch ms, or a string. Number
+ *  is a float.
  */
-function Entries(config, name, fields, types) {
-    this.cfg = config;
+function Entries(params) {
+    this.cfg = params.config;
     this.entries = undefined;
-    this.name = name;
-    this.fields = fields;
-    this.types = types;
+    this.name = params.name;
+    this.keys = params.keys;
 }
 
 /** Make a simple date string */
@@ -37,9 +52,10 @@ Entries.prototype.load = function () {
         return this.cfg.store.read('/' + this.name + '.csv')
             .then((list) => {
                 var data = $.csv.toArrays(list);
+                var heads = data[0];
                 this.entries = [];
-                for (var i = 0; i < data.length; i++) {
-                    this.entries.push(this.getFields(data[i]));
+                for (var i = 1; i < data.length; i++) {
+                    this.entries.push(this.array2map(heads, data[i]));
                 }
                 resolve();
             })
@@ -51,67 +67,91 @@ Entries.prototype.load = function () {
     });
 };
 
-Entries.prototype.getFields = function (data) {
-    var datum = {};
-    for (var j = 0; j < this.fields.length; j++) {
-        var fieldname = this.fields[j],
-            d;
-        if (data instanceof Array) {
-            d = data[j]; // arrays are indexed by column
-        } else {
-            d = data[fieldname]; // maps are indexed by name
-        }
-        if (typeof d === "undefined")
-            continue; // ignore undefined
-        if (this.types[fieldname]) {
-            switch (this.types[fieldname]) {
-            case 'Date':
-                if (d === "")
-                    continue; // ignore empty date columns
-                if (/^[0-9]+$/.test(d))
-                    // Numeric date
-                    datum[fieldname] = new Date(parseInt(d));
-                else
-                    // String date
-                    datum[fieldname] = new Date(d);
-                break;
-            case 'Number':
-                if (d === "")
-                    continue; // ignore empty numbers
-                datum[fieldname] = parseFloat(d);
-                break;
-            }
-        } else
-            // Assume string
-            datum[fieldname] = d;
-    }
-    return datum;
-};
-
 Entries.prototype.save = function () {
-    var data = [];
-    for (var i = 0; i < this.entries.length; i++) {
-        var datum = [];
-        for (var j = 0; j < this.fields.length; j++) {
-            datum[j] = this.entries[i][this.fields[j]];
-        }
-        data.push(datum);
+    // Slightly more supported than Object.keys?
+    var heads = [];
+    for (var k in this.keys) {
+        if (this.keys.hasOwnProperty(k))
+            heads.push(k);
     }
+    var data = [heads];
+    for (var row = 0; row < this.entries.length; row++)
+        data.push(this.map2array(heads, this.entries[row]));
+
     return this.cfg.store.write(
         '/' + this.name + '.csv', $.csv.fromArrays(data));
 };
 
-Entries.prototype.add = function (r) {
-    this.entries.push(r);
-    this.save();
-    this.reload_ui();
+/**
+ * Given an array of values and a same-sized array of keys,
+ * create an object with fields key:value after applying type
+ * conversions.
+ * @param vals Array of values
+ * @params keys Array of keys
+ */
+Entries.prototype.array2map = function (keys, vals) {
+    var datum = {};
+    for (var j = 0; j < keys.length; j++) {
+        var val = vals[j];
+
+        if (typeof val === "undefined")
+            continue; // ignore undefined
+
+        // Apply type conversions
+        datum[keys[j]] = this.deserialise(keys[j], val);
+    }
+    return datum;
 };
 
-Entries.prototype.submit = function (values) {
-    if (!values)
-        values = {};
-    $("form[name='" + this.name + "'] :input").each(function () {
-        values[this.name] = $(this).val();
-    });
-    this.add(this.getFields(values));
+/**
+ * Given a key and a string, convert that to the target type for that key
+ * @param key the key
+ * @param val the string
+ * @return the converted value
+ * @throws if the value can't be converted
+ */
+Entries.prototype.deserialise = function (key, val) {
+    if (typeof val === "undefined")
+        return val;
+    switch (this.keys[key]) {
+    case 'Date':
+        if (/^[0-9]+$/.test(val))
+            // Numeric date
+            return new Date(parseInt(val));
+        // String date
+        if (val === "")
+            return undefined;
+        return new Date(val);
+    case 'number':
+        if (val === "")
+            return 0;
+        return parseFloat(val);
+    default:
+        return val;
+    }
+}
+
+/**
+ * Given a key and a string, convert that to a suitable type for
+ * serialisation
+ * @param key the key
+ * @param val the string
+ * @return the converted value
+ * @throws if the value can't be converted
+ */
+Entries.prototype.serialise = function (key, val) {
+    if (typeof val !== "undefined" && this.keys[key] === "Date")
+        // Dates are serialised as numbers
+        return val.getTime();
+    return val;
+};
+
+Entries.prototype.map2array = function (keys, vals) {
+    var datum = [];
+    for (var j = 0; j < keys.length; j++) {
+        var key = keys[j],
+            val = vals[key];
+        datum.push(this.serialise(key, val));
+    }
+    return datum;
 };

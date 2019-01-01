@@ -83,6 +83,14 @@
           <li><a href="#Nitrox_tab">Nitrox</a></li>
         </ul>
         <div id="Compressor_tab">
+          <div>
+            The compressor was last run by <span id="cr_operator">?</span> on
+            <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">?</span> minutes.
+            <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span>%</span>
+          </div>
+          <div>
+            Enter details of your usage below:
+          </div>
           <form name="compressor" id="compressor_form" class="validated_form">
             <table class="form_table zebra">
               <tr>
@@ -107,6 +115,7 @@
                   <input type="number" id="cur_temp" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20"> &deg;C
                 </td>
               </tr>
+              <!--
               <tr>
                 <th class="input_label">
                   <span data-with-info="#infoHumidity">
@@ -117,6 +126,7 @@
                   <input data-msg="Must be between 0 and 100" name="humidity" type="number" min="0" max="100"> %
                 </td>
               </tr>
+              -->
               <tr>
                 <th class="input_label">
                   <span data-with-info="#infoRuntime">
@@ -126,14 +136,15 @@
                 <td class="widest">
                   <input type="number" step="0.01" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required>
                   minutes
+                  <div style="float:right">
+                    <label for="filters_changed">Filters changed</label>
+                    <input data-with-info="#infoFilters" type="checkbox" id="filters_changed" name="filters_changed">
+                  </div>
                 </td>
               </tr>
             </table>
-            <input type="submit" id="add_compressor_record" value="Add">
+            <input type="submit" id="add_compressor_record" value="Record usage">
           </form>
-          The compressor was last run by <span id="cr_operator">?</span> on
-          <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">?</span> minutes.
-          <span data-with-info="#infoFilterEfficiency">Filter lifetime is at <span id="cr_flr">?</span>%</span>
           <div class="hidden info" id="infoOperator">
             Only trained operators may use this compressor. Please select your
             name from the list. If you are not there and want to be trained,
@@ -141,25 +152,26 @@
           </div>
           <div class="hidden info" id="infoTemperature">
             Temperature must be taken from the thermometer on the compressor air
-            intake at the end of the filling session.
+            intake at the <strong>end</strong> of the filling session.
           </div>
-          <div class="hidden info" id="infoHumidity">
-            Relative humidity can be read from the humidity gauge on the top of
-            the compressor.
+          <div class="hidden info" id="infoFilters">
+            Select this <strong>only</strong> if the filters have just
+            been changed. It will reset the filter lifetime clock.
           </div>
           <div class="hidden info" id="infoRuntime">
-            Runtime is read from the counter on the right of the compressor
-            control panel. The value entered must be greater than the last recorded
-            runtime.
+            Runtime is read from the counter on the right of the
+            compressor control panel.
           </div>
           <div class="hidden info" id="infoFilterEfficiency">
-            Filter lifetime depends on intake air temperature and
-            runtime, so this is just an estimate of how much life there
-            is left in the filters. When it drops below 10%, inform a
-            member of the committee so they can be changed (or, better,
-            learn to change them yourself.)
-            <p>
-              <b>NEVER</b> use the compressor if the filter lifetime is negative!
+            Filter lifetime is a function of intake air temperature
+            and runtime. This is a prediction of how much life there
+            is left in the filters, based on the compressor runtime
+            records.  When it drops below 10%, inform a member of the
+            committee so they can be changed (or, better, learn to
+            change them yourself.)
+            <p class="error">
+              <strong>NEVER</strong> use the compressor if the filter
+              lifetime is negative!
             </p>
           </div>
         </div>
@@ -169,6 +181,12 @@
             <div style="float:right">
               <label for="loan_show_all">Show returned items</label>
               <input type="checkbox" value="false" id="loan_show_all">
+            </div>
+            Enter new loans on the last row of the table. Select the
+            pencil on the right to set the date when something is returned.
+            <div id="loan_some_late" class="hidden loan_late">
+              One or more returns are <span data-with-info="#infoReturned">
+                late</span>
             </div>
           </div>
           <div id="loan_controls">
@@ -186,11 +204,11 @@
               <thead>
                 <th>Date</th>
                 <th class="widest">Item</th>
-                <th>#</th>
+                <th class="sorter-false">#</th>
                 <th>Borrower</th>
                 <th>Lender</th>
-                <th>Donation</th>
-                <th>Returned</th>
+                <th class="sorter-false">Donation</th>
+                <th class="sorter-false">Returned</th>
               </thead>
               <tbody>
               </tbody>
@@ -210,14 +228,10 @@
             </table>
           </div>
           <div class="hidden info" id="infoLoans">
-            Enter details of new loans below the table.
+            Enter details of new loans on the last row of the table.
             You can also edit older loans e.g. to indicate when a loan was
             returned. Just touch the item you want to edit (touch empty space
             to cancel)
-          </div>
-          <div class="hidden info" id="infoAdd">
-            Enter details of the loan in the fields and
-            click "Add" to add a new row to the table
           </div>
           <div class="hidden info" id="infoLender">
             Equipment loans must be authorised by a member of the kit rota
@@ -242,11 +256,9 @@
             current recommended donations
           </div>
           <div class="hidden info" id="infoReturned">
-            Members are requested to make an additional donation if
+            Members are requested to make an additional donation when
             items are returned late. See the notices on the wall for the
-            current recommended donations. In special circumstances You
-            can extend this to a later agreed date with the
-            authorisation of the Diving Officer
+            current recommended donations.
           </div>
         </div>
         
@@ -300,6 +312,12 @@
           <th>O2 cost per litre</th>
           <td class="widest">
             &pound;<input type="number" class="cfg_control" step="any" required name="o2_price">
+          </td>
+        </tr>
+        <tr>
+          <th>Filter lifetime</th>
+          <td class="widest">
+            <input type="number" class="cfg_control" step="any" required name="filter_lifetime"> hours
           </td>
         </tr>
         <tr>

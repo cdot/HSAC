@@ -23,7 +23,9 @@ Config.prototype.save = function () {
     this.store.write("/config.json", JSON.stringify(this.store_data));
 };
 
-Config.prototype.get = function (k) {
+Config.prototype.get = function (k, deflt) {
+    if (typeof this.store_data[k] === "undefined")
+        return deflt;
     return this.store_data[k];
 };
 

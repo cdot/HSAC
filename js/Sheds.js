@@ -5,6 +5,7 @@
  */
 
 /* eslint-env jquery */
+/* global Cookies */
 /* global Config */
 /* global Nitrox */
 /* global Compressor */
@@ -31,8 +32,14 @@
     });
 
     const roles = new Roles(config);
-    const compressor = new Compressor(config, roles);
-    const loans = new Loans(config, roles);
+    const compressor = new Compressor({
+        roles: roles,
+        config: config
+    });
+    const loans = new Loans({
+        roles: roles,
+        config: config
+    });
     const inventory = new Inventory(config);
     const nitrox = new Nitrox(config);
 
@@ -71,7 +78,8 @@
         // Generics
         $("button").button();
         $(".spinner").spinner();
-        $("select").selectmenu();
+        $(".spinner").spinner();
+        $("input[type='checkbox']").checkboxradio();
         $('.ui-spinner-button').click(function () {
             $(this).siblings('input').change();
         });
@@ -88,15 +96,6 @@
 
         $("#settings").on("click", function () {
             $("#Configuration_dialog").dialog("open");
-        });
-
-        // Submit handler for validated forms that link to Entries
-        // (currently only Compressor, but may be useful again)
-        $(".validated_form").on("submit", (e) => {
-            e.preventDefault();
-            if (!$(e.target).valid())
-                return;
-            eval(e.target.name + ".submit()");
         });
 
         // Information buttons
