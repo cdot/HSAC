@@ -174,12 +174,13 @@
             })
             .then(() => {
                 console.debug("WebDAV connected, loading config");
-                return config.load()
-                    .catch((e) => {
-                        console.debug("config load failed: " + e);
-                        return promise_to_reconnect();
-                    });
+                return config.load();
+            })
+            .catch((e) => {
+                console.debug("config load failed: " + e);
+                return promise_to_reconnect();
             });
+        
     }
 
     $(() => {
