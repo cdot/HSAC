@@ -157,11 +157,17 @@
                     $("#connect_failed_form")
                         .find("input")
                         .each(function () {
-                            config.set(this.name, $(this).val());
+                            Cookies.set(this.name, $(this).val());
                         });
-                    config.save().then(() => {
-                        resolve(dav_connect());
-                    });
+                    config.store
+                        .connect({
+                            url: Cookies.get("webdav_url")
+                        })
+                        .then(() => {
+                            return config.save().then(() => {
+                                resolve(dav_connect());
+                            });
+                        });
                 }
             });
         });

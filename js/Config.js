@@ -22,7 +22,7 @@ Config.prototype.load = function () {
 };
 
 Config.prototype.save = function () {
-    this.store.write("/config.json", JSON.stringify(this.store_data));
+    return this.store.write("/config.json", JSON.stringify(this.store_data));
 };
 
 Config.prototype.get = function (k, deflt) {
