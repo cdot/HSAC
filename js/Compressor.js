@@ -82,7 +82,9 @@ Compressor.prototype.reload_ui = function () {
             var cur = this.entries[this.entries.length - 1];
             $("#cr_operator").text(cur.operator);
             $("#cr_time").text(Entries.formatDate(cur.date));
-            $("#cr_flr").text(Math.floor(cur.filterlife * 100));
+            $("#cr_flr").text(Math.round(
+                    100 * this.cfg.get("filter_lifetime", 40) * cur.filterlife) /
+                100);
             $("#cr_runtime").text(cur.runtime);
             $form.find("input[name='runtime']")
                 .rules("remove", "min");

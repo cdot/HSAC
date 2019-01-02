@@ -20,7 +20,8 @@
             title: titleMsg,
             resizable: true,
             modal: true,
-            width: "100%",
+            width: "75%",
+            resize: "auto",
             buttons: {
                 "OK": function () {
                     $(this).dialog("close");
@@ -35,24 +36,39 @@
 
     /**
      * An element with data-with-info will be displayed with an information
-     * symbol which, when clicked, will bring up an infoDialog
+     * symbol which, when clicked, will bring up an infoDialog. if noIcon is
+     * set, then the item itself will be made clickable.
      */
-    $.fn.with_info = function (data) {
+    $.fn.with_info = function (params) {
+        if (this.length === 0)
+            return;
+
+        if (typeof params !== "object")
+            params = {
+                text: params
+            };
+
         var $thing = $(this);
-        var i = data || $thing.data("with-info");
-        if (i.charAt(0) === '#' && $(i).length === 0)
-            throw "Missing " + i;
+        var s = params.text || $thing.data("with-info");
 
-        var $icon = $("<span class='ui-icon ui-icon-info'></span>");
-        $thing.after($icon);
+        if (typeof s === "undefined" || s.charAt(0) === '#' && $(s).length === 0)
+            throw "Missing " + s;
 
-        $icon.data("info", i);
-        $icon.on("click", function () {
+        var $clickable;
+
+        if (params.noIcon)
+            $clickable = $thing;
+        else {
+            $clickable = $("<span class='ui-icon ui-icon-info'></span>");
+            $thing.after($clickable);
+        }
+
+        $clickable.data("info", s);
+        $clickable.on("click", function () {
             var info = $(this).data("info");
             if (info.charAt(0) === '#')
                 info = $(info).html();
             infoDialog(info, "Information");
         });
-        return $thing;
     }
 })(jQuery);

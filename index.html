@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <!-- BUILD_DATE Tue  1 Jan 19:38:38 GMT 2019 ->
+  <!-- BUILD_DATE Wed  2 Jan 13:28:11 GMT 2019 ->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
@@ -91,7 +91,7 @@
           <div>
             The compressor was last run by <span id="cr_operator">?</span> on
             <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">?</span> minutes.
-            <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span>%</span>
+            <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span> hours</span>
           </div>
           <div>
             Enter details of your usage below:
@@ -150,36 +150,6 @@
             </div>
             <input type="submit" id="add_compressor_record" value="Record usage">
           </form>
-          <div class="hidden info" id="infoOperator">
-            Only trained operators may use this compressor. Please
-            select your name from the list. If you are not there and
-            want to be trained, contact hsac.training@gmail.com
-          </div>
-          <div class="hidden info" id="infoTemperature">
-            Temperature must be taken from the thermometer on the
-            compressor air intake at the <strong>end</strong> of the
-            filling session.
-          </div>
-          <div class="hidden info" id="infoFilters">
-            Select this <strong>only</strong> if the filters have just
-            been changed. It will reset the filter lifetime clock.
-          </div>
-          <div class="hidden info" id="infoRuntime">
-            Runtime is read from the counter on the right of the
-            compressor control panel.
-          </div>
-          <div class="hidden info" id="infoFilterEfficiency">
-            Filter lifetime is a function of intake air temperature
-            and runtime. This is a prediction of how much life there
-            is left in the filters, based on the compressor runtime
-            records.  When it drops below 10%, inform a member of the
-            committee so they can be changed (or, better, learn to
-            change them yourself.)
-            <p class="warning">
-              <strong>NEVER</strong> use the compressor if the filter
-              lifetime is negative!
-            </p>
-          </div>
         </div>
         
         <div id="Loans_tab" class="crowded_tab">
@@ -232,38 +202,6 @@
                 </th>
               </tfoot>
             </table>
-          </div>
-          <div class="hidden info" id="infoLoans">
-            Enter details of new loans on the last row of the table.
-            You can also edit older loans e.g. to indicate when a loan was
-            returned. Just touch the item you want to edit (touch empty space
-            to cancel)
-          </div>
-          <div class="hidden info" id="infoLender">
-            Equipment loans must be authorised by a member of the kit rota
-          </div>
-          <div class="hidden info" id="infoBorrower">
-            Only current members of the club can borrow equipment. If
-            the borrower's name does not appear on this list, select
-            their instructor instead
-          </div>
-          <div class="hidden info" id="infoItem">
-            Select the item of equipment borrowed
-          </div>
-          <div class="hidden info" id="infoIdentification">
-            If the equipment has a unique identifying mark e.g. a number
-            on the shoulder of BCDs, or a tag on regulators, or a
-            regulator serial number, enter that here
-          </div>
-          <div class="hidden info" id="infoDonation">
-            All members except those currently on the Ocean Diver course
-            are asked to make a donation to the club to help with
-            equipment maintenance. See the notices on the wall for the
-            current recommended donations
-          </div>
-          <div class="hidden info" id="infoReturned">
-            Members are requested to make an additional donation when
-            items are returned late. <strong>This includes trainees</strong>
           </div>
         </div>
         
@@ -345,20 +283,8 @@
           internet)</td>
         </tr>
       </table>
-      <div class="hidden info" id="infoDeadline">
-        Deadline beyond which an additional donation is requested for
-        late loan returns.
-      </div>
-      <div class="hidden info" id="infoO2Price">
-        Price of 1 litre of O2, based on the replacement cost of the
-        O2 cylinders.
-      </div>
-      <div class="hidden info" id="infoLifetime">
-        Predicted lifetime of a filter that is run at the optimum
-        temperature. Filter lifetime estimates are automatically
-        adjusted for other temperatures.
-      </div>
     </div>
+
     <div class="hidden" id="alert_dialog">
       <div id="alert_messages">
       </div>
@@ -367,6 +293,7 @@
       <div class="crowded_tab inventory_tab" data-hide-cols="Kit Pool,Location,Count">
       </div>
     </div>
+
     <div id="connect_failed_dialog" class="hidden">
       WebDAV connect failed
       <form name="connect_failed_form">
@@ -381,5 +308,95 @@
       </form>
       <button id="connect_failed_set">Connect</button>
     </div>
+
+    <!-- Compressor help -->
+    <div class="hidden info" id="infoOperator">
+      Only trained operators may use this compressor. Please
+      select your name from the list. If you are not there and
+      want to be trained, contact hsac.training@gmail.com
+    </div>
+    <div class="hidden info" id="infoTemperature">
+      Temperature must be taken from the thermometer on the
+      compressor air intake at the <strong>end</strong> of the
+      filling session.
+    </div>
+    <div class="hidden info" id="infoFilters">
+      Select this <strong>only</strong> if the filters have just
+      been changed. It will reset the filter lifetime clock.
+    </div>
+    <div class="hidden info" id="infoRuntime">
+      Runtime is read from the counter on the right of the
+      compressor control panel.
+    </div>
+    <div class="hidden info" id="infoFilterEfficiency">
+      <p>Filter lifetime is predicted based on the intake air temperature
+        and runtime from the compressor records, and does <em>not</em>
+        reflect on the efficiency of the filters.</p>
+      <p>When the lifetime drops below 2 hours, inform a member of the
+        committee so the filters can be changed (or, better, learn to
+        change them yourself.)</p>
+      <p class="warning">
+        <strong>NEVER</strong> use the compressor if the filter
+        lifetime is negative!
+      </p>
+    </div>
+
+    <!-- Loans help -->
+    <div class="hidden info" id="infoLoans">
+      Enter details of new loans on the last row of the table.
+      You can also edit older loans e.g. to indicate when a loan was
+      returned, or correct an error. Just touch the item you want to
+      edit.
+    </div>
+    <div class="hidden info" id="infoLender">
+      Equipment loans must be authorised by a member of the kit rota
+    </div>
+    <div class="hidden info" id="infoBorrower">
+      Only current members of the club can borrow equipment. If
+      the borrower's name does not appear on this list, select
+      their instructor instead
+    </div>
+    <div class="hidden info" id="infoItem">
+      Select the item of equipment borrowed
+    </div>
+    <div class="hidden info" id="infoIdentification">
+      If the equipment has a unique identifying mark e.g. a number
+      on the shoulder of BCDs, or a tag on regulators, or a
+      regulator serial number, enter that here
+    </div>
+    <div class="hidden info" id="infoDonation">
+      All members except those currently on the Ocean Diver course
+      are asked to make a donation to the club to help with
+      equipment maintenance. See the notices on the wall for the
+      current recommended donations
+    </div>
+    <div class="hidden info" id="infoReturned">
+      Members are requested to make an additional donation when
+      items are returned late. <strong>This includes trainees</strong>
+    </div>
+
+    <!-- Inventory help -->
+    <div class="hidden info" id="infoOnLoan1">
+      The number in brackets indicates how many are out on loan
+    </div>
+    <div class="hidden info" id="infoOnLoan2">
+      Crossed-out entries are out on loan
+    </div>
+
+    <!-- Settings help -->
+    <div class="hidden info" id="infoDeadline">
+      Deadline beyond which an additional donation is requested for
+      late loan returns.
+    </div>
+    <div class="hidden info" id="infoO2Price">
+      Price of 1 litre of O2, based on the replacement cost of the
+      O2 cylinders.
+    </div>
+    <div class="hidden info" id="infoLifetime">
+      Predicted lifetime of a filter that is run at the optimum
+      temperature. Filter lifetime estimates are automatically
+      adjusted for other temperatures.
+    </div>
+
   </body>
 </html>

@@ -8,8 +8,9 @@
 /**
  * Inventory is read from inventory.json on webdav
  */
-function Inventory(config) {
-    this.cfg = config;
+function Inventory(params) {
+    this.cfg = params.config;
+    this.loans = params.loans;
     var self = this;
     self.uid = 0;
     $(function () {
@@ -34,10 +35,7 @@ Inventory.prototype.select_picked = function ($dlg) {
     if (typeof picked === "undefined" || picked == "")
         return;
 
-    picked = picked.split(/,\s*/);
-    // picked data is always in the order of the fields
-    // in the inventory, 
-    var sheet = picked.shift();
+    var sheet = picked.replace(/,.*$/, "");
     $dlg.find(".inventory_chosen").removeClass("inventory_chosen");
 
     var si = this.data.findIndex((e) => {
@@ -51,26 +49,16 @@ Inventory.prototype.select_picked = function ($dlg) {
     $tabs.tabs("option", "active", si);
 
     // Find the best match among the entries on this sheet
-    var ents = this.data[si].entries;
-    var best_match = -1;
-    var best_matched = 0;
-    for (var j = 0; j < ents.length && picked.length > 0; j++) {
-        var ent = ents[j];
-        var m = 0
-        for (var k = 0; k < ent.length; k++) {
-            if (ents[j][k] == picked[m]) {
-                m++;
-                if (m > best_matched) {
-                    best_matched = m;
-                    best_match = j;
-                }
-            }
-        }
-    }
-    if (best_match >= 0) {
+    sheet = this.data[si];
+    var ents = sheet.entries;
+    var ei = ents.findIndex((e) => {
+        return Inventory.getLoanDescriptor(sheet, e) == picked;
+    });
+
+    if (ei >= 0) {
         var $trs = $tab.find("tr");
         // +1 to skip header row
-        var tr = $trs[best_match + 1];
+        var tr = $trs[ei + 1];
         $(tr).addClass("inventory_chosen");
     }
 };
@@ -90,6 +78,22 @@ Inventory.prototype.reload_ui = function () {
         });
 };
 
+// Inventory columns that are NOT to be used in a descriptor
+Inventory.hide_cols = {
+    "Kit Pool": true,
+    "Location": true,
+    "Count": true
+};
+
+Inventory.getLoanDescriptor = function (sheet, entry) {
+    var desc = [sheet.Class];
+    for (var ci = 0; ci < sheet.heads.length; ci++) {
+        if (!Inventory.hide_cols[sheet.heads[ci]])
+            desc.push(entry[ci]);
+    }
+    return desc.join(",");
+};
+
 /**
  * Populate an inventory tab. This will be either the top level tab or the
  * loan item dialog tab. The top level tab will have the class main-inventory
@@ -98,6 +102,67 @@ Inventory.prototype.reload_ui = function () {
  */
 Inventory.prototype.populate_tab = function ($it) {
     var inventory = this.data;
+    var hide_cols = {};
+    var self = this;
+
+    function fill_sheet(sheet) {
+        var nc = sheet.heads.length,
+            ci,
+            showCol = {},
+            colIndex = {};
+
+        function make_row(ei) {
+            // Make a copy, as we may modify Count
+            var entry = [].concat(sheet.entries[ei]);
+            var $tr = $("<tr></tr>");
+            var desc = Inventory.getLoanDescriptor(sheet, entry);
+            $tr.data("loan_desc", desc);
+            var on_loan = self.loans.number_on_loan(desc);
+            var can_pick = false;
+            if (on_loan > 0) {
+                if (typeof colIndex.Count === "undefined") {
+                    $tr.addClass("inventory_on_loan");
+                    can_pick = false;
+                } else {
+                    if (on_loan >= entry[colIndex.Count]) {
+                        $tr.addClass("inventory_on_loan");
+                        can_pick = false;
+                    }
+                    entry[colIndex.Count] +=
+                        " <span data-with-info='#infoOnLoan1'>(" + on_loan + ")</span>";
+                }
+            }
+            if (can_pick)
+                $tr.on("click", function () {
+                    var $dlg = $("#inventory_pick_dialog");
+                    $dlg.dialog("close");
+                    var handler = $dlg.data("handler");
+                    if (typeof handler === "function")
+                        handler($(this).data("loan_desc"));
+                });
+            for (ci = 0; ci < nc; ci++) {
+                if (showCol[ci])
+                    $tr.append("<td>" + entry[ci] + "</td>");
+            }
+            return $tr;
+        }
+
+        var $table = $("<table class='inventory_table zebra'></table>");
+        var $tr = $("<tr></tr>");
+        for (ci = 0; ci < nc; ci++) {
+            colIndex[sheet.heads[ci]] = ci;
+            if (!hide_cols[sheet.heads[ci]]) {
+                $tr.append("<th>" + sheet.heads[ci] + "</th>");
+                showCol[ci] = true;
+            }
+        }
+        $table.append($tr);
+
+        for (var ei = 0; ei < sheet.entries.length; ei++)
+            $table.append(make_row(ei));
+
+        return $table;
+    }
 
     if ($it.children().length > 0) {
         if ($it.tabs("instance"))
@@ -107,7 +172,6 @@ Inventory.prototype.populate_tab = function ($it) {
 
     var $it_ul = $("<ul></ul>");
 
-    var hide_cols = {};
     if (typeof $it.data("hide-cols") !== "undefined") {
         $it.data("hide-cols").split(/,\s*/).map(function (e) {
             hide_cols[e] = true;
@@ -123,48 +187,20 @@ Inventory.prototype.populate_tab = function ($it) {
         $it_ul.append("<li><a href='#" + id + "'>" + sheet.Class + "</a></li>");
         var $div = $("<div class='inventory_sheet scroll_container' id='" + id + "'></div>");
         $it.append($div);
-        var $table = $("<table class='inventory_table zebra'></table>");
-        $div.append($table);
-        var $tr = $("<tr></tr>");
-        var nc = sheet.heads.length,
-            ci,
-            showCol = {};
-        for (ci = 0; ci < nc; ci++) {
-            if (!hide_cols[sheet.heads[ci]]) {
-                $tr.append("<th>" + sheet.heads[ci] +
-                    "</th>");
-                showCol[ci] = true;
-            }
-        }
-        $table.append($tr);
-        var ne = sheet.entries.length;
-        for (var ei = 0; ei < ne; ei++) {
-            var desc = [sheet.Class];
-            $tr = $("<tr></tr>");
-            for (ci = 0; ci < nc; ci++) {
-                if (showCol[ci]) {
-                    $tr.append("<td>" + sheet.entries[ei][ci] + "</td>");
-                    desc.push(sheet.entries[ei][ci]);
-                }
-            }
-            $tr.data("loan_desc", desc.join(","));
-            $table.append($tr);
-            $tr.on("click", function () {
-                var $dlg = $("#inventory_pick_dialog");
-                $dlg.dialog("close");
-                var handler = $dlg.data("handler");
-                if (typeof handler === "function")
-                    handler($(this).data("loan_desc"));
-            });
-        }
+        $div.append(fill_sheet(sheet));
     }
+    $it.find("span[data-with-info]").with_info();
+    $it.find('.inventory_on_loan').with_info({
+        noIcon: true,
+        text: '#infoOnLoan2'
+    });
     $it.tabs();
 };
 
 /**
- * Update the inventory on WebDAV by reading an updated version from Google Drive.
- * The inventory index is read from a known URL, and then the URLs listed therein
- * are read to get the individual sheets.
+ * Update the inventory on WebDAV by reading an updated version from
+ * Google Drive.  The inventory index is read from a known URL, and
+ * then the URLs listed therein are read to get the individual sheets.
  */
 Inventory.prototype.update_from_drive = function (report) {
     const sheets_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5d0yb4xLj024S35YUCnMQZmblbuAOZ5sO_wGn8gm9bgQeLgMXIUiMGQIPrN0wPvnmsM_fzQ0kzglD/pub?output=csv";
@@ -185,8 +221,7 @@ Inventory.prototype.update_from_drive = function (report) {
                 var id = sheet[0];
                 var url = sheet[1] + "&t=" + Date.now();
 
-                promises.push(new Promise((resolve, reject) => {
-                    var clas = id;
+                promises.push(new Promise((resolve) => {
                     // Get the published CSV
                     $.ajax({
                             url: url,

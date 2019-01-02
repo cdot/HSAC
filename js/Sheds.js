@@ -40,7 +40,10 @@
         roles: roles,
         config: config
     });
-    const inventory = new Inventory(config);
+    const inventory = new Inventory({
+        config: config,
+        loans: loans
+    });
     const nitrox = new Nitrox(config);
 
     /**
@@ -61,16 +64,15 @@
     }
 
     function update_from_drive(report) {
-        Promise
+        console.debug("Updating from Drive UI");
+        return Promise
             .all([
                 roles.update_from_drive(report),
                 inventory.update_from_drive(report)
             ])
             .then(() => {
-                return reload_ui()
-                    .then(() => {
-                        report("info", "Update finished");
-                    });
+                report("info", "Update from Drive finished");
+                $(document).trigger("reload_ui");
             });
     }
 
@@ -120,9 +122,14 @@
             });
         });
 
-        reload_ui();
-        $("#loading").hide();
-        $("#loaded").show();
+        $(document).on("reload_ui", function () {
+            reload_ui().then(() => {
+                $("#loading").hide();
+                $("#loaded").show();
+            });
+        });
+
+        $(document).trigger("reload_ui");
     }
 
     function promise_to_reconnect() {

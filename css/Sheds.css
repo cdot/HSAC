@@ -46,6 +46,10 @@ body {
     border: 1px dotted black;
 }
 
+.inventory_on_loan {
+    text-decoration: line-through;
+}
+
 /* Float validation reports */
 label.error {
     float:right;

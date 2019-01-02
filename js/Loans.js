@@ -48,6 +48,7 @@ function Loans(params) {
             self.save()
                 .then(() => {
                     $("#loan_controls").hide();
+                    $(document).trigger("reload_ui");
                 });
         });
 
@@ -57,14 +58,15 @@ function Loans(params) {
             })
             // Reload from file
             self.entries = null;
-            self.reload_ui();
+            $(document).trigger("reload_ui");
             $("#loan_controls").hide();
         });
 
         $("#loan_show_all").on("change", () => {
-            self.reload_ui();
+            $(document).trigger("reload_ui");
         });
 
+        // Add whatever is in 'capture' as a new loan (after validation)
         $("#loan_add").on("click", () => {
             var bad = [];
             try {
@@ -96,8 +98,9 @@ function Loans(params) {
                     .find(".loan_modified")
                     .removeClass("loan_modified");
                 self.entries.push($.extend({}, self.capture));
-                self.save();
-                self.reload_ui();
+                self.save().then(() => {
+                    $(document).trigger("reload_ui");
+                });
             } else {
                 bad.forEach(function (e) {
                     $("#loan_dlg_" + e).addClass("error");
@@ -111,12 +114,17 @@ Loans.prototype = Object.create(Entries.prototype);
 Loans.prototype.constructor = Loans;
 
 Loans.prototype.mark_loan_modified = function ($td) {
-    if (!$td.hasClass("loan_foot")) {
+    // Table body are td, tfoot are th
+    if ($td.is("td")) {
         $td.addClass("loan_modified");
         $("#loan_controls").show();
     }
 };
 
+/**
+ * mod_* functions are used for table calls in the tbody and also for
+ * the cells in the tfoot that capture new loans
+ */
 Loans.prototype.mod_number = function ($td, field, isInteger) {
     var entry = this.capture;
     if (typeof $td === "number") {
@@ -135,22 +143,18 @@ Loans.prototype.mod_number = function ($td, field, isInteger) {
     $td
         .off("click")
         .on("click", function () {
+            $td.removeClass("error");
             $(this).edit_in_place({
                 changed: function (s) {
                     if (s !== entry[field]) {
-                        entry[field] = s;
-                        $td.text(s);
-                        try {
-                            if (isInteger)
-                                parseInt(s);
-                            else
-                                parseFloat(s);
-                            $td.removeClass("error");
-                        } catch (e) {
+                        var v = Number(s);
+                        if (isNaN(v) || isInteger && !v.isInteger())
                             $td.addClass("error");
-                        }
-                        if (!$td.hasClass("loan_foot")) {
-                            $td.addClass("loan_modified");
+                        else {
+                            if ($td.is("td"))
+                                $td.addClass("loan_modified");
+                            entry[field] = s;
+                            $td.text(s);
                         }
                     }
                     return s;
@@ -174,6 +178,7 @@ Loans.prototype.mod_select = function ($td, field, set) {
     $td
         .off("click")
         .on("click", function () {
+            $td.removeClass("error");
             $(this).select_in_place({
                 changed: function (s) {
                     if (s != entry[field]) {
@@ -207,6 +212,7 @@ Loans.prototype.mod_date = function ($td, field) {
     $td
         .off("click")
         .on("click", function (e) {
+            $td.removeClass("error");
             $(this).datepicker(
                 "dialog", entry[field],
                 function (date, dp) {
@@ -214,7 +220,6 @@ Loans.prototype.mod_date = function ($td, field) {
                     if (date != entry[field]) {
                         entry[field] = date;
                         $td.text(Entries.formatDate(date));
-                        $td.removeClass("error");
                         self.mark_loan_modified($td);
                     }
                 }, {
@@ -236,19 +241,22 @@ Loans.prototype.mod_item = function ($td, field) {
         .text(entry[field])
         .off("click")
         .on("click", function () {
+            $td.removeClass("error");
             $("#inventory_pick_dialog")
                 .data("picked", entry.item)
                 .data("handler", function (item) {
                     entry.item = item;
                     $td.text(item);
-                    $td.removeClass("error");
                     self.mark_loan_modified($td);
                 })
+                .dialog("option", "title",
+                    ($td.is("td") ? "Change" : "Select new") + " loan item")
                 .dialog("open");
         });
     return $td;
 };
 
+// The tbody is where current loans are recorded
 Loans.prototype.load_tbody = function () {
     var order = $("#loan_table").data("order").split(",");
     var $tbody = $("#loan_table>tbody");
@@ -260,7 +268,8 @@ Loans.prototype.load_tbody = function () {
     var someLate = false;
     for (var r = 0; r < list.length; r++) {
         var row = list[r];
-        var active = (typeof row.returned === "undefined" || row.returned === "");
+        var active = (typeof row.returned === "undefined" ||
+            row.returned === "");
         if (!active && !show_all)
             continue;
         $row = $("<tr></tr>");
@@ -308,6 +317,7 @@ Loans.prototype.load_tbody = function () {
         $("#loan_some_late").hide();
 };
 
+// The tfoot is where new loans are entered
 Loans.prototype.load_tfoot = function () {
     var order = $("#loan_table").data("order").split(",");
 
@@ -363,6 +373,21 @@ Loans.prototype.reload_ui = function () {
 };
 
 Loans.prototype.save_changes = function () {
-    this.save();
-    this.reload_ui();
+    this.save().then(() => {
+        $(document).trigger("reload_ui");
+    });
+};
+
+Loans.prototype.number_on_loan = function (item) {
+    var on_loan = 0;
+    for (var ri = 0; ri < this.entries.length; ri++) {
+        var row = this.entries[ri];
+        var active = (typeof row.returned === "undefined" ||
+            row.returned === "");
+        if (!active)
+            continue;
+        if (row.item === item)
+            on_loan += row.count;
+    }
+    return on_loan;
 };

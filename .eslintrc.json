@@ -217,7 +217,7 @@
         "no-unneeded-ternary": "error",
         "no-unused-expressions": "warn",
         "no-unused-vars": "warn",
-        "no-use-before-define": "error",
+        "no-use-before-define": "warn",
         "no-useless-call": "error",
         "no-useless-computed-key": "error",
         "no-useless-concat": "error",
