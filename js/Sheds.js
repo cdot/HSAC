@@ -152,13 +152,15 @@
                     'ui-dialog-titlebar-close': "hidden"
                 },
                 beforeClose: function () {
-                    if (!$("form[name='connect_failed_form']").valid())
+                    var $form = $("form[name='connect_failed_form']");
+                    if (!$form.valid())
                         return false;
-                    $("#connect_failed_form")
+                    $form
                         .find("input")
                         .each(function () {
                             Cookies.set(this.name, $(this).val());
                         });
+                    console.debug("Reconnecting to", Cookies.get("webdav_url"));
                     config.store
                         .connect({
                             url: Cookies.get("webdav_url")
@@ -174,6 +176,7 @@
     }
 
     function dav_connect() {
+        console.debug("Connecting to", Cookies.get("webdav_url"));
         return config.store
             .connect({
                 url: Cookies.get("webdav_url")
