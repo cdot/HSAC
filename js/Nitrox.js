@@ -31,12 +31,14 @@ Nitrox.prototype.submit = function () {
             conditions[this.name] = $(this).val();
     });
     var result = this.blend(conditions);
+    var ppO2max = this.cfg.get("ppO2max");
+    var MOD = Math.floor(((ppO2max / result.tgtMix) * 10) - 10);
     var $report = $("#nitrox_report");
     $report.html("Filling a " + result.V + "L cylinder " +
         "containing " + result.curP_b + " bar of " +
         (result.curMix * 100) + "% with " + result.tgtP_b +
         " bar of " + (result.tgtMix * 100) + "% (MOD " +
-        Math.floor(((1.4 / result.tgtMix) * 10) - 10) + "m)<br>");
+        MOD + "m, ppO<sub>2</sub> " + ppO2max + " bar)<br>");
     if (result.bleed_b > 0) {
         $report.html(
             "There is too much gas already in the cylinder for " +
@@ -61,7 +63,7 @@ Nitrox.prototype.submit = function () {
             Math.round(result.O2Needed_l) +
             " litres of O<sub>2</sub> at a cost of <strong>&pound;" +
             (Math.round(100 * (result.O2Needed_l *
-                parseFloat(this.cfg.get("o2_price", 0.02)))) / 100) +
+                parseFloat(this.cfg.get("o2_price")))) / 100) +
             "</strong><br>");
         $report.append("There should be approximately " +
             Math.floor(result.bankLeft_b) +

@@ -2,7 +2,6 @@
 
 /* eslint-env jquery */
 /* global Entries */
-/* global Config */
 /* global Loans: true */
 
 "use strict";
@@ -134,7 +133,6 @@ Loans.prototype.mod_number = function ($td, field, isInteger) {
     }
     var type = this.keys[field];
     var text = entry[field];
-    var self = this;
 
     if (type === "Date")
         text = Entries.formatDate(text);
@@ -215,7 +213,7 @@ Loans.prototype.mod_date = function ($td, field) {
             $td.removeClass("error");
             $(this).datepicker(
                 "dialog", entry[field],
-                function (date, dp) {
+                function (date) {
                     date = new Date(date);
                     if (date != entry[field]) {
                         entry[field] = date;
@@ -276,7 +274,7 @@ Loans.prototype.load_tbody = function () {
         var isLate = false;
         if (active) {
             var due = row.date.valueOf() +
-                this.cfg.get("loan_return", 10) * 24 * 60 * 60 * 1000;
+                this.cfg.get("loan_return") * 24 * 60 * 60 * 1000;
             if (due < Date.now()) {
                 isLate = true;
                 someLate = true;

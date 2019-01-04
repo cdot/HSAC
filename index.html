@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <!-- BUILD_DATE Wed  2 Jan 13:28:11 GMT 2019 ->
+  <!-- BUILD_DATE Fri  4 Jan 14:48:01 GMT 2019 ->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
@@ -211,8 +211,7 @@
         </div>
         
         <div id="Nitrox_tab">
-          Nitrox calculator using Van der Waal's real gas
-          equations. Only to be used by trained nitrox blenders.
+          Nitrox calculator. Only to be used by trained nitrox blenders.
           <form name="nitrox">
             <p>
               <label for="nox_t"> Temperature</label>
@@ -269,18 +268,43 @@
         </tr>
         <tr>
           <th class="input_label">
-            <span data-with-info="#infoLifetime">
-              Filter lifetime
+            <span data-with-info="#infoMaxPPO2">
+              Max ppO<sub>2</sub>
             </span>
           </th>
           <td class="widest">
-            <input type="number" class="cfg_control" step="any" required name="filter_lifetime"> hours
+            <input type="number" class="cfg_control" step="any" required name="ppO2max">
           </td>
         </tr>
         <tr>
-          <td colspan="2"><button id="update_webdav">Update</button>
-          local caches from Google Drive (must be connected to the
-          internet)</td>
+          <th class="input_label">
+            <span data-with-info="#infoLifetime">
+              Filter
+            </span>
+          </th>
+          <td class="widest">
+            Lifetime
+            <input type="number" class="cfg_control" step="any" required name="filter_lifetime"> hours
+            <div>
+              Coefficients:
+              A <input type="number" class="cfg_control" step="any" required name="filter_coeff_a">
+              B <input type="number" class="cfg_control" step="any" required name="filter_coeff_b">
+              C <input type="number" class="cfg_control" step="any" required name="filter_coeff_c">
+              D <input type="number" class="cfg_control" step="any" required name="filter_coeff_d">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th>
+            <span data-with-info="#infoDB">Read-only Database</span>
+          </th>
+          <td>
+            Index URL
+            <input type="text" url class="cfg_control" required name="db_index_url"><br/>
+            <button id="update_webdav">Update</button>
+            local caches (must be connected to the
+            internet)
+          </td>
         </tr>
       </table>
     </div>
@@ -386,17 +410,21 @@
     <!-- Settings help -->
     <div class="hidden info" id="infoDeadline">
       Deadline beyond which an additional donation is requested for
-      late loan returns.
+      late loan returns
     </div>
     <div class="hidden info" id="infoO2Price">
       Price of 1 litre of O2, based on the replacement cost of the
-      O2 cylinders.
+      O2 cylinders
     </div>
+    <div class="hidden info" id="infoMaxPPO2">
+      Maximum ppO<sub>2</sub> used when calculating MOD
+    </div>  
     <div class="hidden info" id="infoLifetime">
-      Predicted lifetime of a filter that is run at the optimum
-      temperature. Filter lifetime estimates are automatically
-      adjusted for other temperatures.
+      Lifetime is the predicted lifetime of a filter that is run at the optimum
+      temperature. The coefficients are for the filter temperature degradation curve. See <a href="README.html#Browser_Application_Compressor" target="_blank">README<a> for more.
     </div>
-
+    <div class="hidden info" id="infoDB">
+      The Index URL is the URL of the root index for the database. Click "Update" to update the database from that URL. See <a href="README.html#Read_only_Database" target="_blank">README<a> for more.
+    </div>
   </body>
 </html>

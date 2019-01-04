@@ -50,12 +50,6 @@ Compressor.prototype.constructor = Compressor;
  *    
  * https://mycurvefit.com gives us an excellent fit.
 */
-Compressor.filter_coeff = {
-    a: 3.798205,
-    b: 1.149582,
-    c: 11.50844,
-    d: -0.4806983
-};
 
 Compressor.prototype.reload_ui = function () {
     var self = this;
@@ -83,7 +77,7 @@ Compressor.prototype.reload_ui = function () {
             $("#cr_operator").text(cur.operator);
             $("#cr_time").text(Entries.formatDate(cur.date));
             $("#cr_flr").text(Math.round(
-                    100 * this.cfg.get("filter_lifetime", 40) * cur.filterlife) /
+                    100 * this.cfg.get("filter_lifetime") * cur.filterlife) /
                 100);
             $("#cr_runtime").text(cur.runtime);
             $form.find("input[name='runtime']")
@@ -100,6 +94,10 @@ Compressor.prototype.reload_ui = function () {
 
 Compressor.prototype.add = function (r) {
     this.load().then(() => {
+        var fca = this.config.get("filter_coeff_a");
+        var fcb = this.config.get("filter_coeff_b");
+        var fcc = this.config.get("filter_coeff_c");
+        var fcd = this.config.get("filter_coeff_d");
         var flr = 1,
             dt = 0;
         if (this.entries.length > 0) {
@@ -112,12 +110,9 @@ Compressor.prototype.add = function (r) {
 
             // Calculate predicted filter lifetime at this temperature,
             // in hours
-            var factor = Compressor.filter_coeff.d +
-                (Compressor.filter_coeff.a - Compressor.filter_coeff.d) /
-                (1 + Math.pow(
-                    le.temperature / Compressor.filter_coeff.c,
-                    Compressor.filter_coeff.b));
-            var lifetime = this.cfg.get("filter_lifetime", 40) * factor;
+            var factor = fcd + (fca - fcd) /
+                (1 + Math.pow(le.temperature / fcc, fcb));
+            var lifetime = this.cfg.get("filter_lifetime") * factor;
 
             // Fraction of filter change hours consumed
             var fraction = dt / lifetime;

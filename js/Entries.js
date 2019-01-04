@@ -25,16 +25,16 @@
  *
  * @param config Config object
  * @param name list name, used as CSV file name
- * @param csv array of column names
- * @param types map from column names to types. Types supported are "string",
+ * @param keys map from column names to types. Types supported are "string",
  * "Date" and "number". Date is an integer epoch ms, or a string. Number
  *  is a float.
  */
 function Entries(params) {
     this.cfg = params.config;
-    this.entries = undefined;
     this.name = params.name;
     this.keys = params.keys;
+
+    this.entries = undefined;
 }
 
 /** Make a simple date string */
@@ -43,7 +43,7 @@ Entries.formatDate = function (date) {
 };
 
 Entries.prototype.load = function () {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         if (this.entries) {
             resolve();
             return;

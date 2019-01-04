@@ -30,7 +30,20 @@ CSS       := $(shell cat index.html | \
 
 %.map : %.min.js
 
-version:
+#    <script src="libs/jquery.min.js?version=1545127482"></script>
+#    <script src="libs/jquery-ui/jquery-ui.min.js?version=1545127482"></script>
+README.html: README.md
+	echo '<!DOCTYPE html>' > $@
+	echo '<html><head>' >> $@
+	echo '<link rel="shortcut icon" sizes="196x196" href="images/yellow-shedsvg.svg"/>' >> $@
+	echo '<style>body{font-family: "Trebuchet MS", Helvetica, sans-serif;}</style>' >> $@
+	echo '</head>' >> $@
+	echo '<title>HSAC Sheds</title>' >> $@
+	echo '<body>' >> $@
+	marked $^ >> $@
+	echo "</body></html>" >> $@
+
+version: README.html
 	sed -e 's/\?version=[0-9]*/?version=$(shell date +%s)/g' index.html \
 	| sed -e 's/BUILD_DATE .*-/BUILD_DATE $(shell date) -/g' index.html \
 	> tmp.html
@@ -40,9 +53,6 @@ min:	$(patsubst %.js,%.min.js,$(JS)) \
 	$(patsubst %.js,%.map,$(JS)) \
 	$(patsubst %.css,%.min.css,$(CSS))
 	@echo "Made min"
-
-index.html : $(JS)
-	perl build/reversion.pl $@
 
 # Clean generated stuff
 

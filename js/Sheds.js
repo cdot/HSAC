@@ -26,9 +26,16 @@
         window.setTimeout(tick, when);
     }
 
+    // Configuration defaults
     const config = new Config({
-        loan_return: "webdav",
-        o2_price: "webdav"
+        ppO2max: 1.4,
+        loan_return: 10,
+        o2_price: 0.02,
+        filter_lifetime: 40,
+        filter_coeff_a: 3.798205,
+        filter_coeff_b: 1.149582,
+        filter_coeff_c: 11.50844,
+        filter_coeff_d: -0.4806983
     });
 
     const roles = new Roles(config);
@@ -63,15 +70,36 @@
             });
     }
 
-    function update_from_drive(report) {
-        console.debug("Updating from Drive UI");
-        return Promise
-            .all([
-                roles.update_from_drive(report),
-                inventory.update_from_drive(report)
-            ])
+    function update_from_web(report) {
+        console.debug("Updating WebDAV from read-only database");
+        return $
+            .ajax({
+                url: config.get("db_index_url"),
+                data: {
+                    t: Date.now()
+                },
+                dataType: "text"
+            })
+            .then((d) => {
+                var a = $.csv.toArrays(d);
+                var heads = a[0];
+                var sheet = heads.indexOf("sheet");
+                var url = heads.indexOf("url");
+                var urls = {};
+                for (var i = 1; i < a.length; i++) {
+                    urls[a[i][sheet]] = a[i][url];
+                }
+                return urls;
+            })
+            .then((urls) => {
+                return Promise
+                    .all([
+                        roles.update_from_web(urls.roles, report),
+                        inventory.update_from_web(urls.inventory, report)
+                    ]);
+            })
             .then(() => {
-                report("info", "Update from Drive finished");
+                report("info", "Update from the web finished");
                 $(document).trigger("reload_ui");
             });
     }
@@ -109,14 +137,14 @@
         $("#update_webdav").on("click", function () {
             $("#alert_messages").empty();
             $("#alert_dialog").dialog({
-                title: "Updating from Drive",
+                title: "Updating from the web",
                 modal: true,
                 width: "90%",
-                close: function (e, ui) {
+                close: function () {
                     $("#alert_dialog").dialog("destroy");
                 }
             }).dialog("open");
-            update_from_drive(function (clss, m) {
+            update_from_web(function (clss, m) {
                 $("#alert_messages").append("<div class='" + clss + "'>" +
                     m + "</div>");
             });
@@ -133,7 +161,7 @@
     }
 
     function promise_to_reconnect() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             $(".connect_control")
                 .each(function () {
                     var el = this;
@@ -158,7 +186,9 @@
                     $form
                         .find("input")
                         .each(function () {
-                            Cookies.set(this.name, $(this).val());
+                            Cookies.set(this.name, $(this).val(), {
+                                expires: 365
+                            });
                         });
                     console.debug("Reconnecting to", Cookies.get("webdav_url"));
                     config.store
@@ -189,7 +219,7 @@
                 console.debug("config load failed: " + e);
                 return promise_to_reconnect();
             });
-        
+
     }
 
     $(() => {

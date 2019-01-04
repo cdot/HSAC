@@ -8,8 +8,6 @@
     "use strict";
 
     function infoDialog(outputMsg, titleMsg) {
-        var $element = $(this);
-
         if (!titleMsg)
             titleMsg = 'Alert';
 

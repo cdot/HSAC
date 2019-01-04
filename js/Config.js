@@ -7,16 +7,17 @@
 /**
  * Configuration items are stored in a file 'config.json' on WebDAV
  */
-function Config(items) {
+function Config(defaults) {
     this.store = new WebDAVStore()
-    this.store_data = {};
+    this.store_data = $.extend({}, defaults);
 }
 
 Config.prototype.load = function () {
     return this.store
         .read("/config.json")
         .then((json) => {
-            this.store_data = JSON.parse(json);
+            var d = JSON.parse(json);
+            this.store_data = $.extend({}, this.store_data, d);
             console.debug("Config loaded");
         });
 };

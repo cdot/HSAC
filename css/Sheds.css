@@ -10,6 +10,12 @@ body {
     font-size: 16pt;
 }
 
+/* Allow space for "fiters changed" select */
+#Compressor_tab {
+    padding-bottom: 0.4em!important;
+    font-size: 20pt;
+}
+
 /* Used by validation */
 .error {
     color: white;

@@ -199,40 +199,50 @@ Inventory.prototype.populate_tab = function ($it) {
 
 /**
  * Update the inventory on WebDAV by reading an updated version from
- * Google Drive.  The inventory index is read from a known URL, and
+ * CSV files on the web.  The inventory index is read from a known URL, and
  * then the URLs listed therein are read to get the individual sheets.
  */
-Inventory.prototype.update_from_drive = function (report) {
-    const sheets_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5d0yb4xLj024S35YUCnMQZmblbuAOZ5sO_wGn8gm9bgQeLgMXIUiMGQIPrN0wPvnmsM_fzQ0kzglD/pub?output=csv";
+Inventory.prototype.update_from_web = function (sheets_url, report) {
 
     var self = this;
 
     return $.ajax({
-            url: sheets_url + "&t=" + Date.now(),
-            method: "GET",
+            url: sheets_url,
+            data: {
+                t: Date.now()
+            },
             dataType: "text"
         })
-        .then((response) => {
-            report("debug", "Read sheets list from Drive");
-            var sheets = $.csv.toArrays(response);
+        .then((d) => {
+            report("debug", "Read sheets list from the web");
+            var a = $.csv.toArrays(d);
+            var heads = a[0];
+            var sheet = heads.indexOf("sheet");
+            var url = heads.indexOf("url");
+            var urls = {};
+            for (var i = 1; i < a.length; i++) {
+                urls[a[i][sheet]] = a[i][url];
+            }
+            return urls;
+        })
+        .then((urls) => {
             var promises = [];
 
-            sheets.forEach(function (sheet) {
-                var id = sheet[0];
-                var url = sheet[1] + "&t=" + Date.now();
-
+            $.each(urls, (sheet, url) => {
                 promises.push(new Promise((resolve) => {
                     // Get the published CSV
                     $.ajax({
                             url: url,
-                            method: "GET",
+                            data: {
+                                t: Date.now()
+                            },
                             dataType: "text"
                         })
                         .then((response) => {
-                            report("info", "Read " + id +
-                                " from Drive");
+                            report("info", "Read " + sheet +
+                                " from the web");
                             var res = {
-                                "Class": id
+                                "Class": sheet
                             };
                             var data = $.csv.toArrays(response);
                             res.heads = data.shift();
@@ -242,18 +252,18 @@ Inventory.prototype.update_from_drive = function (report) {
                 }));
             });
 
-            return Promise.all(promises)
-                .then(function (iv) {
-                    return self.cfg.store.write(
-                            '/inventory.json', JSON.stringify(iv))
-                        .then(() => {
-                            report("info", "Updated inventory.json");
-                        });
+            return Promise.all(promises);
+        })
+        .then(function (iv) {
+            return self.cfg.store.write(
+                    '/inventory.json', JSON.stringify(iv))
+                .then(() => {
+                    report("info", "Updated inventory.json");
                 });
         })
         .catch((e) => {
             report("error",
-                "Error reading sheets from Drive: " +
+                "Error reading sheets from the web: " +
                 (e.status ? e.status : e));
         });
 };

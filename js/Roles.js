@@ -40,28 +40,27 @@ Roles.prototype.reload_ui = function () {
 };
 
 /**
- * Update roles by reading from a known published file on Google Drive
+ * Update roles by reading from a CSV file on the web
  */
-Roles.prototype.update_from_drive = function (report) {
-    var now = Date.now(); // default caches
-
-    const roles_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRB9rTpKqexsJ9UE_78FJI9sFrZWtXRMi2St-wuxofyVwufMHzzpxQuTRnzH0xhoXhhgL6W_QVA_vNZ/pub?output=csv";
+Roles.prototype.update_from_web = function (roles_url, report) {
     var self = this;
 
     return $.ajax({
-            url: roles_url + "&t=" + now,
-            method: "GET",
+            url: roles_url,
+            data: {
+                t: Date.now()
+            },
             dataType: "text"
         })
         .then((response) => {
-            report("info", "Read roles from Drive");
+            report("info", "Read roles from the web");
             return self.cfg.store.write('/roles.csv', response)
                 .then(() => {
                     report("info", "Updated roles");
                 });
         })
         .catch((e) => {
-            report("error", "Error reading roles from Drive: " +
+            report("error", "Error reading roles from the web: " +
                 (e.status ? e.status : e));
         });
 };
