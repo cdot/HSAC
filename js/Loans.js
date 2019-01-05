@@ -8,10 +8,14 @@
 
 /**
  * Entries for Loan events. These can be edited in place.
+ *
+ * @param params.config Config object
+ * @param params.roles Roles object
  */
 function Loans(params) {
-    Entries.call(this, $.extend({
-        name: "loans",
+    Entries.call(this, {
+        store: params.config.store,
+        file: "/loans.csv",
         keys: {
             date: "Date",
             item: "string",
@@ -21,7 +25,8 @@ function Loans(params) {
             donation: "number",
             returned: "string"
         }
-    }, params));
+    });
+    this.cfg = params.config;
     this.roles = params.roles;
 
     // Defaults used to populate the new entry row
@@ -56,7 +61,7 @@ function Loans(params) {
                 $(this).removeClass("loan_modified");
             })
             // Reload from file
-            self.entries = null;
+            self.reset();
             $(document).trigger("reload_ui");
             $("#loan_controls").hide();
         });
@@ -96,7 +101,7 @@ function Loans(params) {
                 $("#loan_table>tfoot")
                     .find(".loan_modified")
                     .removeClass("loan_modified");
-                self.entries.push($.extend({}, self.capture));
+                self.push($.extend({}, self.capture));
                 self.save().then(() => {
                     $(document).trigger("reload_ui");
                 });
@@ -127,7 +132,7 @@ Loans.prototype.mark_loan_modified = function ($td) {
 Loans.prototype.mod_number = function ($td, field, isInteger) {
     var entry = this.capture;
     if (typeof $td === "number") {
-        entry = this.entries[$td];
+        entry = this.get($td);
         $td = $("<td></td>");
         $td.css("text-align", "center");
     }
@@ -167,7 +172,7 @@ Loans.prototype.mod_select = function ($td, field, set) {
     var self = this;
     var entry = this.capture;
     if (typeof $td === "number") {
-        entry = this.entries[$td];
+        entry = this.get($td);
         $td = $("<td></td>");
     }
     var text = entry[field];
@@ -198,7 +203,7 @@ Loans.prototype.mod_date = function ($td, field) {
     var self = this;
     var entry = this.capture;
     if (typeof $td === "number") {
-        entry = this.entries[$td];
+        entry = this.get($td);
         $td = $("<td></td>");
     }
     var date = entry[field];
@@ -232,7 +237,7 @@ Loans.prototype.mod_item = function ($td, field) {
     var self = this;
     var entry = this.capture;
     if (typeof $td === "number") {
-        entry = this.entries[$td];
+        entry = this.get($td);
         $td = $("<td></td>");
     }
     $td
@@ -260,17 +265,14 @@ Loans.prototype.load_tbody = function () {
     var $tbody = $("#loan_table>tbody");
     $tbody.empty();
 
-    var list = this.entries;
     var show_all = $("#loan_show_all").is(':checked');
-    var $row;
     var someLate = false;
-    for (var r = 0; r < list.length; r++) {
-        var row = list[r];
+    this.each((row, r) => {
         var active = (typeof row.returned === "undefined" ||
             row.returned === "");
         if (!active && !show_all)
-            continue;
-        $row = $("<tr></tr>");
+            return;
+        var $row = $("<tr></tr>");
         var isLate = false;
         if (active) {
             var due = row.date.valueOf() +
@@ -308,7 +310,7 @@ Loans.prototype.load_tbody = function () {
         if (isLate)
             $row.find("td").addClass("loan_late");
         $tbody.append($row);
-    }
+    });
     if (someLate)
         $("#loan_some_late").show();
     else
@@ -349,7 +351,7 @@ Loans.prototype.load_tfoot = function () {
 Loans.prototype.reload_ui = function () {
     return this.load()
         .then(() => {
-            console.debug("Loading", this.entries.length, "loan records");
+            console.debug("Loading", this.length(), "loan records");
             this.load_tbody();
             this.capture = $.extend({}, this.defaults);
             this.load_tfoot();
@@ -378,14 +380,11 @@ Loans.prototype.save_changes = function () {
 
 Loans.prototype.number_on_loan = function (item) {
     var on_loan = 0;
-    for (var ri = 0; ri < this.entries.length; ri++) {
-        var row = this.entries[ri];
+    this.each((row) => {
         var active = (typeof row.returned === "undefined" ||
             row.returned === "");
-        if (!active)
-            continue;
-        if (row.item === item)
+        if (active && row.item === item)
             on_loan += row.count;
-    }
+    });
     return on_loan;
 };

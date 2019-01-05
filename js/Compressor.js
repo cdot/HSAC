@@ -10,11 +10,13 @@
  * Entries for Compressor runtime events. This is a stack - the only
  * editing available is to delete the last entry. Standard params same as
  * Entries.
- * @param roles Roles object
+ * @param params.config Config object
+ * @param params.roles Roles object
  */
 function Compressor(params) {
-    Entries.call(this, $.extend({
-        name: "compressor",
+    Entries.call(this, {
+        store: params.config.store,
+        file: "/compressor.csv",
         keys: {
             date: "Date",
             operator: "string",
@@ -22,7 +24,8 @@ function Compressor(params) {
             runtime: "number",
             filterlife: "number"
         }
-    }, params));
+    });
+    this.cfg = params.config;
     this.roles = params.roles;
 }
 
@@ -54,38 +57,77 @@ Compressor.prototype.constructor = Compressor;
 Compressor.prototype.reload_ui = function () {
     var self = this;
     var $form = $("form[name='compressor']");
+    var $rt = $form.find("input[name='runtime']");
 
-    $form
-        .on("submit", (e) => {
+    function onChange() {
+        $("#add_compressor_record").button(
+            "option", "disabled", !$form.valid());
+    }
+
+    $form.on("submit", function (e) {
+        e.preventDefault();
+        return false;
+    });
+
+    $("#cr_last_run")
+        .off("click")
+        .on("click", function () {
+            $.confirm({
+                title: "Last run",
+                content: $("#infoLastRun").html(),
+                buttons: {
+                    "Remove last run": () => {
+                        self.pop().then((r) => {
+                            $rt.rules("remove", "min");
+                            $rt.rules("add", {
+                                min: (r ? r.runtime : 0) + 0.01
+                            });
+                            onChange();
+                        });
+                    },
+                    "Don't remove": () => {}
+                }
+            });
+        });
+
+    $("#add_compressor_record")
+        .off("click")
+        .on("click", function () {
             console.log("Adding compressor record");
-            e.preventDefault();
-            if (!$(e.target).valid())
+            if (!$form.valid())
                 return;
             var values = {};
-            $(e.target).find(":input").each(function () {
+            $form.find(":input").each(function () {
                 values[this.name] = self.deserialise(this.name, $(this).val());
             });
-            this.add(values);
+            self.add(values).then((r) => {
+                $rt.rules("remove", "min");
+                $rt.rules("add", {
+                    min: (r ? r.runtime : 0) + 0.01
+                });
+                onChange();
+            });
         });
 
     return this.load()
         .then(() => {
-            console.debug("Loading", this.entries.length, "compressor records");
-            if (this.entries.length === 0)
+            console.debug("Loading", this.length(), "compressor records");
+            if (this.length() === 0)
                 return;
-            var cur = this.entries[this.entries.length - 1];
+            var cur = this.get(this.length() - 1);
             $("#cr_operator").text(cur.operator);
             $("#cr_time").text(Entries.formatDate(cur.date));
             $("#cr_flr").text(Math.round(
                     100 * this.cfg.get("filter_lifetime") * cur.filterlife) /
                 100);
             $("#cr_runtime").text(cur.runtime);
-            $form.find("input[name='runtime']")
-                .rules("remove", "min");
-            $form.find("input[name='runtime']")
-                .rules("add", {
-                    min: cur.runtime
-                });
+            $rt.rules("remove", "min");
+            $rt.rules("add", {
+                min: cur.runtime + 0.01
+            });
+
+            $form.find(":input").on("change", onChange);
+            onChange();
         })
         .catch((e) => {
             console.error("Compressor load failed:", e);
@@ -93,21 +135,22 @@ Compressor.prototype.reload_ui = function () {
 };
 
 Compressor.prototype.add = function (r) {
-    this.load().then(() => {
-        var fca = this.config.get("filter_coeff_a");
-        var fcb = this.config.get("filter_coeff_b");
-        var fcc = this.config.get("filter_coeff_c");
-        var fcd = this.config.get("filter_coeff_d");
+    return this.load().then(() => {
+        var fca = this.cfg.get("filter_coeff_a");
+        var fcb = this.cfg.get("filter_coeff_b");
+        var fcc = this.cfg.get("filter_coeff_c");
+        var fcd = this.cfg.get("filter_coeff_d");
         var flr = 1,
             dt = 0;
-        if (this.entries.length > 0) {
-            var le = this.entries[this.entries.length - 1];
+        if (this.length() > 0) {
+            var le = this.get(this.length() - 1);
             if (r.filters_changed !== "on")
                 flr = le.filterlife;
             dt = (r.runtime - le.runtime) / 60; // hours
             if (dt < 0)
                 throw "Bad runtime"; // debug
-
+            if (dt === 0)
+                return Promise.resolve(le);
             // Calculate predicted filter lifetime at this temperature,
             // in hours
             var factor = fcd + (fca - fcd) /
@@ -125,9 +168,22 @@ Compressor.prototype.add = function (r) {
         }
         r.date = new Date();
         r.filterlife = flr;
-        this.entries.push(r);
-        this.save().then(() => {
-            this.reload_ui();
+        this.push(r);
+        return this.save().then(() => {
+            this.reload_ui().then(() => {
+                return r;
+            });
+        });
+    });
+};
+
+Compressor.prototype.pop = function () {
+    return this.load().then(() => {
+        this.entries.pop();
+        return this.save().then(() => {
+            this.reload_ui().then(() => {
+                return this.get(this.length() - 1);
+            });
         });
     });
 };

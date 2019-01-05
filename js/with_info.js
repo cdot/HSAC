@@ -2,35 +2,10 @@
 /* eslint-env jquery */
 
 /**
- * Informational dialog for use with data-with-info
+ * Informational dialog for use with data-with-info. Requires jquery-confirm
  */
 (function ($) {
     "use strict";
-
-    function infoDialog(outputMsg, titleMsg) {
-        if (!titleMsg)
-            titleMsg = 'Alert';
-
-        if (!outputMsg)
-            outputMsg = 'No Message to Display.';
-
-        $("<div></div>").html(outputMsg).dialog({
-            title: titleMsg,
-            resizable: true,
-            modal: true,
-            width: "75%",
-            resize: "auto",
-            buttons: {
-                "OK": function () {
-                    $(this).dialog("close");
-                }
-            },
-            close: function () {
-                /* Cleanup node(s) from DOM */
-                $(this).dialog('destroy').remove();
-            }
-        });
-    }
 
     /**
      * An element with data-with-info will be displayed with an information
@@ -66,7 +41,10 @@
             var info = $(this).data("info");
             if (info.charAt(0) === '#')
                 info = $(info).html();
-            infoDialog(info, "Information");
+            $.alert({
+                title: "",
+                content: info
+            });
         });
     }
 })(jQuery);

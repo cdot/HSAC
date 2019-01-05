@@ -1,6 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
 /* eslint-env jquery */
+/* global Entries */
 /* global Inventory: true */
 
 "use strict";
@@ -205,58 +206,46 @@ Inventory.prototype.populate_tab = function ($it) {
 Inventory.prototype.update_from_web = function (sheets_url, report) {
 
     var self = this;
+    var sheetp = new Entries({
+        url: sheets_url,
+        keys: {
+            sheet: "string",
+            url: "string"
+        }
+    });
 
-    return $.ajax({
-            url: sheets_url,
-            data: {
-                t: Date.now()
-            },
-            dataType: "text"
-        })
-        .then((d) => {
-            report("debug", "Read sheets list from the web");
-            var a = $.csv.toArrays(d);
-            var heads = a[0];
-            var sheet = heads.indexOf("sheet");
-            var url = heads.indexOf("url");
-            var urls = {};
-            for (var i = 1; i < a.length; i++) {
-                urls[a[i][sheet]] = a[i][url];
-            }
-            return urls;
-        })
-        .then((urls) => {
+    return sheetp.load()
+        .then(() => {
             var promises = [];
 
-            $.each(urls, (sheet, url) => {
-                promises.push(new Promise((resolve) => {
-                    // Get the published CSV
-                    $.ajax({
-                            url: url,
-                            data: {
-                                t: Date.now()
-                            },
-                            dataType: "text"
-                        })
-                        .then((response) => {
-                            report("info", "Read " + sheet +
-                                " from the web");
-                            var res = {
-                                "Class": sheet
-                            };
-                            var data = $.csv.toArrays(response);
-                            res.heads = data.shift();
-                            res.entries = data;
-                            resolve(res);
-                        });
-                }));
+            sheetp.each((mapping) => {
+                // Get the published CSV
+                var sheet = new Entries({
+                    url: mapping.url,
+                    asArrays: true,
+                    keys: {
+                        Count: "number"
+                    }
+                    // typeless, columns default to "string"
+                });
+                promises.push(
+                    sheet.load()
+                    .then(() => {
+                        report("info", "Read " + mapping.sheet +
+                            " from the web");
+                        return {
+                            Class: mapping.sheet,
+                            heads: sheet.getHeads(),
+                            entries: sheet.getEntries()
+                        }
+                    }));
             });
 
             return Promise.all(promises);
         })
-        .then(function (iv) {
+        .then((sheets) => {
             return self.cfg.store.write(
-                    '/inventory.json', JSON.stringify(iv))
+                    '/inventory.json', JSON.stringify(sheets))
                 .then(() => {
                     report("info", "Updated inventory.json");
                 });

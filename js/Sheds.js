@@ -135,17 +135,13 @@
         });
 
         $("#update_webdav").on("click", function () {
-            $("#alert_messages").empty();
-            $("#alert_dialog").dialog({
+            var $a = $.confirm({
                 title: "Updating from the web",
-                modal: true,
-                width: "90%",
-                close: function () {
-                    $("#alert_dialog").dialog("destroy");
-                }
-            }).dialog("open");
-            update_from_web(function (clss, m) {
-                $("#alert_messages").append("<div class='" + clss + "'>" +
+                content: ""
+            });
+
+            update_from_web((clss, m) => {
+                $a.setContentAppend("<div class='" + clss + "'>" +
                     m + "</div>");
             });
         });

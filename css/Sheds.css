@@ -7,7 +7,8 @@ Glass #EDFAFD
 */
 
 body {
-    font-size: 16pt;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14pt;
 }
 
 /* Allow space for "fiters changed" select */
@@ -159,7 +160,6 @@ table {
     table-layout: auto;
     border-collapse: collapse;
     width: 100%;
-    font-size: 18pt;
 }
 
 table td,th {

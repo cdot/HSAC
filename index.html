@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <!-- BUILD_DATE Fri  4 Jan 14:48:01 GMT 2019 ->
+  <!-- BUILD_DATE Sat  5 Jan 17:01:05 GMT 2019 ->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
@@ -34,10 +34,14 @@
     
     <!-- from //cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0 -->
     <script src="libs/js.cookie.min.js?version=1545127482"></script>
-    
+   
     <!-- from https://github.com/evanplaice/jquery-csv/tree/master/src -->
     <script src="libs/jquery.csv.min.js?version=1545127482"></script>
-    
+
+    <!-- From https://github.com/craftpip/jquery-confirm -->
+    <script src="libs/jquery-confirm/jquery-confirm.min.js?version=1545127482"></script>
+    <link href="libs/jquery-confirm/jquery-confirm.min.css?version=1545127482" rel="stylesheet">
+
     <!-- from https://github.com/Mottie/tablesorter -->
     <script src="libs/tablesorter/js/jquery.tablesorter.min.js?version=1545127482"></script>
     <script src="libs/tablesorter/js/jquery.tablesorter.widgets.min.js?version=1545127482"></script>
@@ -87,16 +91,17 @@
           <li><a href="#Inventory_tab">Inventory</a></li>
           <li><a href="#Nitrox_tab">Nitrox</a></li>
         </ul>
+
         <div id="Compressor_tab" class="crowded_tab">
-          <div>
-            The compressor was last run by <span id="cr_operator">?</span> on
-            <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">?</span> minutes.
-            <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span> hours</span>
-          </div>
-          <div>
-            Enter details of your usage below:
-          </div>
-          <form name="compressor" id="compressor_form" class="validated_form">
+          <form name="compressor" class="validated_form">
+            <div>
+              The compressor was last run by <span id="cr_operator">?</span> on
+              <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">?</span> <span id="cr_last_run">minutes<span class='ui-icon ui-icon-info' ></span></span>.
+              <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span> hours</span>
+            </div>
+            <div>
+              Enter details of your run below:
+            </div>
             <table class="form_table zebra">
               <tr>
                 <th class="input_label">
@@ -121,17 +126,17 @@
                 </td>
               </tr>
               <!--
-              <tr>
-                <th class="input_label">
-                  <span data-with-info="#infoHumidity">
-                    Relative Humidity
-                  </span>
-                </th>
-                <td class="widest">
-                  <input data-msg="Must be between 0 and 100" name="humidity" type="number" min="0" max="100"> %
-                </td>
-              </tr>
-              -->
+                  <tr>
+                    <th class="input_label">
+                      <span data-with-info="#infoHumidity">
+                        Relative Humidity
+                      </span>
+                    </th>
+                    <td class="widest">
+                      <input data-msg="Must be between 0 and 100" name="humidity" type="number" min="0" max="100"> %
+                    </td>
+                  </tr>
+                  -->
               <tr>
                 <th class="input_label">
                   <span data-with-info="#infoRuntime">
@@ -148,8 +153,8 @@
               <label for="filters_changed">Filters changed</label>
               <input data-with-info="#infoFilters" type="checkbox" id="filters_changed" name="filters_changed">
             </div>
-            <input type="submit" id="add_compressor_record" value="Record usage">
           </form>
+          <button id="add_compressor_record">Touch here to record this run</button>
         </div>
         
         <div id="Loans_tab" class="crowded_tab">
@@ -287,10 +292,12 @@
             <input type="number" class="cfg_control" step="any" required name="filter_lifetime"> hours
             <div>
               Coefficients:
-              A <input type="number" class="cfg_control" step="any" required name="filter_coeff_a">
-              B <input type="number" class="cfg_control" step="any" required name="filter_coeff_b">
-              C <input type="number" class="cfg_control" step="any" required name="filter_coeff_c">
-              D <input type="number" class="cfg_control" step="any" required name="filter_coeff_d">
+              <div style="float:right">
+                A <input type="number" class="cfg_control" step="any" required name="filter_coeff_a">
+                B <input type="number" class="cfg_control" step="any" required name="filter_coeff_b"><br/>
+                C <input type="number" class="cfg_control" step="any" required name="filter_coeff_c">
+                D <input type="number" class="cfg_control" step="any" required name="filter_coeff_d">
+                </div>
             </div>
           </td>
         </tr>
@@ -309,10 +316,6 @@
       </table>
     </div>
 
-    <div class="hidden" id="alert_dialog">
-      <div id="alert_messages">
-      </div>
-    </div>
     <div id="inventory_pick_dialog" class="hidden">
       <div class="crowded_tab inventory_tab" data-hide-cols="Kit Pool,Location,Count">
       </div>
@@ -334,6 +337,22 @@
     </div>
 
     <!-- Compressor help -->
+    <div class="hidden info" id="infoLastRun">
+      If you made a mistake, you can remove this record from the compressor
+      history. Please be careful, this can't be undone!
+    </div>
+    <div class="hidden info" id="infoFilterEfficiency">
+      <p>Filter lifetime is predicted based on the intake air temperature
+        and runtime from the compressor records, and does <em>not</em>
+        reflect on the efficiency of the filters.</p>
+      <p>When the lifetime drops below 2 hours, inform a member of the
+        committee so the filters can be changed (or, better, learn to
+        change them yourself.)</p>
+      <p class="warning">
+        <strong>NEVER</strong> use the compressor if the filter
+        lifetime is negative!
+      </p>
+    </div>
     <div class="hidden info" id="infoOperator">
       Only trained operators may use this compressor. Please
       select your name from the list. If you are not there and
@@ -351,18 +370,6 @@
     <div class="hidden info" id="infoRuntime">
       Runtime is read from the counter on the right of the
       compressor control panel.
-    </div>
-    <div class="hidden info" id="infoFilterEfficiency">
-      <p>Filter lifetime is predicted based on the intake air temperature
-        and runtime from the compressor records, and does <em>not</em>
-        reflect on the efficiency of the filters.</p>
-      <p>When the lifetime drops below 2 hours, inform a member of the
-        committee so the filters can be changed (or, better, learn to
-        change them yourself.)</p>
-      <p class="warning">
-        <strong>NEVER</strong> use the compressor if the filter
-        lifetime is negative!
-      </p>
     </div>
 
     <!-- Loans help -->
