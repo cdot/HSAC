@@ -128,20 +128,19 @@ inventory,http://address_of_inventory.csv
 ```
 <a name="Read_only_Roles"></a>
 ### Roles
-The `roles` URL points to a CSV document that provides a number of
-lists of club members, one per column. The column headers provide the name
-of the role, and there must be at least the following columns:
-1. members - a list of club members who are permitted to borrow equipment
-2. operators - a list of qualified compressor operators
+The `roles` URL points to a CSV document with two columns, `role` and `list`.
+The `role` column gives the name of a role e.g. `member` and the `list` column gives a comma-separated list of people who can perform that role.
+There must be at least the following columns:
+1. member - club members who are permitted to borrow equipment
+2. operator - qualified compressor operators
 
 Other lists may be provided in additional columns for future use. Example:
 ```
-members,operators,trainees
-Freddie Mercury,Linus Torvalds,Freddie Mercury
-Abraham Lincoln,Nikola Tesla,Johann Bach
-Johann Bach,,Linus Torvalds
-Nikola Tesla,,
-Linus Torvalds,,
+role,list
+member,"Freddie Mercury,Abraham Lincoln,Nikola Tesla,Sun Tzu"
+operator,"Abraham Lincoln,Sun Tzu"
+blender,"Sun Tzu"
+trainee,"Freddie Mercury"
 ```
 
 <a name="Read_only_Inventory"></a>

@@ -15,7 +15,7 @@
 function Loans(params) {
     Entries.call(this, {
         store: params.config.store,
-        file: "/loans.csv",
+        file: "loans.csv",
         keys: {
             date: "Date",
             item: "string",
@@ -87,29 +87,44 @@ function Loans(params) {
             } catch (e) {
                 bad.push("count");
             }
-            if (self.roles.members.indexOf(self.capture.borrower) < 0)
-                bad.push("borrower");
-            if (self.roles.operators.indexOf(self.capture.lender) < 0)
-                bad.push("lender");
             try {
                 if (parseFloat(self.capture.donation) < 0)
                     bad.push("donation");
             } catch (e) {
                 bad.push("donation");
             }
-            if (bad.length == 0) {
-                $("#loan_table>tfoot")
-                    .find(".loan_modified")
-                    .removeClass("loan_modified");
-                self.push($.extend({}, self.capture));
-                self.save().then(() => {
-                    $(document).trigger("reload_ui");
-                });
-            } else {
-                bad.forEach(function (e) {
-                    $("#loan_dlg_" + e).addClass("error");
+            Promise.all([
+                self.roles.find("role", "member")
+                    .then((row) => {
+                    if (row.list.split(",").indexOf(self.capture.borrower) < 0)
+                        bad.push("borrower");
                 })
-            }
+                    .catch(() => {
+                    bad.push("borrower");
+                }),
+                self.roles.find("role", "operator")
+                    .then((row) => {
+                    if (row.list.split(",").indexOf(self.capture.lender) < 0)
+                        bad.push("lender");
+                })
+                    .catch(() => {
+                    bad.push("lender");
+                })
+            ]).then(() => {
+                if (bad.length == 0) {
+                    $("#loan_table>tfoot")
+                        .find(".loan_modified")
+                        .removeClass("loan_modified");
+                    self.push($.extend({}, self.capture));
+                    self.save().then(() => {
+                        $(document).trigger("reload_ui");
+                    });
+                } else {
+                    $.each(bad, function (i, e) {
+                        $("#loan_dlg_" + e).addClass("error");
+                    })
+                }
+            });
         });
     });
 }
@@ -182,19 +197,28 @@ Loans.prototype.mod_select = function ($td, field, set) {
         .off("click")
         .on("click", function () {
             $td.removeClass("error");
-            $(this).select_in_place({
-                changed: function (s) {
-                    if (s != entry[field]) {
-                        entry[field] = s;
-                        $td.text(s);
-                        $td.removeClass("error");
-                        self.mark_loan_modified($td);
-                    }
-                    return s;
-                },
-                options: self.roles[set],
-                initial: text
-            });
+            self.roles.find("role", set)
+                .then((row) => {
+                    $(this).select_in_place({
+                        changed: function (s) {
+                            if (s != entry[field]) {
+                                entry[field] = s;
+                                $td.text(s);
+                                $td.removeClass("error");
+                                self.mark_loan_modified($td);
+                            }
+                            return s;
+                        },
+                        initial: text,
+                        options: row.list.split(",")
+                    });
+                })
+                .catch(() => {
+                    $.alert({
+                        title: set + " list",
+                        content: "Not found"
+                    });
+                });
         });
     return $td;
 };
@@ -294,16 +318,16 @@ Loans.prototype.load_tbody = function () {
                 $row.append(this.mod_item(r, "item"));
                 break;
             case 'borrower':
-                $row.append(this.mod_select(r, "borrower", "members"));
+                $row.append(this.mod_select(r, "borrower", "member"));
                 break;
             case 'lender':
-                $row.append(this.mod_select(r, "lender", "operators"));
+                $row.append(this.mod_select(r, "lender", "operator"));
                 break;
             case 'donation':
                 $row.append(this.mod_number(r, "donation", false));
                 break;
             case 'returned':
-                $row.append(this.mod_select(r, "returned", "operators"));
+                $row.append(this.mod_select(r, "returned", "operator"));
                 break;
             }
         }
@@ -335,10 +359,10 @@ Loans.prototype.load_tfoot = function () {
             this.mod_item($col, "item");
             break;
         case 'borrower':
-            this.mod_select($col, "borrower", "members");
+            this.mod_select($col, "borrower", "member");
             break;
         case 'lender':
-            this.mod_select($col, "lender", "operators");
+            this.mod_select($col, "lender", "operator");
             break;
         case 'donation':
             this.mod_number($col, "donation", false);
@@ -349,10 +373,19 @@ Loans.prototype.load_tfoot = function () {
 };
 
 Loans.prototype.reload_ui = function () {
-    return this.load()
+    return new Promise((resolve) => {
+            return this.load()
+                .then(() => {
+                    console.debug("Loading", this.length(), "loan records");
+                    this.load_tbody();
+                    resolve();
+                })
+                .catch((e) => {
+                    console.error("Loans load failed:", e);
+                    resolve();
+                });
+        })
         .then(() => {
-            console.debug("Loading", this.length(), "loan records");
-            this.load_tbody();
             this.capture = $.extend({}, this.defaults);
             this.load_tfoot();
             $("#loan_table").trigger("updateAll");
@@ -366,9 +399,6 @@ Loans.prototype.reload_ui = function () {
                 delayInit: true,
                 dateFormat: "ddmmyyyy"
             });
-        })
-        .catch((e) => {
-            console.error("Loans load failed:", e);
         });
 };
 

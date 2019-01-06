@@ -1,38 +1,43 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
 /* eslint-env jquery */
+/* global Entries */
 /* global Roles: true */
 
 /**
  * Roles are read from "roles.csv' on WebDAV
  */
-function Roles(config) {
-    this.cfg = config;
+function Roles(params) {
+    Entries.call(this, {
+        store: params.config.store,
+        file: "roles.csv",
+        keys: {
+            role: "string",
+            list: "string"
+        }
+    });
 }
+
+Roles.prototype = Object.create(Entries.prototype);
+Roles.prototype.constructor = Roles;
 
 /**
  * Reload the UI by re-reading the roles file from webdav
  */
 Roles.prototype.reload_ui = function () {
     console.debug("Reloading roles");
-    return this.cfg.store.read('/roles.csv')
-        .then((list) => {
-            list = $.csv.toArrays(list);
-            for (var col = 0; col < list[0].length; col++) {
-                var f = list[0][col];
-                this[f] = [];
-                for (var row = 1; row < list.length; row++) {
-                    var e = list[row][col];
-                    if (e && e.length > 0)
-                        this[f].push(e);
-                }
-                $("select." + f).html(
-                    "<option></option>" +
-                    "<option>" +
-                    this[f]
-                    .join("</option><option>") +
-                    "</option>");
-            }
+    return this.load()
+        .then(() => {
+            if (this.length() == 0)
+                throw ("Roles format incorrect");
+            this.each((row) => {
+                var list = row.list.split(",");
+                var $lists = $("select." + row.role);
+                $lists.html("<option></option>");
+                $.each(list, function (i, m) {
+                    $lists.append("<option>" + m + "</option>");
+                });
+            });
         })
         .catch((e) => {
             console.error("Roles load failed:", e);
@@ -54,9 +59,13 @@ Roles.prototype.update_from_web = function (roles_url, report) {
         })
         .then((response) => {
             report("info", "Read roles from the web");
-            return self.cfg.store.write('/roles.csv', response)
+            return self.store.write('roles.csv', response)
                 .then(() => {
                     report("info", "Updated roles");
+                })
+                .catch((e) => {
+                    report("error", "Error writing roles to the cache: " +
+                        (e.status ? e.status : e));
                 });
         })
         .catch((e) => {

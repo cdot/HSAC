@@ -6,6 +6,10 @@ Chill #AED9DA
 Glass #EDFAFD
 */
 
+#compressor_table {
+    margin-bottom: 0.3em;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14pt;
@@ -25,6 +29,14 @@ body {
 
 .hidden {
     display: none;
+}
+
+input.floating_point {
+    max-width: 8em;
+}
+
+input.integer {
+    max-width: 4em;
 }
 
 /* Used to highlight a chosen item in an inventory tab */

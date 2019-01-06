@@ -11,12 +11,11 @@
  * editing available is to delete the last entry. Standard params same as
  * Entries.
  * @param params.config Config object
- * @param params.roles Roles object
  */
 function Compressor(params) {
     Entries.call(this, {
         store: params.config.store,
-        file: "/compressor.csv",
+        file: 'compressor.csv',
         keys: {
             date: "Date",
             operator: "string",
@@ -26,7 +25,6 @@ function Compressor(params) {
         }
     });
     this.cfg = params.config;
-    this.roles = params.roles;
 }
 
 Compressor.prototype = Object.create(Entries.prototype);

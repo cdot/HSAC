@@ -6,6 +6,7 @@
 
 /* eslint-env jquery */
 /* global Cookies */
+/* global Entries */
 /* global Config */
 /* global Nitrox */
 /* global Compressor */
@@ -38,7 +39,9 @@
         filter_coeff_d: -0.4806983
     });
 
-    const roles = new Roles(config);
+    const roles = new Roles({
+        config: config
+    });
     const compressor = new Compressor({
         roles: roles,
         config: config
@@ -71,36 +74,44 @@
     }
 
     function update_from_web(report) {
+        if (!config.get("db_index_url")) {
+            $.alert({
+                title: "Cannot update from web",
+                content: "No DB index URL set"
+            });
+            return;
+        }
         console.debug("Updating WebDAV from read-only database");
-        return $
-            .ajax({
-                url: config.get("db_index_url"),
-                data: {
-                    t: Date.now()
-                },
-                dataType: "text"
-            })
-            .then((d) => {
-                var a = $.csv.toArrays(d);
-                var heads = a[0];
-                var sheet = heads.indexOf("sheet");
-                var url = heads.indexOf("url");
-                var urls = {};
-                for (var i = 1; i < a.length; i++) {
-                    urls[a[i][sheet]] = a[i][url];
-                }
-                return urls;
-            })
-            .then((urls) => {
+        var index = new Entries({
+            url: config.get("db_index_url"),
+            keys: {
+                sheet: "string",
+                url: "string"
+            }
+        });
+        return index.load()
+            .then(() => {
                 return Promise
                     .all([
-                        roles.update_from_web(urls.roles, report),
-                        inventory.update_from_web(urls.inventory, report)
+                        index.find("sheet", "roles")
+                            .then((row) => {
+                            return roles.update_from_web(row.url, report)
+                        }),
+                        index.find("sheet", "inventory")
+                            .then((row) => {
+                            return inventory.update_from_web(row.url, report);
+                        })
                     ]);
             })
             .then(() => {
                 report("info", "Update from the web finished");
                 $(document).trigger("reload_ui");
+            })
+            .catch((e) => {
+                $.alert({
+                    title: "Web update failed",
+                    content: e
+                });
             });
     }
 
@@ -126,6 +137,27 @@
 
         var $gear = $('#settings');
         $gear.on("click", function () {
+            $("input[name='webdav_url']")
+                .val(Cookies.get("webdav_url"))
+                .off("change")
+                .on("change", function (e) {
+                    var nurl = $(e.target).val();
+                    if (nurl != Cookies.get("webdav_url")) {
+                        Cookies.set("webdav_url", nurl, {
+                            expires: 365
+                        });
+                        $.alert({
+                            title: "WebDAV url changed",
+                            content: "Application will now be reloaded",
+                            buttons: {
+                                ok: function () {
+                                    var loc = ("" + location).replace(/\?.*$/, "");
+                                    location = loc + "?t=" + Date.now();
+                                }
+                            }
+                        });
+                    }
+                });
             $("#Configuration_dialog").dialog("open");
         });
 

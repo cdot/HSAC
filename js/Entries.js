@@ -72,6 +72,24 @@ Entries.prototype.get = function (i) {
     return this.entries[i];
 };
 
+/**
+ * Return a promise to find the row that has "col":val.
+ * resolve is called with the row object.
+ * @param col name of the column to search
+ * @param val value to search for
+ */
+Entries.prototype.find = function (col, val) {
+    return new Promise((resolve, reject) => {
+        for (var i = 0; i < this.entries.length; i++) {
+            if (this.entries[i][col] == val) {
+                resolve(this.entries[i]);
+                return;
+            }
+        }
+        reject(new Error(val + " not found in " + col));
+    });
+};
+
 // Push a new entry
 Entries.prototype.push = function (r) {
     this.entries.push(r);
@@ -108,7 +126,7 @@ Entries.prototype.load = function () {
     else
         lp = this.store.read(this.file);
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         return lp
             .then((list) => {
                 var data = $.csv.toArrays(list);
@@ -129,7 +147,8 @@ Entries.prototype.load = function () {
                 console.debug("Error reading " + (this.url || this.file), e);
                 this.heads = [];
                 this.entries = [];
-                resolve();
+                reject(new Error("Error reading " + (this.url || this.file) + ": " +
+                    (e.status ? e.status : e)));
             });
     });
 };

@@ -14,7 +14,7 @@ function Config(defaults) {
 
 Config.prototype.load = function () {
     return this.store
-        .read("/config.json")
+        .read("config.json")
         .then((json) => {
             var d = JSON.parse(json);
             this.store_data = $.extend({}, this.store_data, d);
@@ -23,7 +23,7 @@ Config.prototype.load = function () {
 };
 
 Config.prototype.save = function () {
-    return this.store.write("/config.json", JSON.stringify(this.store_data));
+    return this.store.write("config.json", JSON.stringify(this.store_data));
 };
 
 Config.prototype.get = function (k, deflt) {

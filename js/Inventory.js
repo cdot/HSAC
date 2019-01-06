@@ -39,6 +39,9 @@ Inventory.prototype.select_picked = function ($dlg) {
     var sheet = picked.replace(/,.*$/, "");
     $dlg.find(".inventory_chosen").removeClass("inventory_chosen");
 
+    if (!this.data)
+        return;
+
     var si = this.data.findIndex((e) => {
         return e.Class == sheet;
     });
@@ -66,7 +69,7 @@ Inventory.prototype.select_picked = function ($dlg) {
 
 Inventory.prototype.reload_ui = function () {
     var self = this;
-    return this.cfg.store.read('/inventory.json')
+    return this.cfg.store.read('inventory.json')
         .then((data) => {
             self.data = JSON.parse(data);
             console.debug("Loading inventory");
@@ -245,7 +248,7 @@ Inventory.prototype.update_from_web = function (sheets_url, report) {
         })
         .then((sheets) => {
             return self.cfg.store.write(
-                    '/inventory.json', JSON.stringify(sheets))
+                    'inventory.json', JSON.stringify(sheets))
                 .then(() => {
                     report("info", "Updated inventory.json");
                 });

@@ -128,20 +128,19 @@ column.</p>
 roles,http://address-of-roles.csv
 inventory,http://address_of_inventory.csv</code></pre><p><a name="Read_only_Roles"></a></p>
 <h3 id="roles">Roles</h3>
-<p>The <code>roles</code> URL points to a CSV document that provides a number of
-lists of club members, one per column. The column headers provide the name
-of the role, and there must be at least the following columns:</p>
+<p>The <code>roles</code> URL points to a CSV document with two columns, <code>role</code> and <code>list</code>.
+The <code>role</code> column gives the name of a role e.g. <code>member</code> and the <code>list</code> column gives a comma-separated list of people who can perform that role.
+There must be at least the following columns:</p>
 <ol>
-<li>members - a list of club members who are permitted to borrow equipment</li>
-<li>operators - a list of qualified compressor operators</li>
+<li>member - club members who are permitted to borrow equipment</li>
+<li>operator - qualified compressor operators</li>
 </ol>
 <p>Other lists may be provided in additional columns for future use. Example:</p>
-<pre><code>members,operators,trainees
-Freddie Mercury,Linus Torvalds,Freddie Mercury
-Abraham Lincoln,Nikola Tesla,Johann Bach
-Johann Bach,,Linus Torvalds
-Nikola Tesla,,
-Linus Torvalds,,</code></pre><p><a name="Read_only_Inventory"></a></p>
+<pre><code>role,list
+member,&quot;Freddie Mercury,Abraham Lincoln,Nikola Tesla,Sun Tzu&quot;
+operator,&quot;Abraham Lincoln,Sun Tzu&quot;
+blender,&quot;Sun Tzu&quot;
+trainee,&quot;Freddie Mercury&quot;</code></pre><p><a name="Read_only_Inventory"></a></p>
 <h3 id="inventory-1">Inventory</h3>
 <p>The <code>inventory</code> entry in the index is the URL of another CSV document that has
 <code>sheet</code> and <code>url</code> columns. This time the rows correspond to a tab in
