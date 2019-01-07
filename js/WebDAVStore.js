@@ -23,29 +23,40 @@ function WebDAVStore() {
 
 WebDAVStore.prototype = Object.create(AbstractStore.prototype);
 
-WebDAVStore.prototype.connect = function (params) {
+WebDAVStore.prototype.setCredentials = function (user, pass) {
+    this.user = user;
+    this.pass = pass;
+};
+
+WebDAVStore.prototype.connect = function (url) {
     "use strict";
 
-    if (!params || !params.url)
-        return Promise.reject(new Error(
-            "No configuration defined, cannot start WebDAVStore"));
+    if (url && url.lastIndexOf('/') !== url.length - 1)
+        url += '/';
 
-    if (params.url.lastIndexOf('/') !== params.url.length - 1)
-        params.url += '/';
-    this.params = {
-        url: params.url
+    try {
+        url = new URL(url);
+    } catch (e) {
+        console.debug("WebDAVStore.connect", e);
+        return Promise.reject(new Error(
+            "Invalid URL, cannot start WebDAVStore"));
+    }
+
+    console.debug("WebDAVStore: connecting to", url);
+    var opts = {
+        baseUrl: url
     };
-    console.debug("WebDAVStore: connecting to", params.url);
-    this.DAV = new dav.Client({
-        baseUrl: this.params.url
-    });
-    return Promise.resolve(this);
+    if (this.user) {
+        opts.userName = this.user;
+        opts.password = this.pass;
+    }
+    this.DAV = new dav.Client(opts);
+    return this.read('/');
 };
 
 WebDAVStore.prototype.disconnect = function () {
     "use strict";
 
-    this.params = {};
     this.DAV = null;
     return Promise.resolve();
 };

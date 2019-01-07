@@ -6,19 +6,14 @@ Chill #AED9DA
 Glass #EDFAFD
 */
 
-#compressor_table {
-    margin-bottom: 0.3em;
-}
-
 body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14pt;
 }
 
-/* Allow space for "fiters changed" select */
-#Compressor_tab {
-    padding-bottom: 0.4em!important;
-    font-size: 20pt;
+/* Allow space for button and "fiters changed" select */
+#compressor_table {
+    margin-bottom: 0.3em;
 }
 
 /* Used by validation */

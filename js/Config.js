@@ -37,28 +37,37 @@ Config.prototype.set = function (k, v) {
     return this.save();
 };
 
-Config.prototype.setup_UIs = function (on_reconfig) {
+Config.prototype.open_dialog = function (options) {
     var self = this;
-    $(".cfg_control")
-        .each(function () {
-            var el = this;
-            $(el).val(self.get(el.name));
-        })
-        .on("change", function () {
-            var item = this.name;
-            var v = $(this).val();
-            if (v != self.get(item)) {
-                self.set(item, v);
-                self.save();
-            }
-        });
 
-    $("#Configuration_dialog").dialog({
-        title: "Settings",
-        autoOpen: false,
-        resizable: true,
-        modal: true,
-        width: "100%",
-        close: on_reconfig
+    return new Promise((resolve, reject) => {
+        var opts = $.extend({
+            title: "Settings",
+            content: $("#settings_dialog").html(),
+            onContentReady: function () {
+                var $form = this.$content.find("form");
+                var jc = this;
+                this.$content.find("input")
+                    .on("change", function () {
+                        var item = this.name;
+                        var v = $(this).val();
+                        var ok = $form.valid();
+                        if (opts.validity)
+                            opts.validity.call(jc, ok);
+                        if ($form.valid()) {
+                            self.set(item, v);
+                        }
+                    })
+                    .each(function () {
+                        var el = this;
+                        $(el).val(self.get(el.name));
+                    });
+                if (opts.moreOnContentReady)
+                    opts.moreOnContentReady.call(this);
+                if (!this.$content.find("form").valid())
+                    this.buttons.close.disable();
+            }
+        }, options);
+        $.confirm(opts);
     });
 };

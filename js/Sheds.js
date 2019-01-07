@@ -57,7 +57,7 @@
     const nitrox = new Nitrox(config);
 
     /**
-     * Update all UIs from webdav
+     * Update all UIs from the cache
      */
     function reload_ui() {
         console.debug("Reloading UI");
@@ -132,50 +132,69 @@
         // Start the clock
         tick();
 
-        config.setup_UIs(reload_ui);
         $("#main_tabs").tabs();
 
         var $gear = $('#settings');
         $gear.on("click", function () {
-            $("input[name='webdav_url']")
-                .val(Cookies.get("webdav_url"))
-                .off("change")
-                .on("change", function (e) {
-                    var nurl = $(e.target).val();
-                    if (nurl != Cookies.get("webdav_url")) {
-                        Cookies.set("webdav_url", nurl, {
-                            expires: 365
+            config.open_dialog({
+                buttons: {
+                    "Update cache from web": function () {
+                        var $a = $.confirm({
+                            title: "Updating from the web",
+                            content: ""
                         });
-                        $.alert({
-                            title: "WebDAV url changed",
-                            content: "Application will now be reloaded",
-                            buttons: {
-                                ok: function () {
-                                    var loc = ("" + location).replace(/\?.*$/, "");
-                                    location = loc + "?t=" + Date.now();
-                                }
+
+                        config.save()
+                            .then(() => {
+                                return update_from_web((clss, m) => {
+                                    $a.setContentAppend(
+                                        "<div class='" + clss + "'>" +
+                                        m + "</div>");
+                                });
+                            })
+                            .then(reload_ui);
+                    },
+                    close: function () {
+                        config.save().then(reload_ui);
+                    }
+                },
+                validity: function (ok) {
+                    $.each(this.buttons, function (i, m) {
+                        if (ok)
+                            m.enable();
+                        else
+                            m.disable();
+                    });
+                },
+                moreOnContentReady: function () {
+                    this.$content.find("input[name='cache_url']")
+                        .val(Cookies.get("cache_url"))
+                        .off("change")
+                        .on("change", function (e) {
+                            var nurl = $(e.target).val();
+                            if (nurl != Cookies.get("cache_url")) {
+                                Cookies.set("cache_url", nurl, {
+                                    expires: 365
+                                });
+                                $.alert({
+                                    title: "Store cache URL changed",
+                                    content: "Application will now be reloaded",
+                                    buttons: {
+                                        ok: function () {
+                                            var loc = String(location).replace(/\?.*$/, "");
+                                            location = loc + "?t=" + Date.now();
+                                        }
+                                    }
+                                });
                             }
                         });
-                    }
-                });
-            $("#Configuration_dialog").dialog("open");
+                }
+            });
         });
 
         // Information buttons
         $("[data-with-info]").each(function () {
             $(this).with_info();
-        });
-
-        $("#update_webdav").on("click", function () {
-            var $a = $.confirm({
-                title: "Updating from the web",
-                content: ""
-            });
-
-            update_from_web((clss, m) => {
-                $a.setContentAppend("<div class='" + clss + "'>" +
-                    m + "</div>");
-            });
         });
 
         $(document).on("reload_ui", function () {
@@ -188,70 +207,103 @@
         $(document).trigger("reload_ui");
     }
 
-    function promise_to_reconnect() {
+    var cache_connect;
+
+    function promise_to_reconnect(url) {
         return new Promise((resolve) => {
-            $(".connect_control")
-                .each(function () {
-                    var el = this;
-                    $(el).val(Cookies.get(el.name));
-                });
-            $("#connect_failed_set")
-                .on("click", function () {
-                    $("#connect_failed_dialog").dialog("close");
-                });
-            $("#connect_failed_dialog").dialog({
-                title: "Connect failed",
-                autoOpen: true,
-                modal: true,
-                width: "100%",
-                classes: {
-                    'ui-dialog-titlebar-close': "hidden"
-                },
-                beforeClose: function () {
-                    var $form = $("form[name='connect_failed_form']");
-                    if (!$form.valid())
-                        return false;
-                    $form
+            $.confirm({
+                title: $("#connect_failed_dialog").prop("title"),
+                content: $("#connect_failed_dialog").html(),
+                onContentReady: function () {
+                    var jc = this;
+                    jc.$content
                         .find("input")
-                        .each(function () {
-                            Cookies.set(this.name, $(this).val(), {
-                                expires: 365
-                            });
-                        });
-                    console.debug("Reconnecting to", Cookies.get("webdav_url"));
-                    config.store
-                        .connect({
-                            url: Cookies.get("webdav_url")
+                        .on("change", function () {
+                            jc.$$try_again.trigger("click");
                         })
-                        .then(() => {
-                            return config.save().then(() => {
-                                resolve(dav_connect());
-                            });
-                        });
+                        .val(url ? url : "");
+                    jc.$content.find(".url").text(url);
+                    jc.buttons.try_again.setText("Try again");
+                },
+                buttons: {
+                    try_again: function () {
+                        var nurl = this.$content.find("input").val();
+                        console.debug("Trying again with", nurl);
+                        resolve(cache_connect(nurl));
+                    }
                 }
             });
         });
     }
 
-    function dav_connect() {
-        console.debug("Connecting to", Cookies.get("webdav_url"));
-        return config.store
-            .connect({
-                url: Cookies.get("webdav_url")
-            })
-            .then(() => {
-                console.debug("WebDAV connected, loading config");
-                return config.load();
-            })
-            .catch((e) => {
-                console.debug("config load failed: " + e);
-                return promise_to_reconnect();
+    function promise_to_authenticate(url) {
+        return new Promise((resolve) => {
+            $.confirm({
+                title: $("#auth_required").prop("title"),
+                content: $("#auth_required").html(),
+                onContentReady: function () {
+                    this.$content.find(".url").text(url);
+                },
+                buttons: {
+                    "login": function () {
+                        var user = this.$content.find("input[name='user']").val();
+                        var pass = this.$content.find("input[name='pass']").val();
+                        config.store.setCredentials(user, pass);
+                        resolve(cache_connect(url));
+                    }
+                }
             });
-
+        });
     }
 
+    cache_connect = function (url) {
+        if (url === "undefined")
+            url = "";
+        console.debug("Trying to connect to", url);
+        return config.store
+            .connect(url)
+            .then(() => {
+                console.debug(url, "connected, loading config");
+                return config.load()
+                    .then(() => {
+                        return url;
+                    })
+                    .catch((e) => {
+                        console.debug("config.json load failed:", e,
+                            "Trying to save a draft");
+                        return config.save()
+                            .then(() => {
+                                return cache_connect(url);
+                            })
+                            .catch((e) => {
+                                console.debug("Bootstrap failed", e);
+                                $.alert({
+                                    title: "Bootstrap failed",
+                                    content: "Could not write config.json"
+                                });
+                            });
+                    });
+            })
+            .catch((e) => {
+                console.debug(url, "connect failed:", e);
+                if (e == 401) {
+                    // XMLHttpRequest will only prompt for credentials if
+                    // the request is for the same origin with no explicit
+                    // credentials. So we have to handle credentials.
+                    return promise_to_authenticate(url);
+                }
+                return promise_to_reconnect(url);
+            });
+
+    };
+
     $(() => {
-        dav_connect().then(initialise);
+        cache_connect(Cookies.get("cache_url")).then((url) => {
+            Cookies.set("cache_url", url, {
+                expires: 365
+            });
+            initialise();
+        });
     });
 
 })(jQuery);

@@ -22,7 +22,7 @@ Roles.prototype = Object.create(Entries.prototype);
 Roles.prototype.constructor = Roles;
 
 /**
- * Reload the UI by re-reading the roles file from webdav
+ * Reload the UI by re-reading the roles file from the cache
  */
 Roles.prototype.reload_ui = function () {
     console.debug("Reloading roles");

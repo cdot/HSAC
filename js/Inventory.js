@@ -7,7 +7,7 @@
 "use strict";
 
 /**
- * Inventory is read from inventory.json on webdav
+ * Inventory is read from inventory.json
  */
 function Inventory(params) {
     this.cfg = params.config;

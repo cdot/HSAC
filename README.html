@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html><head>
-<link rel="shortcut icon" sizes="196x196" href="images/yellow-shedsvg.svg"/>
+<script src="libs/jquery.min.js"></script>
+<script src="libs/jquery.toc/jquery.toc.min.js"></script>
 <style>body{font-family: "Trebuchet MS", Helvetica, sans-serif;}</style>
 </head>
-<title>HSAC Sheds</title>
+<title>Sheds</title>
 <body>
 <h1 id="sheds">Sheds</h1>
 <p>Custom application for managing a dive club&#39;s resources. The application was
@@ -12,86 +13,64 @@ we organise and manage our resources.</p>
 <p>The application comprises three parts:</p>
 <ol>
 <li>A browser application</li>
-<li>A WebDAV server</li>
+<li>A read-write cache server</li>
 <li>An online database of read-only data</li>
 </ol>
-<ul>
-<li><a href="#Browser_Application">Browser Application</a><ul>
-<li><a href="#Browser_Application_Compressor">Compressor</a></li>
-<li><a href="#Browser_Application_Loans">Loans</a></li>
-<li><a href="#Browser_Application_Inventory">Inventory</a></li>
-<li><a href="#Browser_Application_Nitrox">Nitrox</a></li>
-</ul>
-</li>
-<li><a href="#WebDAV_Server">WebDAV Server</a><ul>
-<li><a href="#WebDAV_Server_Capturing_data">Capturing data</a></li>
-</ul>
-</li>
-<li><a href="#Read_only_Database">Read-only Database</a><ul>
-<li><a href="#Read_only_Database_Index">Index</a></li>
-<li><a href="#Read_only_Database_Roles">Roles</a></li>
-<li><a href="#Read_only_Database_Inventory">Inventory</a></li>
-<li><a href="#Read_only_Database_Setting_up_the_database">Setting up the database</a></li>
-</ul>
-</li>
-</ul>
-<p><a name="Browser_Application"></a></p>
+<ul data-toc data-toc-headings="h2,h3,h4"></ul>
+
 <h2 id="browser-application">Browser Application</h2>
-<p>The application is written to use a standard browser. This provides a
-high degree of portability and openness. The browser application
-presents a tab interface, where each tab offers a particular service:</p>
+<p>The application user interface is written to use a standard
+browser. This provides a high degree of portability and openness. The
+browser application presents a tab interface, where each tab offers a
+particular service:</p>
 <ol>
 <li>Compressor - recording compressor usage with tracking of filter lifetime</li>
-<li>Loans - recording of equipment loans with complete editable history and cross-links to inventory</li>
+<li>Loans - recording of equipment loans with complete editable history
+and cross-links to inventory</li>
 <li>Inventory - equipment records</li>
 <li>Nitrox - nitrox blending calculations</li>
 </ol>
-<p><a name="Browser_Application_Compressor"></a></p>
 <h3 id="compressor">Compressor</h3>
-<p>Compressor usage is recorded with the intake air temperature. Filter
-performance degrades significantly at higher temperatures, so the app
-uses this information to maintain a running estimate of remaining
-lifetime. Filter performance degradation follows a curve published by
-compressor manufacturers, which is modelled by a symmetric sigmoidal
-curve <code>y = d + (a - d) / (1 + (x / c) ^ b)</code> where x is the
-temperature, y is a degradation factor, and a, b, c and d are
+<p>Compressor filter performance degrades significantly at higher
+temperatures, so the temperature is recorded with the runtime to
+maintain a running estimate of remaining lifetime. Filter performance
+degradation follows a curve published by compressor manufacturers,
+which is modelled by a symmetric sigmoidal curve
+<code>F = D + (A - D) / (1 + (T / C) ^ B)</code> where T is the
+temperature, F is a degradation factor, and A, B, C and D are
 constants. The default constants are derived from the data provided by
-Coltri for an MCH 16/ET, using <a href="http://mycurvefit.com">http://mycurvefit.com</a>, for a maximum lifetime of 40 hours at 20&deg;C, though you can
-provide your own coefficients to match your compressor/filters in the settings (accessed using the gear icon on the
-top right).</p>
-<p><a name="Browser_Application_Loans"></a></p>
+Coltri for an MCH 16/ET, using <a href="http://mycurvefit.com">http://mycurvefit.com</a>, for a maximum
+lifetime of 40 hours at 20&deg;C, though you can provide your own
+coefficients to match your compressor/filters in the settings
+(accessed using the gear icon on the top right).</p>
 <h3 id="loans">Loans</h3>
-<p>Outgoing loans are recorded by selection from the inventory. Loan returns
-are recorded aginst the name of the person receiving back the kit. The
-<code>Inventory</code> tab is automatically updated to reflect kit that is out on
-loan.
-<a name="Browser_Application_Inventory"></a></p>
+<p>Outgoing loans are recorded by selection from the inventory. Loan
+returns are recorded aginst the name of the person receiving back the
+kit. The <code>Inventory</code> tab is automatically updated to reflect kit that
+is out on loan.</p>
 <h3 id="inventory">Inventory</h3>
-<p>The inventory tab provides a way to quickly look up and find the location of equipment.
-<a name="Browser_Application_Nitrox"></a></p>
+<p>The inventory tab provides a way to quickly look up and find the
+location of equipment.</p>
 <h3 id="nitrox">Nitrox</h3>
 <p>The calculations necessary for simple nitrox fills are performed using
-<a href="https://en.wikipedia.org/wiki/Van_der_Waals_equation">Van der Waal&#39;s real gas equation</a> to make accurate predictions on the gas needed for different fills, for use only by trained nitrox blenders.
-<a name="WebDAV_Server"></a></p>
-<h2 id="webdav-server">WebDAV Server</h2>
-<p>Persistant storage for the app is provided by using a WebDAV
-server. Data files from the read-only database are cached in the
-WebDAV server, which allows the app to work even when an internet
-connection is not available. Use of a WebDAV server also allows other
-mobile devices to read and write the cache. Note that the WebDAV server must support CORS.</p>
+<a href="https://en.wikipedia.org/wiki/Van_der_Waals_equation">Van der Waal&#39;s real gas equation</a> to make accurate predictions.</p>
+<h2 id="cache-server">Cache Server</h2>
+<p>Persistant storage is provided by using a cache server. Data files
+from the read-only database are cached in this server. If the server
+is hosted on the same network as the client, the user interface can
+work even when an internet connection is not available. Use of a
+network server also allows other mobile devices to read and write the
+cache.</p>
+<p>Included in the distribution is an interface suitable for using a
+WebDAV server as the cache server. It would be easy to write an
+interface to a different store provider, should you want to do so.</p>
+<h3 id="using-a-webdav-server">Using a WebDAV server</h3>
 <p>It&#39;s easy to set up a WebDAV server, even on a mobile device. We
 recommend lighttpd on platforms that support it. On mobile devices,
 HTTP Server powered by Apache by Tautvydas Andrikys is easy to set up
-and configure.</p>
-<p>For example, you might configure the server as follows:</p>
+and configure. Note that your WebDAV server must support CORS.</p>
+<p>For example, you might configure an Apache server on Linux as follows:</p>
 <pre><code>DavLockDB /var/www/html/webdav/DavLockDB
-
-# CORS
-Header always set Access-Control-Allow-Origin &quot;*&quot;
-# These are just the methods used by Sheds
-Header always set Access-Control-Allow-Methods &quot;GET, OPTIONS, PUT, PROPFIND, MKCOL&quot;
-Header always set Access-Control-Max-Age &quot;1000&quot;
-Header always set Access-Control-Allow-Headers &quot;x-requested-with, Content-Type, origin, authorization, accept, client-security-token, depth&quot;
 
 # Add a rewrite to respond with a 200 SUCCESS on every OPTIONS request.
 RewriteEngine On
@@ -99,26 +78,30 @@ RewriteCond %{REQUEST_METHOD} OPTIONS
 RewriteRule ^(.*)$ $1 [R=200,L]
 
 &lt;Location /webdav&gt;
-    Dav On
-    AuthType Basic
-    AuthName &quot;Login required&quot;
+  # CORS
+  Header always set Access-Control-Allow-Origin &quot;*&quot;
+  # These are just the methods used by Sheds
+  Header always set Access-Control-Allow-Methods &quot;GET, OPTIONS, PUT, PROPFIND, MKCOL&quot;
+  Header always set Access-Control-Max-Age &quot;1000&quot;
+  Header always set Access-Control-Allow-Headers &quot;x-requested-with, Content-Type, origin, authorization, accept, client-security-token, depth, cache-control&quot;
 
-    AuthUserFile &quot;/var/www/html/webdav/.passwd&quot;
-    Require valid-user
-&lt;/Location&gt;</code></pre><p>You will need to provide the URL of your WebDAV server to the app.
-<a name="WebDAV_Server_Capturing_data"></a></p>
+  Dav On
+  AuthType Basic
+  AuthName &quot;Login required&quot;
+
+  AuthUserFile &quot;/var/www/html/webdav/.passwd&quot;
+  Require valid-user
+&lt;/Location&gt;</code></pre><p>You will need to provide the URL of your cache server to the user interface.</p>
 <h3 id="capturing-data">Capturing data</h3>
 <p>Collected data (the loan history and compressor log) is stored as .csv
 files in the webdav server. These files can be accessed via webdav for
-further analysis (e.g. download, or upload to Google Drive)
-<a name="Read_only_Database"></a></p>
+further analysis (e.g. download, or upload to Google Drive)</p>
 <h2 id="read-only-database">Read-only Database</h2>
 <p>The basic database for the application is read-only data that is
 accessible through URLs that point to CSV documents. Access to the
 database is via a single <code>index</code> URL which has to be manually provided
 to the user interface. The app doesn&#39;t care how you manage the data in
-the database, all it requires is access to CSV.
-<a name="Read_only_Database_Index"></a></p>
+the database, all it requires is access to CSV.</p>
 <h3 id="index">Index</h3>
 <p>This is the URL of a CSV document that contains two columns, headed
 <code>sheet</code> and <code>url</code>. The <code>sheet</code> column has two entries, <code>roles</code> and
@@ -126,11 +109,11 @@ the database, all it requires is access to CSV.
 column.</p>
 <pre><code>sheet, url
 roles,http://address-of-roles.csv
-inventory,http://address_of_inventory.csv</code></pre><p><a name="Read_only_Roles"></a></p>
-<h3 id="roles">Roles</h3>
-<p>The <code>roles</code> URL points to a CSV document with two columns, <code>role</code> and <code>list</code>.
-The <code>role</code> column gives the name of a role e.g. <code>member</code> and the <code>list</code> column gives a comma-separated list of people who can perform that role.
-There must be at least the following columns:</p>
+inventory,http://address_of_inventory.csv</code></pre><h3 id="roles">Roles</h3>
+<p>The <code>roles</code> URL points to a CSV document with two columns, <code>role</code> and
+<code>list</code>.  The <code>role</code> column gives the name of a role e.g. <code>member</code> and
+the <code>list</code> column gives a comma-separated list of people who can
+perform that role.  There must be at least the following columns:</p>
 <ol>
 <li>member - club members who are permitted to borrow equipment</li>
 <li>operator - qualified compressor operators</li>
@@ -140,12 +123,11 @@ There must be at least the following columns:</p>
 member,&quot;Freddie Mercury,Abraham Lincoln,Nikola Tesla,Sun Tzu&quot;
 operator,&quot;Abraham Lincoln,Sun Tzu&quot;
 blender,&quot;Sun Tzu&quot;
-trainee,&quot;Freddie Mercury&quot;</code></pre><p><a name="Read_only_Inventory"></a></p>
-<h3 id="inventory-1">Inventory</h3>
-<p>The <code>inventory</code> entry in the index is the URL of another CSV document that has
-<code>sheet</code> and <code>url</code> columns. This time the rows correspond to a tab in
-the inventory, and the URL is of another sheet that provides the
-columns for that tab. For example,</p>
+trainee,&quot;Freddie Mercury&quot;</code></pre><h3 id="inventory-1">Inventory</h3>
+<p>The <code>inventory</code> entry in the index is the URL of another CSV document
+that has <code>sheet</code> and <code>url</code> columns. This time the rows correspond to a
+tab in the inventory, and the URL is of another sheet that provides
+the columns for that tab. For example,</p>
 <pre><code>sheet,url
 Cylinders,http://url-of-cylinders.csv
 Regulators,http://url-of-rgeulators-csv</code></pre><p>It&#39;s up to what columns you put in your inventory. An example for a
@@ -154,8 +136,7 @@ Regulators,http://url-of-rgeulators-csv</code></pre><p>It&#39;s up to what colum
 01,Yellow 12L,Cage,Training,
 04,Blue pony 3,Cage,Qualified</code></pre><p>Two columns are special in these sheets, <code>Location</code> and <code>Kit
 Pool</code>. These columns are included in the top-level <code>Inventory</code> tab but
-are ignored in the inventory pick dialog on the <code>Loans</code> tab.
-<a name="Read_only_Database_Setting_up_the_database"></a></p>
+are ignored in the inventory pick dialog on the <code>Loans</code> tab.</p>
 <h3 id="setting-up-the-database">Setting up the database</h3>
 <p>There are a number of ways you can manage the database. The simplest
 would be to have a number of CSV format files that you manually
@@ -167,5 +148,8 @@ extract data from the core databases (which are themselves spreadsheets)
 using <code>IMPORTRANGE</code>. The proxy sheets are then published as CSV. This
 approach gives us fine-grained control over what data enters the public
 domain.</p>
+<h2 id="about">About</h2>
+<p>Sheds was written by Crawford Currie <a href="http://c-dot.co.uk">http://c-dot.co.uk</a> and is licensed
+under MIT license terms.</p>
 
 </body></html>

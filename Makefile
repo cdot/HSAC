@@ -30,22 +30,23 @@ CSS       := $(shell cat index.html | \
 
 %.map : %.min.js
 
-#    <script src="libs/jquery.min.js?version=1545127482"></script>
-#    <script src="libs/jquery-ui/jquery-ui.min.js?version=1545127482"></script>
-README.html: README.md
+%.html: %.md
 	echo '<!DOCTYPE html>' > $@
 	echo '<html><head>' >> $@
-	echo '<link rel="shortcut icon" sizes="196x196" href="images/yellow-shedsvg.svg"/>' >> $@
+	echo '<script src="libs/jquery.min.js"></script>' >> $@
+	echo '<script src="libs/jquery.toc/jquery.toc.min.js"></script>' >> $@
 	echo '<style>body{font-family: "Trebuchet MS", Helvetica, sans-serif;}</style>' >> $@
 	echo '</head>' >> $@
-	echo '<title>HSAC Sheds</title>' >> $@
+	echo '<title>Sheds</title>' >> $@
 	echo '<body>' >> $@
 	marked $^ >> $@
 	echo "</body></html>" >> $@
 
-version: README.html
+doc: README.html
+
+version:
 	sed -e 's/\?version=[0-9]*/?version=$(shell date +%s)/g' index.html \
-	| sed -e 's/BUILD_DATE .*-/BUILD_DATE $(shell date) -/g' index.html \
+	| sed -e 's/BUILD_DATE .*-/BUILD_DATE $(shell date) --/g' index.html \
 	> tmp.html
 	mv tmp.html index.html
 

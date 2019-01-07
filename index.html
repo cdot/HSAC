@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <!-- BUILD_DATE Sat  5 Jan 17:01:05 GMT 2019 ->
+  <!-- BUILD_DATE Mon  7 Jan 13:12:13 GMT 2019 -->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
     <meta name="expires" content="Mon, 2 Apr 2018 09:00:00 GMT">
     
-    <link rel="shortcut icon" sizes="196x196" href="images/yellow-shedsvg.svg"/>
-    <link rel="icon" href="images/favicon.png?version=1545127482" type="image/x-icon" />
+    <link rel="shortcut icon" href="images/favicon.png?version=1545127482" type="png" />
+    <link rel="icon" href="images/favicon.png?version=1545127482" type="png" />
     
-    <!-- for ios 7 style, multi-resolution icon of 152x152 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-barstyle" content="black-translucent">
-    <link rel="apple-touch-icon" href="images/yellow-shedsvg.svg?version=1545127482">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png?version=1545127482">
 
     <!-- for Chrome on Android, multi-resolution icon of 196x196 -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -95,8 +94,8 @@
         <div id="Compressor_tab" class="crowded_tab">
           <form name="compressor" class="validated_form">
             <div>
-              The compressor was last run by <span id="cr_operator">?</span> on
-              <span id="cr_time">?</span> when the runtime was <span id="cr_runtime">0</span> <span id="cr_last_run">minutes<span class='ui-icon ui-icon-info' ></span></span>.
+              Last run by <span id="cr_operator">?</span> on
+              <span id="cr_time">?</span>, runtime was <span id="cr_runtime">0</span> <span id="cr_last_run">minutes<span class='ui-icon ui-icon-info' ></span></span>.
               <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span> hours</span>
             </div>
             <div>
@@ -163,10 +162,9 @@
               <label for="loan_show_all">Show returned items</label>
               <input type="checkbox" value="false" id="loan_show_all">
             </div>
-            Enter new loans on the last row of the table. Select the
-            empty cell on the right when something is returned.
+            <span data-with-info="#infoLoans">Enter new loans on the last row of the table</span>
             <div id="loan_some_late" class="hidden warning">
-              One or more returns are <span data-with-info="#infoReturned">
+              One or more returns are <span data-with-info="#infoLate">
                 late</span>
             </div>
           </div>
@@ -201,7 +199,7 @@
                 <th class="loan_foot" id="loan_dlg_lender"></th>
                 <th class="loan_foot" id="loan_dlg_donation"></th>
                 <th>
-                  <button id="loan_add" data-with-info="#infoLoans">
+                  <button id="loan_add" data-with-info="#infoAddLoan">
                     Add
                   </button>
                 </th>
@@ -237,8 +235,8 @@
               <input id="nox_tm" name="target_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer" min="21" max="100" value="32">%
             </p>
             <p>
-              <label for="nox_o2s" data-with-info="#infoBankSize">O2 bank cylinder size</label>
-              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="integer" min="10" max="100" value="49"> L,
+              <label for="nox_o2s" data-with-info="#infoBankSize">Pure O<sub>2</sub> cylinder size</label>
+              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" min="10" max="100" step="0.01" value="47.2"> L,
               <label for="nox_o2p">Pressure</label>
               <input id="nox_o2p" name="O2_bank_pressure" data-msg="Must be between 1 and 300" required type="number" class="integer" min="1" max="300" value="200"> bar
             </p>
@@ -249,76 +247,76 @@
         </div>
       </div>
     </div>
-    <div id="Configuration_dialog" class="hidden">
-      <table class="form_table zebra">
-        <tr>
-          <th class="input_label">
-            <span data-with-info="#infoDeadline">
-              Loan return deadline
-            </span>
-          </th>
-          <td class="widest">
-            <input type="number" required class="integer cfg_control" name="loan_return"> days
-          </td>
-        </tr>
-        <tr>
-          <th class="input_label">
-            <span data-with-info="#infoO2Price">
-              O2 cost per litre &pound;
-            </span>
-          </th>
-          <td class="widest">
-            <input type="number" class="integer cfg_control" step="any" required name="o2_price">
-          </td>
-        </tr>
-        <tr>
-          <th class="input_label">
-            <span data-with-info="#infoMaxPPO2">
-              Max ppO<sub>2</sub>
-            </span>
-          </th>
-          <td class="widest">
-            <input type="number" class="floating_point cfg_control" step="any" required name="ppO2max">
-          </td>
-        </tr>
-        <tr>
-          <th class="input_label">
-            <span data-with-info="#infoLifetime">
-              Filter
-            </span>
-          </th>
-          <td class="widest">
-            Lifetime
-            <input type="number" class="integer cfg_control" step="any" required name="filter_lifetime"> hours
-            <div>
-              Coefficients:
-              <div style="float:right">
-                A <input type="number" class="floating_point cfg_control" step="any" required name="filter_coeff_a">
-                B <input type="number" class="floating_point cfg_control" step="any" required name="filter_coeff_b"><br/>
-                C <input type="number" class="floating_point cfg_control" step="any" required name="filter_coeff_c">
-                D <input type="number" class="floating_point cfg_control" step="any" required name="filter_coeff_d">
-                </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <th>
-            <span data-with-info="#infoDB">Databases</span>
-          </th>
-          <td>
-            <ul>
-              <li>Online DB index URL
-            <input type="text" url class="cfg_control" required name="db_index_url">
-              </li>
-              <li>
-                WebDAV cache URL
-                <input type="text" url required class="cfg_control" name="webdav_url">
-            </li>
-            <button id="update_webdav">Update cache</button>
-            from online DB (must be connected to the internet)
-          </td>
-        </tr>
-      </table>
+    
+    <div id="settings_dialog" class="hidden">
+      <form>
+        <table class="form_table zebra">
+          <tr>
+            <th class="input_label">
+              <span data-with-info="#infoDeadline">
+                Loan return deadline
+              </span>
+            </th>
+            <td class="widest">
+              <input type="number" required class="integer" name="loan_return"> days
+            </td>
+          </tr>
+          <tr>
+            <th class="input_label">
+              <span data-with-info="#infoO2Price">
+                O<sub>2</sub> cost per litre &pound;
+              </span>
+            </th>
+            <td class="widest">
+              <input type="number" class="floating_point" step="any" required name="o2_price">
+            </td>
+          </tr>
+          <tr>
+            <th class="input_label">
+              <span data-with-info="#infoMaxPPO2">
+                Max ppO<sub>2</sub>
+              </span>
+            </th>
+            <td class="widest">
+              <input type="number" class="floating_point" step="any" required name="ppO2max"> bar
+            </td>
+          </tr>
+          <tr>
+            <th class="input_label">
+              <span data-with-info="#infoLifetime">
+                Filter
+              </span>
+            </th>
+            <td class="widest">
+              Lifetime:
+              <input type="number" class="integer" step="any" required name="filter_lifetime"> hours
+              <table>
+                <tr><td>Coefficients:</td><td class="widest">
+                A <input type="number" class="floating_point" step="any" required name="filter_coeff_a">
+                B <input type="number" class="floating_point" step="any" required name="filter_coeff_b"><br/>
+                C <input type="number" class="floating_point" step="any" required name="filter_coeff_c">
+                D <input type="number" class="floating_point" step="any" required name="filter_coeff_d">
+              </td></tr></table>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              <span data-with-info="#infoDB">Databases</span>
+            </th>
+            <td>
+              <table>
+                <tr>
+                  <td>Online DB index URL:</td>
+                  <td class="widest"><input style="width:100%" type="text" url required name="db_index_url"></td>
+                </tr><tr>
+                  <td>Store cache URL:</td>
+                  <td class="widest"><input style="width:100%" type="text" url required name="cache_url"></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </form>
     </div>
 
     <div id="inventory_pick_dialog" class="hidden">
@@ -326,19 +324,24 @@
       </div>
     </div>
 
-    <div id="connect_failed_dialog" class="hidden">
-      WebDAV connect failed. Folder must exist, and must contain a readable config.json
-      <form name="connect_failed_form">
-        <table class="form_table zebra">
-          <tr>
-            <th>WebDAV URL</th>
-            <td class="widest">
-              <input type="text" url class="connect_control" name="webdav_url">
-            </td>
-          </tr>
-        </table>
-      </form>
-      <button id="connect_failed_set">Connect</button>
+    <div id="auth_required" class="hidden" title="Authentication required">
+      Login to <span class="url">?</span>
+      <table>
+        <tr><td>User:</td>
+          <td class="widest"><input class="widest" type='text' name='user'></td>
+        </tr><tr><td>Pass:</td>
+          <td class="widest"><input class="widest" type='password' name='pass'></td>
+      </tr></table>
+    </div>
+    
+    <div id="connect_failed_dialog" class="hidden" title="Connect failed">
+      Could not connect to store cache at '<span class="url">?</span>'
+      <table>
+        <tr>
+          <td>Store cache URL:</td>
+          <td class="widest"><input class="widest" type="text" name="cache_url"></td>
+        </tr>
+      </table>
     </div>
 
     <!-- Compressor help -->
@@ -379,34 +382,32 @@
 
     <!-- Loans help -->
     <div class="hidden info" id="infoLoans">
-      Enter details of new loans on the last row of the table.
+      <dl>
+        <dt>Date</dt><dd>Touch the date to correct it if necessary</dd>
+        <dt>Borrower</dt><dd>
+          Select the borrower's name. Only current members of the club
+          can borrow equipment. If the borrower's name does not appear
+          on this list, select their instructor instead</dd>
+        <dt>Lender</dt><dd>Select the lender' name. Only qualified
+          compressor operators can lend equipment</dd>
+        <dt>Donation</dt><dd>
+          All members except those currently on the Ocean Diver course
+          are asked to make a donation to the club to help with
+          equipment maintenance. See the notices on the wall for the
+          current recommended donations</dd>
+        <dt>Returned</dt><dd>
+          When something is returned to you, select the 'Returned' column for that item and add your name
+        </dd>
+      </dl>
       You can also edit older loans e.g. to indicate when a loan was
       returned, or correct an error. Just touch the item you want to
       edit.
     </div>
-    <div class="hidden info" id="infoLender">
-      Equipment loans must be authorised by a member of the kit rota
+    <div class="hidden info" id="infoAddLoan">
+      Touch "add" to record the details you entered on the last row of
+      the table.
     </div>
-    <div class="hidden info" id="infoBorrower">
-      Only current members of the club can borrow equipment. If
-      the borrower's name does not appear on this list, select
-      their instructor instead
-    </div>
-    <div class="hidden info" id="infoItem">
-      Select the item of equipment borrowed
-    </div>
-    <div class="hidden info" id="infoIdentification">
-      If the equipment has a unique identifying mark e.g. a number
-      on the shoulder of BCDs, or a tag on regulators, or a
-      regulator serial number, enter that here
-    </div>
-    <div class="hidden info" id="infoDonation">
-      All members except those currently on the Ocean Diver course
-      are asked to make a donation to the club to help with
-      equipment maintenance. See the notices on the wall for the
-      current recommended donations
-    </div>
-    <div class="hidden info" id="infoReturned">
+    <div class="hidden info" id="infoLate">
       Members are requested to make an additional donation when
       items are returned late. <strong>This includes trainees</strong>
     </div>
@@ -421,7 +422,7 @@
 
     <!-- Nitrox help -->
     <div class="hidden info" id="infoBankSize">
-      This is the size (in litres) of the O2 cylinder you want to
+      This is the size (in litres) of the O<sub>2</sub> cylinder you want to
       use. A 'J' cylinder is 47.2L, while a 'W' is 45.7L. Check the
       shoulder of the cylinder you are using if you are unsure. Always
       use the leftmost cylinder that has sufficient pressure for the
@@ -429,8 +430,8 @@
     </div>
     
     <!-- Settings help -->
-    <div class="hidden info" id="infoWebDAV">
-      Enter the URL to the root of the directory on the WebDAV server
+    <div class="hidden info" id="infoCache">
+      Enter the URL to the root of the directory on the server
       where you want the cache to be stored
     </div>
     <div class="hidden info" id="infoDeadline">
@@ -438,23 +439,23 @@
       late loan returns
     </div>
     <div class="hidden info" id="infoO2Price">
-      Price of 1 litre of O2, based on the replacement cost of the
-      O2 cylinders
+      Price of 1 litre of O<sub>2</sub>, based on the replacement cost of the
+      O<sub>2</sub> cylinders
     </div>
     <div class="hidden info" id="infoMaxPPO2">
       Maximum ppO<sub>2</sub> used when calculating MOD
     </div>  
     <div class="hidden info" id="infoLifetime">
       Lifetime is the predicted lifetime of a filter that is run at the optimum
-      temperature. The coefficients are for the filter temperature degradation curve. See <a href="README.html#Browser_Application_Compressor" target="_blank">README<a> for more
+      temperature. The coefficients are for the filter temperature degradation curve. See <a href="README.html#compressor" target="_blank">README<a> for more
     </div>
     <div class="hidden info" id="infoDB">
       Two databases are used:
       <ul
         <li>A read-only online database, accessed through the URL of a CSV file that contains the root index</li>
-        <li>A read-write cache using a WebDAV server
+        <li>A read-write cache server
       </ul>
-      Click "Update" to update the cache from the online database. See <a href="README.html" target="_blank">README<a> for more
+      Click "Update" to update the cache from the online database. See <a href="README.html#read-only-database" target="_blank">README<a> for more
       </p>
     </div>
   </body>
