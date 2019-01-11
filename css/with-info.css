@@ -1,0 +1,13 @@
+.with-info-icon {
+    float: left;
+    font-size: 250%;
+    margin-right: 0.2em;
+}
+
+.with-info-before {
+    margin-right: 0.2em;
+}
+
+.with-info-after {
+    margin-left: 0.2em;
+}

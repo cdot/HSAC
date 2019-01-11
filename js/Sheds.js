@@ -167,6 +167,9 @@
                     });
                 },
                 moreOnContentReady: function () {
+                    this.$content.find("[data-info]").each(function () {
+                        $(this).with_info($(this).data("info"));
+                    });
                     this.$content.find("input[name='cache_url']")
                         .val(Cookies.get("cache_url"))
                         .off("change")
@@ -242,7 +245,11 @@
                 title: $("#auth_required").prop("title"),
                 content: $("#auth_required").html(),
                 onContentReady: function () {
+                    var self = this;
                     this.$content.find(".url").text(url);
+                    this.$content.find("input[name='pass']").on("change", function () {
+                        self.$$login.trigger("click");
+                    });
                 },
                 buttons: {
                     "login": function () {

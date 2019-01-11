@@ -122,7 +122,7 @@ Inventory.prototype.populate_tab = function ($it) {
             var desc = Inventory.getLoanDescriptor(sheet, entry);
             $tr.data("loan_desc", desc);
             var on_loan = self.loans.number_on_loan(desc);
-            var can_pick = false;
+            var can_pick = true;
             if (on_loan > 0) {
                 if (typeof colIndex.Count === "undefined") {
                     $tr.addClass("inventory_on_loan");
@@ -195,7 +195,7 @@ Inventory.prototype.populate_tab = function ($it) {
     }
     $it.find("span[data-with-info]").with_info();
     $it.find('.inventory_on_loan').with_info({
-        noIcon: true,
+        position: "hidden",
         text: '#infoOnLoan2'
     });
     $it.tabs();

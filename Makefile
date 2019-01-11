@@ -35,6 +35,8 @@ CSS       := $(shell cat index.html | \
 	echo '<html><head>' >> $@
 	echo '<script src="libs/jquery.min.js"></script>' >> $@
 	echo '<script src="libs/jquery.toc/jquery.toc.min.js"></script>' >> $@
+	echo '<link href="libs/fontawesome/css/solid.css" rel="stylesheet">' >> $@
+	echo '<link href="libs/fontawesome/css/fontawesome.css" rel="stylesheet">' >> $@
 	echo '<style>body{font-family: "Trebuchet MS", Helvetica, sans-serif;}</style>' >> $@
 	echo '</head>' >> $@
 	echo '<title>Sheds</title>' >> $@

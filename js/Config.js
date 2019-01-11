@@ -39,11 +39,12 @@ Config.prototype.set = function (k, v) {
 
 Config.prototype.open_dialog = function (options) {
     var self = this;
+    var $template = $("#settings_dialog");
 
     return new Promise((resolve, reject) => {
         var opts = $.extend({
-            title: "Settings",
-            content: $("#settings_dialog").html(),
+            title: $template.data("title"),
+            content: $template.html(),
             onContentReady: function () {
                 var $form = this.$content.find("form");
                 var jc = this;

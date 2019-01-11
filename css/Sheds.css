@@ -137,9 +137,10 @@ label.error {
     overflow: scroll;
 }
 
-/* Gear icon */
-#settings {
+/* Settings icon */
+#settings_block {
     float: right;
+    display: inline-block;
 }
 
 /* An element that displays the current time */
@@ -181,7 +182,7 @@ table td,th {
 }
 
 .warning {
-    color: orange;
+    color: red;
 }
 
 /* Used to widen a specific column in a table */

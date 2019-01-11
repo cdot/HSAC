@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <!-- BUILD_DATE Mon  7 Jan 14:37:19 GMT 2019 -->
+  <!-- BUILD_DATE Mon  7 Jan 15:30:03 GMT 2019 -->
   <head>
     <meta charset="UTF-8">
     <meta name="cache-control" content="public">
@@ -19,6 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     <title>HSAC Sheds</title>
+
     <link rel="icon" href="images/favicon.png?version=1545127482" />
 
     <!-- from //cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1 -->
@@ -26,7 +27,15 @@
 
     <!-- from //cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1 -->
     <script src="libs/jquery-ui/jquery-ui.min.js?version=1545127482"></script>
+    <!-- from //code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css -->
+    <link href="libs/jquery-ui/jquery-ui.min.css?version=1545127482" rel="stylesheet">
     
+    <link href="libs/jquery-icon-font/jquery-ui.icon-font.min.css?version=1545127482" rel="stylesheet">
+
+    <!-- From https://use.fontawesome.com/releases/v5.6.3 -->
+    <link href="libs/fontawesome/css/solid.css" rel="stylesheet">
+    <link href="libs/fontawesome/css/fontawesome.css" rel="stylesheet">
+
     <!-- from https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0 -->
     <script src="libs/jquery-validate/jquery.validate.min.js?version=1545127482"></script>
     <script src="libs/jquery-validate/additional-methods.min.js?version=1545127482"></script>
@@ -44,13 +53,16 @@
     <!-- from https://github.com/Mottie/tablesorter -->
     <script src="libs/tablesorter/js/jquery.tablesorter.min.js?version=1545127482"></script>
     <script src="libs/tablesorter/js/jquery.tablesorter.widgets.min.js?version=1545127482"></script>
+    <link href="libs/tablesorter/css/theme.jui.min.css?version=1545127482" rel="stylesheet">
 
     <script src="libs/davclient.min.js?version=1545127482"></script>
     <script class="compressable" src="js/AbstractStore.js?version=1545127482"></script>
     <script class="compressable" src="js/WebDAVStore.js?version=1545127482"></script>
     <script class="compressable" src="js/Nitrox.js?version=1545127482"></script>
-    <script class="compressable" src="js/with_info.js?version=1545127482"></script>
-    <script class="compressable" src="js/edit_in_place.js?version=1545127482"></script>
+    <script class="compressable" src="js/with-info.js?version=1545127482"></script>
+    <link   class="compressable" href="css/with-info.css?version=1545127482" rel="stylesheet">
+    <script class="compressable" src="js/in-place.js?version=1545127482"></script>
+    <link   class="compressable" href="css/in-place.css?version=1545127482" rel="stylesheet">
     <script class="compressable" src="js/Entries.js?version=1545127482"></script>
     <script class="compressable" src="js/Compressor.js?version=1545127482"></script>
     <script class="compressable" src="js/Loans.js?version=1545127482"></script>
@@ -58,15 +70,7 @@
     <script class="compressable" src="js/Roles.js?version=1545127482"></script>
     <script class="compressable" src="js/Config.js?version=1545127482"></script>
     <script class="compressable" src="js/Sheds.js?version=1545127482"></script>
-
-    <!-- from //code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css -->
-    <link href="libs/jquery-ui/jquery-ui.min.css?version=1545127482" rel="stylesheet">
-    
-    <link rel="stylesheet" href="libs/tablesorter/css/theme.jui.min.css?version=1545127482">
-    <link rel="stylesheet" href="libs/jquery-icon-font/jquery-ui.icon-font.min.css?version=1545127482" />
-    
-    <link class="compressable" rel="stylesheet" href="css/edit_in_place.css?version=1545127482">
-    <link class="compressable" rel="stylesheet" href="css/Sheds.css?version=1545127482">
+    <link class="compressable" href="css/Sheds.css?version=1545127482" rel="stylesheet">
 
   </head>
   <body>
@@ -74,17 +78,11 @@
       Loading...
     </div>
     <div id="loaded" class="hidden">
-      <!--
-          <div class="ui-widget">
-            <span id="settings" class="ui-icon ui-icon-gear"></span>
-            <span class="time_display"></span>
-          </div>
-      -->
       <div id="main_tabs">
-        <div style="display:inline-block;float:right">
-          <span id="settings" class="ui-icon ui-icon-gear"></span>
+        <div id="settings_block">
+          <span id="settings" class="fas fa-sliders-h"></span>
         </div>
-        <ul style="margin-right:1em">
+        <ul style="margin-right:1.2em">
           <li><a href="#Compressor_tab">Compressor</a></li>
           <li><a href="#Loans_tab">Loans</a></li>
           <li><a href="#Inventory_tab">Inventory</a></li>
@@ -95,7 +93,7 @@
           <form name="compressor" class="validated_form">
             <div>
               Last run by <span id="cr_operator">?</span> on
-              <span id="cr_time">?</span>, runtime was <span id="cr_runtime">0</span> <span id="cr_last_run">minutes<span class='ui-icon ui-icon-info' ></span></span>.
+              <span id="cr_time">?</span>, runtime was <span id="cr_runtime">0</span> <span id="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />
               <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span> hours</span>
             </div>
             <div>
@@ -248,12 +246,12 @@
       </div>
     </div>
     
-    <div id="settings_dialog" class="hidden">
+    <div id="settings_dialog" class="hidden" data-title="<span class='fas fa-sliders-h'></span> Settings">
       <form>
         <table class="form_table zebra">
           <tr>
             <th class="input_label">
-              <span data-with-info="#infoDeadline">
+              <span data-info="#infoDeadline">
                 Loan return deadline
               </span>
             </th>
@@ -263,7 +261,7 @@
           </tr>
           <tr>
             <th class="input_label">
-              <span data-with-info="#infoO2Price">
+              <span data-info="#infoO2Price">
                 O<sub>2</sub> cost per litre &pound;
               </span>
             </th>
@@ -273,7 +271,7 @@
           </tr>
           <tr>
             <th class="input_label">
-              <span data-with-info="#infoMaxPPO2">
+              <span data-info="#infoMaxPPO2">
                 Max ppO<sub>2</sub>
               </span>
             </th>
@@ -283,7 +281,7 @@
           </tr>
           <tr>
             <th class="input_label">
-              <span data-with-info="#infoLifetime">
+              <span data-info="#infoLifetime">
                 Filter
               </span>
             </th>
@@ -301,7 +299,7 @@
           </tr>
           <tr>
             <th>
-              <span data-with-info="#infoDB">Databases</span>
+              <span data-info="#infoDB">Databases</span>
             </th>
             <td>
               <table>
@@ -345,9 +343,10 @@
     </div>
 
     <!-- Compressor help -->
-    <div class="hidden info" id="infoLastRun">
+    <div class="hidden info" id="infoLastRun" data-title="<span class='fas fa-cog'></span> Last Run">
       If you made a mistake, you can remove this record from the compressor
-      history. Please be careful, this can't be undone!
+      history.
+      <div class="warning">Please be careful, this can't be undone!</div>
     </div>
     <div class="hidden info" id="infoFilterEfficiency">
       <p>Filter lifetime is predicted based on the intake air temperature
@@ -430,16 +429,12 @@
     </div>
     
     <!-- Settings help -->
-    <div class="hidden info" id="infoCache">
-      Enter the URL to the root of the directory on the server
-      where you want the cache to be stored
-    </div>
     <div class="hidden info" id="infoDeadline">
       Deadline beyond which an additional donation is requested for
       late loan returns
     </div>
     <div class="hidden info" id="infoO2Price">
-      Price of 1 litre of O<sub>2</sub>, based on the replacement cost of the
+      Price of one litre of O<sub>2</sub>, based on the replacement cost of the
       O<sub>2</sub> cylinders
     </div>
     <div class="hidden info" id="infoMaxPPO2">
@@ -451,11 +446,11 @@
     </div>
     <div class="hidden info" id="infoDB">
       Two databases are used:
-      <ul
+      <ul>
         <li>A read-only online database, accessed through the URL of a CSV file that contains the root index</li>
         <li>A read-write cache server
       </ul>
-      Click "Update" to update the cache from the online database. See <a href="README.html#read-only-database" target="_blank">README<a> for more
+      Click "Update" to update the cache server from the online database. See <a href="README.html#read-only-database" target="_blank">README<a> for more
       </p>
     </div>
   </body>

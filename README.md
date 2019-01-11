@@ -24,6 +24,8 @@ and cross-links to inventory
 3. Inventory - equipment records
 4. Nitrox - nitrox blending calculations
 
+Help information is readily available throughout the application through the <span class="fas fa-info-circle"></span> buttons.
+
 ### Compressor
 Compressor filter performance degrades significantly at higher
 temperatures, so the temperature is recorded with the runtime to
@@ -36,7 +38,7 @@ constants. The default constants are derived from the data provided by
 Coltri for an MCH 16/ET, using http://mycurvefit.com, for a maximum
 lifetime of 40 hours at 20&deg;C, though you can provide your own
 coefficients to match your compressor/filters in the settings
-(accessed using the gear icon on the top right).
+(accessed using the <span class="fas fa-sliders-h"></span> icon on the top right).
 
 ### Loans
 Outgoing loans are recorded by selection from the inventory. Loan

@@ -71,7 +71,7 @@ Compressor.prototype.reload_ui = function () {
         .off("click")
         .on("click", function () {
             $.confirm({
-                title: "Last run",
+                title: $("#infoLastRun").data("title"),
                 content: $("#infoLastRun").html(),
                 buttons: {
                     "Remove last run": () => {
