@@ -181,6 +181,7 @@ table td,th {
     margin: 0;
 }
 
+/* See also .error */
 .warning {
     color: red;
 }

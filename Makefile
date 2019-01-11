@@ -7,7 +7,6 @@
 
 # Macros using shell commands
 FIND      := find . -name 'jquery*' -prune -o -name
-REVERSION := sed -e 's/\?version=[0-9]+/?version=$(shell date +%s)/g'
 JS        := $(shell cat index.html | \
 		grep '<script class="compressable" src=' $^ | \
 		sed -e 's/.*src="//;s/[?"].*//g' )
@@ -47,10 +46,22 @@ CSS       := $(shell cat index.html | \
 doc: README.html
 
 version:
-	sed -e 's/\?version=[0-9]*/?version=$(shell date +%s)/g' index.html \
-	| sed -e 's/BUILD_DATE .*-/BUILD_DATE $(shell date) --/g' index.html \
-	> tmp.html
-	mv tmp.html index.html
+	INTERESTING=`grep -P '\?version=[0-9]*' index.html | sed -e 's/^.*\(src\|href\)="//;s/\?version.*//'`;\
+	for c in $$INTERESTING; do \
+		DATE=`git log -n 1 $$c | grep Date | sed -e 's/Date: *//;s/ +0.*//'`; \
+		DATE=`date -d "$$DATE" +%s`; \
+		echo "GIT: $$c: $$DATE" ;\
+		sed -e "s#$$c?version=[0-9]*#$$c?version=$$DATE#" index.html > tmp.html;\
+		mv tmp.html index.html; \
+	done
+	CHANGED=`git status -s --porcelain | grep -v "\?" | sed -e 's/^...//;'`;\
+	for c in $$CHANGED; do \
+		export DATE=`stat -c %Y $$c`; \
+		echo "STAT: $$c: $$DATE" ;\
+		sed -e "s#$$c?version=[0-9]*#$$c?version=$$DATE#" index.html > tmp.html;\
+		mv tmp.html index.html; \
+	done
+	@echo "Made new version"
 
 min:	$(patsubst %.js,%.min.js,$(JS)) \
 	$(patsubst %.js,%.map,$(JS)) \
