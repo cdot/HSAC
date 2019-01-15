@@ -13,6 +13,7 @@
 /* global Loans */
 /* global Inventory */
 /* global Roles */
+/* global WebDAVStore */
 
 (($) => {
     /**
@@ -28,16 +29,17 @@
     }
 
     // Configuration defaults
-    const config = new Config({
-        ppO2max: 1.4,
-        loan_return: 10,
-        o2_price: 0.02,
-        filter_lifetime: 40,
-        filter_coeff_a: 3.798205,
-        filter_coeff_b: 1.149582,
-        filter_coeff_c: 11.50844,
-        filter_coeff_d: -0.4806983
-    });
+    const config = new Config(
+        new WebDAVStore(), {
+            ppO2max: 1.4,
+            loan_return: 10,
+            o2_price: 0.02,
+            filter_lifetime: 40,
+            filter_coeff_a: 3.798205,
+            filter_coeff_b: 1.149582,
+            filter_coeff_c: 11.50844,
+            filter_coeff_d: -0.4806983
+        });
 
     const roles = new Roles({
         config: config

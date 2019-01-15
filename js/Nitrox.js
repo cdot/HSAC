@@ -84,6 +84,8 @@ Nitrox.prototype.submit = function () {
 Nitrox.prototype.blend = function (conditions) {
     // Universal gas constant
     const R = 0.0820578; // l-atm/mol-K
+    const atmO2 = 0.209;
+    var debug = this.cfg.debug;
 
     // Ideal gas law states PV = nRT, but this doesn't work very well
     // for real gases. A closer approximation to reality uses
@@ -101,7 +103,7 @@ Nitrox.prototype.blend = function (conditions) {
             return V;
 
         const N = 1; // Number of moles
-        console.debug(name + ": Pressure", P, "Volume", V);
+        if (debug) console.debug(name + ": Pressure", P, "Volume", V);
 
         var N2 = N * N,
             N3 = N2 * N;
@@ -113,11 +115,11 @@ Nitrox.prototype.blend = function (conditions) {
 
         // initial approximation of real volume using ideal gas law (litres)
         var vReal = NRT / P;
-        //console.debug(name + ": Initial approximation of vReal", vReal);
+        //if (debug) console.debug(name + ": Initial approximation of vReal", vReal);
 
         // Iterate Van De Waal's equation of state to improve estimate
         // of volume
-        //console.debug(name + ": Van der Waal's equation of state");
+        //if (this.cfg.debug) console.debug(name + ": Van der Waal's equation of state");
         var limit = 100;
         while (true) {
             var vReal2 = vReal * vReal;
@@ -129,21 +131,23 @@ Nitrox.prototype.blend = function (conditions) {
             if (Math.abs(h) < 1e-12)
                 break;
             vReal -= h;
-            console.debug(name + ": vReal = vReal - ", h);
+            if (debug) console.debug(name + ": vReal = vReal - ", h);
             if (limit-- == 0)
                 throw "Error: Van der Waal iteration overran";
         }
-        console.debug(name + ": vReal", vReal);
+        if (debug) console.debug(name + ": vReal", vReal);
         var nReal = N * V / vReal; // Real number of moles
         return (nReal * R * T) / V; // Real pressure, bar
     }
 
-    console.debug("Temperature ", conditions.temperature, "°C");
-    console.debug("Cylinder", conditions.cylinder_size, "l");
-    console.debug("Current Pressure", conditions.start_pressure, "bar");
-    console.debug("Current Mix", conditions.start_mix, "%");
-    console.debug("Target Pressure", conditions.target_pressure, "bar");
-    console.debug("Target Mix", conditions.target_mix, "%");
+    if (debug) {
+        console.debug("Temperature ", conditions.temperature, "°C");
+        console.debug("Cylinder", conditions.cylinder_size, "l");
+        console.debug("Current Pressure", conditions.start_pressure, "bar");
+        console.debug("Current Mix", conditions.start_mix, "%");
+        console.debug("Target Pressure", conditions.target_pressure, "bar");
+        console.debug("Target Mix", conditions.target_mix, "%");
+    }
 
     // O2 bank parameters
     var O2BankV_l = conditions.O2_bank_size; // l
@@ -161,17 +165,17 @@ Nitrox.prototype.blend = function (conditions) {
 
     // Work out how many bar of extra O2 in the start and target
     // mixes, over and above atmospheric 21%.
-    var extraO2InStartMix_b = ((r.curMix - 0.209) / 0.791) * r.curP_b;
-    console.debug("Extra O2 in start mix", extraO2InStartMix_b, "bar");
+    var extraO2InStartMix_b = ((r.curMix - atmO2) / (1 - atmO2)) * r.curP_b;
+    if (debug) console.debug("Extra O2 in start mix", extraO2InStartMix_b, "bar");
 
-    var extraO2InTargetMix_b = ((r.tgtMix - 0.209) / 0.791) * r.tgtP_b;
-    console.debug("Extra O2 in target mix", extraO2InTargetMix_b, "bar");
+    var extraO2InTargetMix_b = ((r.tgtMix - atmO2) / (1 - atmO2)) * r.tgtP_b;
+    if (debug) console.debug("Extra O2 in target mix", extraO2InTargetMix_b, "bar");
 
     if (extraO2InStartMix_b > extraO2InTargetMix_b) {
         // Too much O2; bleed and recalculate
         r.bleed_b = r.curP_b * extraO2InTargetMix_b /
             extraO2InStartMix_b;
-        console.debug("bleed to", r.bleed_b, "bar");
+        if (debug) console.debug("bleed to", r.bleed_b, "bar");
 
         return r;
     }
@@ -181,8 +185,10 @@ Nitrox.prototype.blend = function (conditions) {
     var idealO2ToAdd_b = extraO2InTargetMix_b - extraO2InStartMix_b;
     var boostToIdeal_b = r.curP_b + idealO2ToAdd_b;
 
-    console.debug("Ideal gas O2 to add", idealO2ToAdd_b, "bar");
-    console.debug("Ideal gas boost to", boostToIdeal_b, "bar");
+    if (debug) {
+        console.debug("Ideal gas O2 to add", idealO2ToAdd_b, "bar");
+        console.debug("Ideal gas boost to", boostToIdeal_b, "bar");
+    }
 
     // Calculate how many bar of O2 we'd have to add to make up the
     // difference, real gas
@@ -197,7 +203,7 @@ Nitrox.prototype.blend = function (conditions) {
         0.03183 // l/mol
     );
 
-    console.debug("Real O2 to add", realO2ToAdd_b, "bar");
+    if (debug) console.debug("Real O2 to add", realO2ToAdd_b, "bar");
 
     /*var Air_pReal = vanDerWaal(
         "Air",
@@ -211,15 +217,15 @@ Nitrox.prototype.blend = function (conditions) {
         0.0372 // l/mol
     );*/
     r.boostToReal_b = r.curP_b + realO2ToAdd_b;
-    console.debug("Real gas boost to", r.boostToReal_b, "bar");
+    if (debug) console.debug("Real gas boost to", r.boostToReal_b, "bar");
 
     // We need to add O2, but that's only possible if the bank pressure
     // is high enough
-    r.O2Needed_l = r.V * realO2ToAdd_b;
+    r.O2Needed_l = r.V * (realO2ToAdd_b - r.curP_b * r.curMix);
     r.bankLoss_b = r.O2Needed_l / O2BankV_l;
     r.bankLeft_b = O2BankP_b - r.bankLoss_b;
 
-    console.debug("O2 needed for this fill", r.O2Needed_l, "litres");
+    if (debug) console.debug("O2 needed for this fill", r.O2Needed_l, "litres");
 
     if (r.bankLeft_b < r.boostToReal_b) {
         // It will actually be a bit more than this
@@ -227,7 +233,10 @@ Nitrox.prototype.blend = function (conditions) {
         return r;
     }
 
-    console.debug("Bank left", r.bankLeft_b, "bar");
+    if (debug) console.debug("Bank left", r.bankLeft_b, "bar");
 
     return r;
 };
+
+if (module)
+    module.exports = Nitrox;

@@ -11,9 +11,8 @@
  * Store on a remote webdav server
  * Requires libs/davclient.js
  */
-if (typeof module !== "undefined") {
+if (typeof AbstractStore === "undefined")
     AbstractStore = require("./AbstractStore");
-}
 
 function WebDAVStore() {
     "use strict";

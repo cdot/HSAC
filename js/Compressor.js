@@ -6,6 +6,9 @@
 
 "use strict";
 
+if (typeof Entries === "undefined")
+    var Entries = require("./Entries");
+
 /**
  * Entries for Compressor runtime events. This is a stack - the only
  * editing available is to delete the last entry. Standard params same as
@@ -58,8 +61,9 @@ Compressor.prototype.reload_ui = function () {
     var $rt = $form.find("input[name='runtime']");
 
     function onChange() {
-        $("#add_compressor_record").button(
-            "option", "disabled", !$form.valid());
+        if ($form.length)
+            $("#add_compressor_record").button(
+                "option", "disabled", !$form.valid());
     }
 
     $form.on("submit", function (e) {
@@ -76,10 +80,12 @@ Compressor.prototype.reload_ui = function () {
                 buttons: {
                     "Remove last run": () => {
                         self.pop().then((r) => {
-                            $rt.rules("remove", "min");
-                            $rt.rules("add", {
-                                min: (r ? r.runtime : 0) + 0.01
-                            });
+                            if ($rt.length) {
+                                $rt.rules("remove", "min");
+                                $rt.rules("add", {
+                                    min: (r ? r.runtime : 0) + 0.01
+                                });
+                            }
                             onChange();
                         });
                     },
@@ -97,12 +103,16 @@ Compressor.prototype.reload_ui = function () {
             var values = {};
             $form.find(":input").each(function () {
                 values[this.name] = self.deserialise(this.name, $(this).val());
+                if (this.name === "filters_changed")
+                    values[this.name] = (values[this.name] === "on");
             });
             self.add(values).then((r) => {
-                $rt.rules("remove", "min");
-                $rt.rules("add", {
-                    min: (r ? r.runtime : 0) + 0.01
-                });
+                if ($rt.length) {
+                    $rt.rules("remove", "min");
+                    $rt.rules("add", {
+                        min: (r ? r.runtime : 0) + 0.01
+                    });
+                }
                 onChange();
             });
         });
@@ -119,10 +129,12 @@ Compressor.prototype.reload_ui = function () {
                     100 * this.cfg.get("filter_lifetime") * cur.filterlife) /
                 100);
             $("#cr_runtime").text(cur.runtime);
-            $rt.rules("remove", "min");
-            $rt.rules("add", {
-                min: cur.runtime + 0.01
-            });
+            if ($rt.length) {
+                $rt.rules("remove", "min");
+                $rt.rules("add", {
+                    min: cur.runtime + 0.01
+                });
+            }
 
             $form.find(":input").on("change", onChange);
             onChange();
@@ -140,30 +152,29 @@ Compressor.prototype.add = function (r) {
         var fcd = this.cfg.get("filter_coeff_d");
         var flr = 1,
             dt = 0;
+        var avelife = this.cfg.get("filter_lifetime");
         if (this.length() > 0) {
             var le = this.get(this.length() - 1);
-            if (r.filters_changed !== "on")
-                flr = le.filterlife;
             dt = (r.runtime - le.runtime) / 60; // hours
             if (dt < 0)
-                throw "Bad runtime"; // debug
-            if (dt === 0)
-                return Promise.resolve(le);
-            // Calculate predicted filter lifetime at this temperature,
-            // in hours
-            var factor = fcd + (fca - fcd) /
-                (1 + Math.pow(le.temperature / fcc, fcb));
-            var lifetime = this.cfg.get("filter_lifetime") * factor;
+                throw new Error("Bad runtime " + r.runtime + "<" + le.runtime); // debug
+            flr = r.filters_changed ? 1 : le.filterlife;
+            if (dt > 0) {
+                // Calculate predicted filter lifetime at this temperature,
+                // in hours
+                var factor = fcd + (fca - fcd) /
+                    (1 + Math.pow(r.temperature / fcc, fcb));
+                var lifetime = avelife * factor;
+                console.debug("Predicted lifetime at", r.temperature,
+                    "degrees is", lifetime, "hours");
 
-            // Fraction of filter change hours consumed
-            var fraction = dt / lifetime;
-            flr -= fraction; // remaining filter life
-            console.debug(
-                "Old filter life was", flr, ", runtime was", dt, "hours.",
-                "Predicted lifetime at", le.temperature,
-                "is", lifetime, "or", fraction, "of a filter, so",
-                "new prediction is", flr);
+                // Fraction of filter change hours consumed
+                flr -= dt / lifetime; // remaining filter life
+            }
         }
+        console.debug("Runtime of this event was", dt, "hours");
+        console.debug("So new prediction of remaining lifetime is", flr);
+        console.debug("Which would be roughly", flr * avelife, "hours");
         r.date = new Date();
         r.filterlife = flr;
         this.push(r);
@@ -185,3 +196,6 @@ Compressor.prototype.pop = function () {
         });
     });
 };
+
+if (module)
+    module.exports = Compressor;

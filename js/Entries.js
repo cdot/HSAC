@@ -260,3 +260,6 @@ Entries.prototype.map2array = function (keys, vals) {
     }
     return datum;
 };
+
+if (module)
+    module.exports = Entries;

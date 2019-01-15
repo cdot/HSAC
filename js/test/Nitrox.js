@@ -1,26 +1,26 @@
 /*eslint-env node, mocha */
 const assert = require("chai").assert;
 var Nitrox = require("../Nitrox.js");
+const { JSDOM } = require('jsdom');
+const jsdom = new JSDOM('<!doctype html><html><body></body></html>');
+const { window } = jsdom;
+global.$ = global.jQuery = require('jquery')(window);
 
 var tests = [
-    // T   V   %    P  t%   tP  bV   bP =>  iO2    rO2   eO2        nO2   bTL       bUL      bLb, bleed_02
+    // Figures calculated using spreadsheet derived from Gas Mixing Planner Issue 1a
+    // T   V   %    P  t%   tP  bV   bP =>
+    [ 4,  12, 26,  30, 32, 232, 49,  90, {
+        boostToReal_b: 61.80, O2Needed_l: 288, bankLeft_b: 84.12 } ],
     [ 15, 12, 21,  50, 32, 232, 49, 200, {
-        add_ideal_O2_bar: 32.30, add_real_O2_bar: 33.45, O2_needed_litres: 275.38, bank_left_bar: 194.38,
-        status: Nitrox.MIX_ACHIEVABLE } ],
-    [ 40, 12, 28,  50, 32, 232, 49,  90, {
-        add_ideal_O2_bar: 27.87, add_real_O2_bar: 28.5, O2_needed_litres: 174.04, bank_left_bar: 86.45,
-        status: Nitrox.MIX_ACHIEVABLE } ],
-    [ 38, 24, 32,  30, 28, 230, 47,  60, {
-        add_ideal_O2_bar: 16.20, add_real_O2_bar: 16.42, O2_needed_litres: 163.73, bank_left_bar: 56.52,
-        status: Nitrox.MIX_ACHIEVABLE } ],
+        boostToReal_b: 83.65, O2Needed_l: 277.81, bankLeft_b: 194.33 } ],
+    [ 40, 12, 28,  50, 32, 232, 47,  90, {
+        boostToReal_b: 78.71, O2Needed_l: 176.49, bankLeft_b: 86.25 } ],
     // Error: too much O2 already in cylinder. How much to bleed by?
-    [ 38, 24, 32, 200, 28, 230, 47,  60,  { bleed: 146.36, status: Nitrox.TOO_MUCH_O2 } ],
+    [ 38, 24, 32, 200, 28, 230, 47,  60,  { bleed_b: 147.12 } ],
     // Error: mix achievable, but not enough O2 in bank
-    [ 38, 24, 21, 50, 28, 230, 4,  60,  {
-        status: Nitrox.BANK_LACKS_O2, O2_needed_litres: 245.43, bank_useable_litres: -41.52 } ],
+    [ 38, 24, 21, 50, 28, 230, 4,  60,  { boostToReal_b: 70.93, O2Needed_l: 250.44, bankLeft_b: -2.61 } ],
     // Error: mix achievable, but too much pressure already in cylinder. How much to bleed by?
-    [ 38, 24, 21, 40, 28, 230, 4,  60,  {
-        status: Nitrox.BANK_LACKS_O2, O2_needed_litres: 295.83, bank_useable_litres: -1.52 } ],    
+    [ 38, 24, 21, 40, 32, 230, 40,  60,  { O2Needed_l: 592.45, bleed_b: 12.10, bankLeft_b: 45.19 } ],
 ];
 
 function make_test(test) {
@@ -35,11 +35,13 @@ function make_test(test) {
             O2_bank_size:     test[6],
             O2_bank_pressure: test[7]
         };
-        var result = test[8];
-        var top_up = Nitrox.blend(conditions);
-        for (var j in result) {
+        var expected = test[8];
+        var n = new Nitrox({});
+        var result = n.blend(conditions);
+        //console.log(result);
+        for (var j in expected) {
             if (result[j] != null)
-                assert.closeTo(top_up[j], result[j], 0.1, j);
+                assert.closeTo(result[j], expected[j], 0.1, j);
         }
     };
 }

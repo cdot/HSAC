@@ -1,15 +1,19 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
 /* eslint-env jquery */
-/* global WebDAVStore */
 /* global Config: true */
 
 /**
  * Configuration items are stored in a file 'config.json' on WebDAV
  */
-function Config(defaults) {
-    this.store = new WebDAVStore()
-    this.store_data = $.extend({}, defaults);
+function Config(store, defaults) {
+    this.store = store;
+    var sd = {};
+    for (var key in defaults) {
+        if (defaults.hasOwnProperty(key))
+            sd[key] = defaults[key];
+    }
+    this.store_data = sd;
 }
 
 Config.prototype.load = function () {
@@ -72,3 +76,6 @@ Config.prototype.open_dialog = function (options) {
         $.confirm(opts);
     });
 };
+
+if (module)
+    module.exports = Config;
