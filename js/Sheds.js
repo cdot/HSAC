@@ -233,7 +233,7 @@
                 buttons: {
                     try_again: function () {
                         var nurl = this.$content.find("input").val();
-                        console.debug("Trying again with", nurl);
+                        console.debug("Trying again with " + nurl);
                         resolve(cache_connect(nurl));
                     }
                 }
@@ -266,35 +266,37 @@
     }
 
     cache_connect = function (url) {
-        if (url === "undefined")
-            url = "";
-        console.debug("Trying to connect to", url);
+        console.debug("Trying to connect to " + url);
         return config.store
             .connect(url)
             .then(() => {
-                console.debug(url, "connected, loading config");
+                console.debug(url + " connected, loading config");
                 return config.load()
                     .then(() => {
-                        return url;
+                        Cookies.set("cache_url", url, {
+                            expires: 365
+                        });
+                        initialise();
                     })
                     .catch((e) => {
-                        console.debug("config.json load failed:", e,
-                            "Trying to save a draft");
+                        console.debug("config.json load failed: " + e +
+                            "; Trying to save a draft");
                         return config.save()
                             .then(() => {
                                 return cache_connect(url);
                             })
                             .catch((e) => {
-                                console.debug("Bootstrap failed", e);
+                                console.debug("Bootstrap failed: " + e);
                                 $.alert({
                                     title: "Bootstrap failed",
                                     content: "Could not write config.json"
                                 });
+                                return promise_to_reconnect();
                             });
                     });
             })
             .catch((e) => {
-                console.debug(url, "connect failed:", e);
+                console.debug(url + " connect failed: " + e);
                 if (e == 401) {
                     // XMLHttpRequest will only prompt for credentials if
                     // the request is for the same origin with no explicit
@@ -307,12 +309,11 @@
     };
 
     $(() => {
-        cache_connect(Cookies.get("cache_url")).then((url) => {
-            Cookies.set("cache_url", url, {
-                expires: 365
-            });
-            initialise();
-        });
+        var url = Cookies.get("cache_url")
+        if (typeof url === "undefined" || url.length == 0)
+            promise_to_reconnect();
+        else
+            cache_connect(url);
     });
 
 })(jQuery);

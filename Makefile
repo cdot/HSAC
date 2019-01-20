@@ -5,29 +5,19 @@
 # make clean   - remove intermediates and derived objects
 # make lint    - run eslint
 
-# Macros using shell commands
+TMP       := /tmp/
 FIND      := find . -name 'jquery*' -prune -o -name
 JS        := $(shell cat index.html | \
-		grep '<script class="compressable" src=' $^ | \
+		grep '<script .*src="js/' $^ | \
 		sed -e 's/.*src="//;s/[?"].*//g' )
 CSS       := $(shell cat index.html | \
-		grep '<link class="compressable"' $^ | \
+		grep '<link .*href="css/' $^ | \
 		sed -e 's/.*href="//;s/[?"].*//g' )
-
-%.map %.min.js : %.js
-	babel-minify \
-		--comments \
-		-o $@ \
-		-- $^
-
-%.min.css : %.css
-	cleancss $^ > $@
-
-%.min.html : %.html
-	cat $^ | \
-	sed -E -e 's/class="compressable" ([^.]*)\.([a-z]+)"/\1.min.\2"/g' > $@
-
-%.map : %.min.js
+LIB_FONTS := $(shell find libs -name '*.woff*' -o -name '*.ttf')
+LIB_IMGS  := $(shell find libs -name '*.png' -o -name '*.gif')
+LIB_MINS  := $(shell find libs -name '*.min.js' -o -name '*.min.css')
+LIBS      := $(LIB_FONTS) $(LIB_IMGS) $(LIB_MINS)
+IMAGES    := $(shell find images -name '*.png' -o -name '*.ico')
 
 %.html: %.md
 	echo '<!DOCTYPE html>' > $@
@@ -45,32 +35,33 @@ CSS       := $(shell cat index.html | \
 
 doc: README.html
 
-version:
-	INTERESTING=`grep -P '\?version=[0-9]*' index.html | sed -e 's/^.*\(src\|href\)="//;s/\?version.*//'`;\
+# Get a list of interesting files from index.html (the ones with ?version=)
+# and use git log to get the latest checked-in date
+reversion:
+	@INTERESTING=`grep -P '\?version=[0-9]*' index.html | sed -e 's/^.*\(src\|href\)="//;s/\?version.*//'`;\
 	for c in $$INTERESTING; do \
 		DATE=`git log -n 1 $$c | grep Date | sed -e 's/Date: *//;s/ +0.*//'`; \
 		DATE=`date -d "$$DATE" +%s`; \
-		echo "GIT: $$c: $$DATE" ;\
-		sed -e "s#$$c?version=[0-9]*#$$c?version=$$DATE#" index.html > tmp.html;\
-		mv tmp.html index.html; \
+		#echo "GIT: $$c: $$DATE" ;\
+		sed -e "s#$$c?version=[0-9]*#$$c?version=$$DATE#" index.html > $(TMP)index.html;\
+		diff $(TMP)index.html index.html || mv $(TMP)index.html index.html; \
 	done
-	CHANGED=`git status -s --porcelain | grep -v "\?" | sed -e 's/^...//;'`;\
+
+# Use git status to get a list of locally changed files and update the version
+# identifier in index.html. Used during development only.
+version:
+	@CHANGED=`git status -s --porcelain | grep -v "\?" | sed -e 's/^...//;'`;\
 	for c in $$CHANGED; do \
 		export DATE=`stat -c %Y $$c`; \
-		echo "STAT: $$c: $$DATE" ;\
-		sed -e "s#$$c?version=[0-9]*#$$c?version=$$DATE#" index.html > tmp.html;\
-		mv tmp.html index.html; \
+		#echo "STAT: $$c: $$DATE" ;\
+		sed -e "s#$$c?version=[0-9]*#$$c?version=$$DATE#" index.html > $(TMP)index.html;\
+		diff tmp.html $(TMP)index.html || echo $$c && mv $(TMP)index.html index.html; \
 	done
-	@echo "Made new version"
-
-min:	$(patsubst %.js,%.min.js,$(JS)) \
-	$(patsubst %.js,%.map,$(JS)) \
-	$(patsubst %.css,%.min.css,$(CSS))
-	@echo "Made min"
 
 # Clean generated stuff
 
 clean:
+	rm -rf release
 	$(FIND) '*~' -exec rm \{\} \;
 	$(FIND) '*.esl' -exec rm \{\} \;
 	rm -f $(patsubst %.js,%.min.js,$(JS)) \
@@ -82,14 +73,62 @@ clean:
 %.js.tidy : %.js
 	js-beautify -j --good-stuff -o $^ $^
 
-tidy: $(patsubst %.js,%.js.tidy,$(JS))
+tidy : $(patsubst %.js,%.js.tidy,$(JS))
 
 # eslint
 
 %.esl : %.js
 	-eslint $^ && touch $@
 
-lint: $(patsubst %.js,%.esl,$(patsubst %.min.js,,$(JS)))
+lint : $(JS:%.js=%.esl)
 
+# release
 
+release/%.js : %.js
+	@mkdir -p $(@D)
+	node_modules/.bin/babel --presets @babel/preset-env --verbose $< -o $@
 
+release/%.css : %.css
+	@mkdir -p $(@D)
+	cp $< $@
+
+release/%.html : %.html
+	@mkdir -p $(@D)
+	sed -e 's/<!--babel\(.*\)-->/<script\1>/' $< > $@
+
+release/libs/polyfill.min.js : node_modules/@babel/polyfill/dist/polyfill.min.js
+	@mkdir -p $(@D)
+	cp $< $@
+
+release/%.png : %.png
+	@mkdir -p $(@D)
+	cp $< $@
+
+release/%.gif : %.gif
+	@mkdir -p $(@D)
+	cp $< $@
+
+release/%.ico : %.ico
+	@mkdir -p $(@D)
+	cp $< $@
+
+release/%.woff : %.woff
+	@mkdir -p $(@D)
+	cp $< $@
+
+release/%.woff2 : %.woff2
+	@mkdir -p $(@D)
+	cp $< $@
+
+release/%.ttf : %.ttf
+	@mkdir -p $(@D)
+	cp $< $@
+
+release : version \
+	release/libs/polyfill.min.js \
+	$(JS:%=release/%) \
+	$(CSS:%=release/%) \
+	$(LIBS:%=release/%) \
+	$(IMAGES:%=release/%) \
+	release/index.html \
+	release/README.html

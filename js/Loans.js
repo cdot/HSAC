@@ -376,12 +376,12 @@ Loans.prototype.reload_ui = function () {
     return new Promise((resolve) => {
             return this.load()
                 .then(() => {
-                    console.debug("Loading", this.length(), "loan records");
+                    console.debug("Loading " + this.length() + " loan records");
                     this.load_tbody();
                     resolve();
                 })
                 .catch((e) => {
-                    console.error("Loans load failed:", e);
+                    console.error("Loans load failed: " + e);
                     resolve();
                 });
         })

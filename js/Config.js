@@ -77,5 +77,5 @@ Config.prototype.open_dialog = function (options) {
     });
 };
 
-if (module)
+if (typeof module !== "undefined")
     module.exports = Config;

@@ -144,7 +144,8 @@ Entries.prototype.load = function () {
                 resolve();
             })
             .catch((e) => {
-                console.debug("Error reading " + (this.url || this.file), e);
+                console.debug("Error reading " + (this.url || this.file) +
+                    ": " + e);
                 this.heads = [];
                 this.entries = [];
                 reject(new Error("Error reading " + (this.url || this.file) + ": " +
@@ -261,5 +262,5 @@ Entries.prototype.map2array = function (keys, vals) {
     return datum;
 };
 
-if (module)
+if (typeof module !== "undefined")
     module.exports = Entries;

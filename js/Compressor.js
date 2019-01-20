@@ -119,7 +119,7 @@ Compressor.prototype.reload_ui = function () {
 
     return this.load()
         .then(() => {
-            console.debug("Loading", this.length(), "compressor records");
+            console.debug("Loading " + this.length() + " compressor records");
             if (this.length() === 0)
                 return;
             var cur = this.get(this.length() - 1);
@@ -140,7 +140,7 @@ Compressor.prototype.reload_ui = function () {
             onChange();
         })
         .catch((e) => {
-            console.error("Compressor load failed:", e);
+            console.error("Compressor load failed: " + e);
         });
 };
 
@@ -165,16 +165,16 @@ Compressor.prototype.add = function (r) {
                 var factor = fcd + (fca - fcd) /
                     (1 + Math.pow(r.temperature / fcc, fcb));
                 var lifetime = avelife * factor;
-                console.debug("Predicted lifetime at", r.temperature,
-                    "degrees is", lifetime, "hours");
+                console.debug("Predicted lifetime at " + r.temperature +
+                    "degrees is" + lifetime + "hours");
 
                 // Fraction of filter change hours consumed
                 flr -= dt / lifetime; // remaining filter life
             }
         }
-        console.debug("Runtime of this event was", dt, "hours");
-        console.debug("So new prediction of remaining lifetime is", flr);
-        console.debug("Which would be roughly", flr * avelife, "hours");
+        console.debug("Runtime of this event was " + dt + " hours");
+        console.debug("So new prediction of remaining lifetime is " + flr);
+        console.debug("Which would be roughly " + (flr * avelife) + " hours");
         r.date = new Date();
         r.filterlife = flr;
         this.push(r);
@@ -197,5 +197,5 @@ Compressor.prototype.pop = function () {
     });
 };
 
-if (module)
+if (typeof module !== "undefined")
     module.exports = Compressor;

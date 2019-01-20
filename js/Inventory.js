@@ -78,7 +78,7 @@ Inventory.prototype.reload_ui = function () {
             });
         })
         .catch((e) => {
-            console.error("Inventory load failed:", e);
+            console.error("Inventory load failed: " + e);
         });
 };
 

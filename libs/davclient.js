@@ -4,7 +4,7 @@
 
 /* global dav */
 if (typeof dav === 'undefined') {
-    dav = {};
+    var dav = {};
 };
 
 dav._XML_CHAR_MAP = {
@@ -239,7 +239,13 @@ dav.Client.prototype = {
         if (this.userName) {
             headers['Authorization'] = 'Basic ' + btoa(this.userName + ':' + this.password);
         }
-        var turl = new URL(url, this.baseUrl).toString();
+        var turl = url;
+        if (typeof URL !== "undefined")
+            turl = new URL(url, this.baseUrl).toString();
+        else if (!/^[a-z]*:\/\//.test(turl))
+            // Bit hacky, but it works
+            turl = this.baseUrl + turl;
+
         xhr.open(method, turl, true);
         var ii;
         for (ii in headers) {
@@ -256,11 +262,9 @@ dav.Client.prototype = {
         return new Promise(function (fulfill, reject) {
 
             xhr.onreadystatechange = function () {
-
                 if (xhr.readyState !== 4) {
                     return;
                 }
-
                 var resultBody = xhr.response;
                 if (xhr.status === 207) {
                     resultBody = self.parseMultiStatus(xhr.response);
@@ -279,9 +283,7 @@ dav.Client.prototype = {
                 reject(new Error('Timeout exceeded'));
 
             };
-
         });
-
     },
 
     /**
@@ -292,9 +294,7 @@ dav.Client.prototype = {
      * @return {XMLHttpRequest}
      */
     xhrProvider: function () {
-
         return new XMLHttpRequest();
-
     },
 
     /**

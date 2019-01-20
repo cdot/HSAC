@@ -33,15 +33,17 @@ WebDAVStore.prototype.connect = function (url) {
     if (url && url.lastIndexOf('/') !== url.length - 1)
         url += '/';
 
-    try {
-        url = new URL(url);
-    } catch (e) {
-        console.debug("WebDAVStore.connect", e);
-        return Promise.reject(new Error(
-            "Invalid URL, cannot start WebDAVStore"));
+    if (typeof URL !== "undefined") {
+        try {
+            url = new URL(url);
+        } catch (e) {
+            console.debug("WebDAVStore.connect to " + url + " failed: " + e);
+            return Promise.reject(new Error(
+                "Invalid URL, cannot start WebDAVStore"));
+        }
     }
 
-    console.debug("WebDAVStore: connecting to", url);
+    console.debug("WebDAVStore: connecting to " + url);
     var opts = {
         baseUrl: url
     };
@@ -64,7 +66,7 @@ WebDAVStore.prototype.read = function (path) {
     "use strict";
 
     path = path.replace(/^\/+/, "");
-    console.debug("WebDAVStore: Reading", path);
+    console.debug("WebDAVStore: Reading " + path);
     return this.DAV
         .request('GET', path, {
             "Cache-Control": "no-cache"
@@ -113,7 +115,7 @@ WebDAVStore.prototype.write = function (path, data) {
 
     var self = this;
 
-    console.debug("WebDAVStore: Writing", path);
+    console.debug("WebDAVStore: Writing " + path);
 
     path = path.replace(/^\/+/, "").split('/');
     var folder = path.slice();

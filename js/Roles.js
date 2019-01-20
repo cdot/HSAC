@@ -40,7 +40,7 @@ Roles.prototype.reload_ui = function () {
             });
         })
         .catch((e) => {
-            console.error("Roles load failed:", e);
+            console.error("Roles load failed: " + e);
         });
 };
 
