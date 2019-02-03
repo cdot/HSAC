@@ -38,7 +38,7 @@ doc: README.html
 # Get a list of interesting files from index.html (the ones with ?version=)
 # and use git log to get the latest checked-in date
 reversion:
-	@INTERESTING=`grep -P '\?version=[0-9]*' index.html | sed -e 's/^.*\(src\|href\)="//;s/\?version.*//'`;\
+	@INTERESTING=`grep -P '\?version=[a-f0-9]*' index.html | sed -e 's/^.*\(src\|href\)="//;s/\?version.*//'`;\
 	for c in $$INTERESTING; do \
 		DATE=`git log -n 1 $$c | grep Date | sed -e 's/Date: *//;s/ +0.*//'`; \
 		DATE=`date -d "$$DATE" +%s`; \
@@ -55,7 +55,7 @@ version:
 		export DATE=`stat -c %Y $$c`; \
 		#echo "STAT: $$c: $$DATE" ;\
 		sed -e "s#$$c?version=[0-9]*#$$c?version=$$DATE#" index.html > $(TMP)index.html;\
-		diff tmp.html $(TMP)index.html || echo $$c && mv $(TMP)index.html index.html; \
+		diff index.html $(TMP)index.html || echo $$c && mv $(TMP)index.html index.html; \
 	done
 
 # Clean generated stuff
@@ -86,7 +86,7 @@ lint : $(JS:%.js=%.esl)
 
 release/%.js : %.js
 	@mkdir -p $(@D)
-	node_modules/.bin/babel --presets @babel/preset-env --verbose $< -o $@
+	node_modules/.bin/babel $< -o $@
 
 release/%.css : %.css
 	@mkdir -p $(@D)

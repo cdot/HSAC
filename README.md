@@ -18,7 +18,7 @@ browser. This provides a high degree of portability and openness. The
 browser application presents a tab interface, where each tab offers a
 particular service:
 
-1. Compressor - recording compressor usage with tracking of filter lifetime
+1. Compressor - recording static and portable compressor usage with tracking of filter lifetime
 2. Loans - recording of equipment loans with complete editable history
 and cross-links to inventory
 3. Inventory - equipment records
@@ -31,12 +31,11 @@ Compressor filter performance degrades significantly at higher
 temperatures, so the temperature is recorded with the runtime to
 maintain a running estimate of remaining lifetime. Filter performance
 degradation follows a curve published by compressor manufacturers,
-which is modelled by a symmetric sigmoidal curve
+which is modelled using a symmetric sigmoidal curve
 `F = D + (A - D) / (1 + (T / C) ^ B)` where T is the
 temperature, F is a degradation factor, and A, B, C and D are
 constants. The default constants are derived from the data provided by
-Coltri for an MCH 16/ET, using http://mycurvefit.com, for a maximum
-lifetime of 40 hours at 20&deg;C, though you can provide your own
+Coltri for an MCH 16/ET, and Bauer for a PE100, though you can provide your own
 coefficients to match your compressor/filters in the settings
 (accessed using the <span class="fas fa-sliders-h"></span> icon on the top right).
 

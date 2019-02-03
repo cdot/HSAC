@@ -61,18 +61,18 @@
 
     <script src="js/AbstractStore.js?version=1547979451"></script>
     <script src="js/WebDAVStore.js?version=1548017550"></script>
-    <script src="js/Nitrox.js?version=1548017550"></script>
+    <script src="js/Nitrox.js?version=1549195405"></script>
     <script src="js/with-info.js?version=1547205387"></script>
     <link   href="css/with-info.css?version=1547205387" rel="stylesheet">
     <script src="js/in-place.js?version=1547205387"></script>
     <link   href="css/in-place.css?version=1547205387" rel="stylesheet">
-    <script src="js/Entries.js?version=1548017551"></script>
-    <script src="js/Compressor.js?version=1548017551"></script>
+    <script src="js/Entries.js?version=1549195376"></script>
+    <script src="js/Compressor.js?version=1549195896"></script>
     <script src="js/Loans.js?version=1548017552"></script>
     <script src="js/Inventory.js?version=1548017552"></script>
     <script src="js/Roles.js?version=1548017552"></script>
-    <script src="js/Config.js?version=1548017553"></script>
-    <script src="js/Sheds.js?version=1548017553"></script>
+    <script src="js/Config.js?version=1549195822"></script>
+    <script src="js/Sheds.js?version=1549197672"></script>
     <link href="css/Sheds.css?version=1547213373" rel="stylesheet">
 
   </head>
@@ -86,18 +86,19 @@
           <span id="settings" class="fas fa-sliders-h"></span>
         </div>
         <ul style="margin-right:1.2em">
-          <li><a href="#Compressor_tab">Compressor</a></li>
-          <li><a href="#Loans_tab">Loans</a></li>
-          <li><a href="#Inventory_tab">Inventory</a></li>
-          <li><a href="#Nitrox_tab">Nitrox</a></li>
+          <li><a href="#static">Static Compressor</a></li>
+          <li><a href="#portable">Portable Compressor</a></li>
+          <li><a href="#loans">Loans</a></li>
+          <li><a href="#inventory">Inventory</a></li>
+          <li><a href="#nitrox">Nitrox</a></li>
         </ul>
 
-        <div id="Compressor_tab" class="crowded_tab">
-          <form name="compressor" class="validated_form">
+        <div id="static" class="crowded_tab">
+          <form class="validated_form">
             <div>
-              Last run by <span id="cr_operator">?</span> on
-              <span id="cr_time">?</span>, runtime was <span id="cr_runtime">0</span> <span id="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />
-              <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span id="cr_flr">?</span> hours</span>
+              Last run by <span class="cr_operator">?</span> on
+              <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />
+              <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span class="cr_flr">?</span> hours</span>
             </div>
             <div>
               Enter details of your run below:
@@ -122,7 +123,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" class="integer" id="cur_temp" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20"> &deg;C
+                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20"> &deg;C
                 </td>
               </tr>
               <!--
@@ -150,14 +151,86 @@
               </tr>
             </table>
             <div style="float:right">
-              <label for="filters_changed">Filters changed</label>
-              <input data-with-info="#infoFilters" type="checkbox" id="filters_changed" name="filters_changed">
+              <label for="static_filters_changed">Filters changed</label>
+              <input data-with-info="#infoFilters" type="checkbox" id="static_filters_changed" name="filters_changed">
             </div>
           </form>
-          <button id="add_compressor_record">Touch here to record this run</button>
+          <button name="add_record">Touch here to record this run</button>
         </div>
         
-        <div id="Loans_tab" class="crowded_tab">
+        <div id="portable" class="crowded_tab">
+          <form class="validated_form">
+            <div>
+              Last run by <span class="cr_operator">?</span> on
+              <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />
+              <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span class="cr_flr">?</span> hours at 20&deg;C</span>
+            </div>
+            <div>
+              Enter details of your run below:
+            </div>
+            <table class="form_table zebra" id="compressor_table">
+              <tr>
+                <th class="input_label">
+                  <span data-with-info="#infoOperator">
+                    Operator
+                  </span>
+                </th>
+                <td colspan="2" class="widest">
+                  <select name="operator" class="operator" data-msg="Must be a trained operator" required>
+                    <option></option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <th class="input_label">
+                  <span data-with-info="#infoTemperature">
+                    Temperature
+                  </span>
+                </th>
+                <td class="widest">
+                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20"> &deg;C
+                </td>
+              </tr>
+              <!--
+                  <tr>
+                    <th class="input_label">
+                      <span data-with-info="#infoHumidity">
+                        Relative Humidity
+                      </span>
+                    </th>
+                    <td class="widest">
+                      <input data-msg="Must be between 0 and 100" name="humidity" type="number" class="integer" min="0" max="100"> %
+                    </td>
+                  </tr>
+                  -->
+              <tr>
+                <th class="input_label">
+                  <span data-with-info="#infoSession">
+                    Runtime
+                  </span>
+                </th>
+                <td class="widest">
+                  <button class="session_play">
+                    <span class="fas fa-play"></span>
+                  </button>
+                  <button class="session_pause">
+                    <span class="fas fa-pause"></span>
+                  </button>
+                  This session: <span class="session_time">00:00</span>,
+                  <span data-with-info="#infoManualHours">Total</span>
+                  <input type="floating_point" step="0.01" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required> minutes
+                </td>
+              </tr>
+            </table>
+            <div style="float:right">
+              <label for="portable_filters_changed">Filters changed</label>
+              <input data-with-info="#infoFilters" type="checkbox" id="portable_filters_changed" name="filters_changed">
+            </div>
+          </form>
+          <button name="add_record">Touch here to record this run</button>
+        </div>
+        
+        <div id="loans" class="crowded_tab">
           <div>
             <div style="float:right">
               <label for="loan_show_all">Show returned items</label>
@@ -209,14 +282,14 @@
           </div>
         </div>
         
-        <div id="Inventory_tab" class="crowded_tab inventory_tab">
+        <div id="inventory" class="crowded_tab inventory_tab">
           <div>
           </div>
         </div>
         
-        <div id="Nitrox_tab">
+        <div id="nitrox" class="tab">
           Nitrox calculator. Only to be used by trained nitrox blenders.
-          <form name="nitrox">
+          <form>
             <p>
               <label for="nox_t"> Ambient Temperature</label>
               <input id="nox_t" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required type="number" class="integer" min="4" max="40" value="20"> &deg;C
@@ -243,7 +316,7 @@
             </p>
             <input type="submit" value="Calculate">
           </form>
-          <div id="nitrox_report">
+          <div class="report">
           </div>
         </div>
       </div>
@@ -380,6 +453,12 @@
     <div class="hidden info" id="infoRuntime">
       Runtime is read from the counter on the right of the
       compressor control panel.
+    </div>
+    <div class="hidden info" id="infoSession">
+      Tap <span class="fas fa-play"></span> when the compressor starts, and <span class="fas fa-pause"></span> if you need to temporarily stop the compressor for longer than a bottle change. When the session is finished, click <span class="fas fa-pause"></span> and then "Touch here to record this run"
+    </div>
+    <div class="hidden info" id="infoManualHours">
+      If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>minutes</b> you have run for. Enter the total here and record the run.
     </div>
 
     <!-- Loans help -->

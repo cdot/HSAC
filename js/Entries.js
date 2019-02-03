@@ -2,6 +2,7 @@
 
 /* eslint-env jquery */
 /* global Entries: true */
+/* global module */
 
 "use strict";
 
@@ -148,8 +149,11 @@ Entries.prototype.load = function () {
                     ": " + e);
                 this.heads = [];
                 this.entries = [];
-                reject(new Error("Error reading " + (this.url || this.file) + ": " +
-                    (e.status ? e.status : e)));
+                // Resolve it as an empty list
+                this.loaded = true;
+                resolve();
+                //reject(new Error("Error reading " + (this.url || this.file) + ": " +
+                //(e.status ? e.status : e)));
             });
     });
 };

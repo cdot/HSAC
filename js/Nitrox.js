@@ -2,6 +2,7 @@
 
 /* eslint-env jquery */
 /* global Nitrox: true */
+/* global module */
 
 "use strict";
 
@@ -13,7 +14,7 @@ function Nitrox(config) {
     var self = this;
 
     $(() => {
-        $("form[name='nitrox']").on("submit", (e) => {
+        $("#nitrox").children("form").on("submit", (e) => {
             e.preventDefault();
             if (!$(e.target).valid())
                 return;
@@ -24,7 +25,7 @@ function Nitrox(config) {
 
 Nitrox.prototype.submit = function () {
     var conditions = {};
-    $("form[name='nitrox'] :input").each(function () {
+    $("#nitrox").find("form :input").each(function () {
         if (this.type === "number")
             conditions[this.name] = parseFloat($(this).val());
         else
@@ -33,7 +34,7 @@ Nitrox.prototype.submit = function () {
     var result = this.blend(conditions);
     var ppO2max = this.cfg.get("ppO2max");
     var MOD = Math.floor(((ppO2max / result.tgtMix) * 10) - 10);
-    var $report = $("#nitrox_report");
+    var $report = $("#nitrox").children(".report");
     $report.html("Filling a " + result.V + "L cylinder " +
         "containing " + result.curP_b + " bar of " +
         (result.curMix * 100) + "% with " + result.tgtP_b +

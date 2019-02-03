@@ -15,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/cdot/HSAC/issues"
   },
-  "homepage": "https://github.com/cdot/HSAC#readme",
+  "homepage": "https://github.com/cdot/HSAC",
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
@@ -26,5 +26,16 @@
     "cleancss": ">=1.0.12",
     "js-beautify": ">=1.8.9"
   },
-  "browserslist": "> 1%, not dead"
+  "babel": {
+      "presets": [
+          [
+              "@babel/preset-env", {
+                  "debug": true,
+                  "modules": "commonjs",
+                  "useBuiltIns": "entry"
+              }
+          ]
+      ]
+  },
+    "browserslist": "> 0.25%, not dead"
 }

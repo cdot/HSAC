@@ -34,17 +34,28 @@
             ppO2max: 1.4,
             loan_return: 10,
             o2_price: 0.02,
-            filter_lifetime: 40,
-            filter_coeff_a: 3.798205,
-            filter_coeff_b: 1.149582,
-            filter_coeff_c: 11.50844,
-            filter_coeff_d: -0.4806983
+            portable_filter_lifetime: 15,
+            portable_filter_coeff_a: 1.84879,
+            portable_filter_coeff_b: 1.124939,
+            portable_filter_coeff_c: 14.60044,
+            portable_filter_coeff_d: -0.3252651,
+            static_filter_lifetime: 40,
+            static_filter_coeff_a: 3.798205,
+            static_filter_coeff_b: 1.149582,
+            static_filter_coeff_c: 11.50844,
+            static_filter_coeff_d: -0.4806983
         });
 
     const roles = new Roles({
         config: config
     });
-    const compressor = new Compressor({
+    const static_compressor = new Compressor({
+        id: "static",
+        roles: roles,
+        config: config
+    });
+    const portable_compressor = new Compressor({
+        id: "portable",
         roles: roles,
         config: config
     });
@@ -65,7 +76,8 @@
         console.debug("Reloading UI");
         return Promise
             .all([
-                compressor.reload_ui(),
+                static_compressor.reload_ui(),
+                portable_compressor.reload_ui(),
                 loans.reload_ui(),
                 inventory.reload_ui(loans)
             ])
@@ -117,10 +129,9 @@
             });
     }
 
-    function initialise() {
+    function initialise_ui() {
         // Generics
         $("button").button();
-        $(".spinner").spinner();
         $(".spinner").spinner();
         $("input[type='checkbox']").checkboxradio();
         $('.ui-spinner-button').click(function () {
@@ -208,8 +219,6 @@
                 $("#loaded").show();
             });
         });
-
-        $(document).trigger("reload_ui");
     }
 
     var cache_connect;
@@ -276,7 +285,7 @@
                         Cookies.set("cache_url", url, {
                             expires: 365
                         });
-                        initialise();
+                        $(document).trigger("reload_ui");
                     })
                     .catch((e) => {
                         console.debug("config.json load failed: " + e +
@@ -310,6 +319,7 @@
 
     $(() => {
         var url = Cookies.get("cache_url")
+        initialise_ui();
         if (typeof url === "undefined" || url.length == 0)
             promise_to_reconnect();
         else

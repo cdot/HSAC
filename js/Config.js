@@ -1,6 +1,6 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
-/* eslint-env jquery */
+/* eslint-env jquery,node */
 /* global Config: true */
 
 /**
@@ -8,8 +8,9 @@
  */
 function Config(store, defaults) {
     this.store = store;
-    var sd = {};
-    for (var key in defaults) {
+    const sd = {};
+    let key;
+    for (key in defaults) {
         if (defaults.hasOwnProperty(key))
             sd[key] = defaults[key];
     }
@@ -20,7 +21,7 @@ Config.prototype.load = function () {
     return this.store
         .read("config.json")
         .then((json) => {
-            var d = JSON.parse(json);
+            const d = JSON.parse(json);
             this.store_data = $.extend({}, this.store_data, d);
             console.debug("Config loaded");
         });
@@ -42,30 +43,32 @@ Config.prototype.set = function (k, v) {
 };
 
 Config.prototype.open_dialog = function (options) {
-    var self = this;
-    var $template = $("#settings_dialog");
+    const self = this;
+    const $template = $("#settings_dialog");
 
     return new Promise((resolve, reject) => {
-        var opts = $.extend({
+        const opts = $.extend({
             title: $template.data("title"),
             content: $template.html(),
             onContentReady: function () {
-                var $form = this.$content.find("form");
-                var jc = this;
+                const $form = this.$content.find("form");
+                const jc = this;
                 this.$content.find("input")
                     .on("change", function () {
-                        var item = this.name;
-                        var v = $(this).val();
-                        var ok = $form.valid();
+                        const item = this.name;
+                        const v = $(this).val();
+                        const ok = $form.valid();
                         if (opts.validity)
                             opts.validity.call(jc, ok);
-                        if ($form.valid()) {
+                        if ($form.valid())
                             self.set(item, v);
-                        }
                     })
                     .each(function () {
-                        var el = this;
-                        $(el).val(self.get(el.name));
+                        const v = self.get(this.name);
+                        if (this.type === "radio")
+                            $(this).prop('checked', v === this.value);
+                        else
+                            $(this).val(v);
                     });
                 if (opts.moreOnContentReady)
                     opts.moreOnContentReady.call(this);
