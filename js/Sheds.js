@@ -137,9 +137,12 @@
         $('.ui-spinner-button').click(function () {
             $(this).siblings('input').change();
         });
-        $(".validated_form").validate({
-            // Don't ignore selects that are hidden by jQuery plugins
-            ignore: ""
+
+        $(".validated_form").each(function () {
+            $(this).validate({
+                // Don't ignore selects that are hidden by jQuery plugins
+                ignore: ""
+            });
         });
 
         // Start the clock

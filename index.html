@@ -39,8 +39,8 @@
     <link href="libs/fontawesome/css/fontawesome.min.css" rel="stylesheet">
 
     <!-- from https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0 -->
-    <script src="libs/jquery-validate/jquery.validate.min.js?version=1545127002"></script>
-    <script src="libs/jquery-validate/additional-methods.min.js?version=1545127002"></script>
+    <script src="libs/jquery-validate/jquery.validate.js?version=1545127002"></script>
+    <script src="libs/jquery-validate/additional-methods.js?version=1545127002"></script>
     
     <!-- from //cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0 -->
     <script src="libs/js.cookie.min.js?version=1544605889"></script>
@@ -94,7 +94,7 @@
         </ul>
 
         <div id="static" class="crowded_tab">
-          <form class="validated_form">
+          <form id="static_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span> on
               <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />
@@ -159,7 +159,7 @@
         </div>
         
         <div id="portable" class="crowded_tab">
-          <form class="validated_form">
+          <form id="portable_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span> on
               <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />

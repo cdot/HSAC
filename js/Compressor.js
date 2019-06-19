@@ -207,8 +207,8 @@ Compressor.prototype.reload_ui = function () {
             $form.find(":input").on("change", onChange);
             onChange();
         })
-        .catch((e) => {
-            console.error("Compressor load failed: " + e);
+    .catch((e) => {
+        console.error("Compressor load failed: " + e);
         });
 };
 
