@@ -123,7 +123,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20"> &deg;C
+                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20" data-sample="5000,intake_sample_url,-1,-1"> &deg;C
                 </td>
               </tr>
               <!--
@@ -137,7 +137,7 @@
                       <input data-msg="Must be between 0 and 100" name="humidity" type="number" class="integer" min="0" max="100"> %
                     </td>
                   </tr>
-                  -->
+              -->
               <tr>
                 <th class="input_label">
                   <span data-with-info="#infoRuntime">
@@ -358,18 +358,36 @@
           <tr>
             <th class="input_label">
               <span data-info="#infoLifetime">
-                Filter
+                Static Compressor Filter Parameters
               </span>
             </th>
             <td class="widest">
               Lifetime:
-              <input type="number" class="integer" step="any" required name="filter_lifetime"> hours
+              <input type="number" class="integer" step="any" required name="static_filter_lifetime"> hours
               <table>
                 <tr><td>Coefficients:</td><td class="widest">
-                A <input type="number" class="floating_point" step="any" required name="filter_coeff_a">
-                B <input type="number" class="floating_point" step="any" required name="filter_coeff_b"><br/>
-                C <input type="number" class="floating_point" step="any" required name="filter_coeff_c">
-                D <input type="number" class="floating_point" step="any" required name="filter_coeff_d">
+                A <input type="number" class="floating_point" step="any" required name="static_filter_coeff_a">
+                B <input type="number" class="floating_point" step="any" required name="static_filter_coeff_b"><br/>
+                C <input type="number" class="floating_point" step="any" required name="static_filter_coeff_c">
+                D <input type="number" class="floating_point" step="any" required name="static_filter_coeff_d">
+              </td></tr></table>
+            </td>
+          </tr>
+          <tr>
+            <th class="input_label">
+              <span data-info="#infoLifetime">
+                Portable Compressor Filter Parameters
+              </span>
+            </th>
+            <td class="widest">
+              Lifetime:
+              <input type="number" class="integer" step="any" required name="portable_filter_lifetime"> hours
+              <table>
+                <tr><td>Coefficients:</td><td class="widest">
+                A <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_a">
+                B <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_b"><br/>
+                C <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_c">
+                D <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_d">
               </td></tr></table>
             </td>
           </tr>
@@ -382,9 +400,14 @@
                 <tr>
                   <td>Online DB index URL:</td>
                   <td class="widest"><input style="width:100%" type="text" url required name="db_index_url"></td>
-                </tr><tr>
+                </tr>
+                <tr>
                   <td>Store cache URL:</td>
                   <td class="widest"><input style="width:100%" type="text" url required name="cache_url"></td>
+                </tr>
+                <tr>
+                  <td>Intake temperature sample url:</td>
+                  <td class="widest"><input style="width:100%" type="text" url required name="intake_sample_url"></td>
                 </tr>
               </table>
             </td>
@@ -418,6 +441,11 @@
       </table>
     </div>
 
+    <div id="alert_dialog" class="hidden" title="Alert">
+      <div id="alert_body">
+      </div>
+    </div>
+
     <!-- Compressor help -->
     <div class="hidden info" id="infoLastRun" data-title="<span class='fas fa-cog'></span> Last Run">
       If you made a mistake, you can remove this record from the compressor
@@ -428,9 +456,8 @@
       <p>Filter lifetime is predicted based on the intake air temperature
         and runtime from the compressor records, and does <em>not</em>
         reflect on the efficiency of the filters.</p>
-      <p>When the lifetime drops below 2 hours, inform a member of the
-        committee so the filters can be changed (or, better, learn to
-        change them yourself.)</p>
+      <p>When the lifetime drops below 2 hours, email hsac-equipment@gmail.com
+        so the filters can be changed (or, better, learn to change them yourself.)</p>
       <p class="warning">
         <strong>NEVER</strong> use the compressor if the filter
         lifetime is negative!
@@ -444,7 +471,8 @@
     <div class="hidden info" id="infoTemperature">
       Temperature must be taken from the thermometer on the
       compressor air intake at the <strong>end</strong> of the
-      filling session.
+      filling session. If the electronic thermometer is functioning,
+      this will be sensed automatically.
     </div>
     <div class="hidden info" id="infoFilters">
       Select this <strong>only</strong> if the filters have just

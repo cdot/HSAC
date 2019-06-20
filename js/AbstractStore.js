@@ -51,8 +51,6 @@ AbstractStore.prototype.disconnect = function () {
  * expected to create intermediate directory levels on the fly.
  * @param path pathname to store the data under, a / separated path string
  * @param data a string to store
- * @param ok called on success with this=self, no parameters
- * @param fail called on failure with this=self
  */
 AbstractStore.prototype.write = function (path, data) {
     "use strict";

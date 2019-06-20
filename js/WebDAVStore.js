@@ -27,6 +27,12 @@ WebDAVStore.prototype.setCredentials = function (user, pass) {
     this.pass = pass;
 };
 
+WebDAVStore.prototype._error = function(res) {
+    if (typeof res.body === "string" && res.body.length > 0)
+        return new Error(res.body.replace(/^.*<body>(.*)<\/body>.*$/si, "$1"));
+    return new Error("WebDAV Error " + res.status);
+};
+
 WebDAVStore.prototype.connect = function (url) {
     "use strict";
 
@@ -64,7 +70,7 @@ WebDAVStore.prototype.disconnect = function () {
 
 WebDAVStore.prototype.read = function (path) {
     "use strict";
-
+    let self = this;
     path = path.replace(/^\/+/, "");
     console.debug("WebDAVStore: Reading " + path);
     return this.DAV
@@ -74,7 +80,7 @@ WebDAVStore.prototype.read = function (path) {
         .then((res) => {
             if (200 <= res.status && res.status < 300)
                 return Promise.resolve(res.body);
-            return Promise.reject(res.status);
+            return Promise.reject(self._error(res));
         });
 };
 
@@ -87,7 +93,7 @@ WebDAVStore.prototype._mkpath = function (path) {
     if (path.length === 0)
         return Promise.resolve(); // at the root, always exists
 
-    var self = this;
+    let self = this;
 
     return this.DAV
         .request('PROPFIND', path.join('/'), {
@@ -104,16 +110,14 @@ WebDAVStore.prototype._mkpath = function (path) {
                         return self.DAV.request('MKCOL', path.join('/'));
                     });
                 }
-                return Promise.reject(
-                    new Error("_mkpath failed on " + path.join('.') +
-                        ": " + res.status));
+                return Promise.reject(self._error(res));
             });
 };
 
 WebDAVStore.prototype.write = function (path, data) {
     "use strict";
 
-    var self = this;
+    let self = this;
 
     console.debug("WebDAVStore: Writing " + path);
 
@@ -127,7 +131,7 @@ WebDAVStore.prototype.write = function (path, data) {
                 .then((res) => {
                     if (200 <= res.status && res.status < 300)
                         return Promise.resolve(res.body);
-                    return Promise.reject(res.status);
+                    return Promise.reject(self._error(res));
                 });
         })
 };

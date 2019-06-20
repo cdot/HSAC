@@ -129,6 +129,58 @@
             });
     }
 
+    /**
+     * Sort-of-generic mechanism for updating a field value from data
+     * obtained from an ajax call which retrieves a CSV file. The source
+     * is specified in an HTML5 data attibute data-get-from, which specifies
+     * a configuration entry name. This entry is formatted thus:
+     * 5000,source_url,0,0
+     * Once every 5 seconds this will retrieve [0][0] from the CSV found
+     * at the source_url, and set the element.val() to it. You can use
+     * negative indices e.g.
+     * 5000,source_url!-1,-1 will get the last entry on the last row
+     * @param spec the name of the config entry that has the source
+     * @param element the DOM element to update
+     */
+    function update_sample(spec, element) {
+        let indices = spec.split(",");
+        let interval = parseInt(indices[0]);
+        let url = indices[1];
+        let r = parseInt(indices[2]);
+        let c = parseInt(indices[3]);
+        
+        let sample = () => {
+            console.debug("sample", interval, url, config.get(url), r, c);
+            $.ajax({
+                url: config.get(url),
+                data: {
+                    t: Date.now() // nocache
+                },
+                dataType: "text"
+            })
+            .then((list) => {
+                let rows = $.csv.toArrays(list);
+                let row = rows[r < 0 ? rows.length + r : r];
+                let datum = row[c < 0 ? row.length + c : c];
+                $(element).val(datum).prop("disabled", true);
+            })
+            .catch((e) => {
+                $(element).prop("disabled", false);
+            })
+            .always(() => {
+                setTimeout(sample, interval);
+            });
+        }
+        sample();
+    }
+
+    function start_sampling() {
+        $(document).find("input[data-sample]").each(function() {
+            let spec = $(this).data("sample");
+            update_sample(spec, this);
+        });
+    }
+    
     function initialise_ui() {
         // Generics
         $("button").button();
@@ -284,39 +336,40 @@
             .then(() => {
                 console.debug(url + " connected, loading config");
                 return config.load()
+                .then(() => {
+                    Cookies.set("cache_url", url, {
+                        expires: 365
+                    });
+                    start_sampling();
+                    $(document).trigger("reload_ui");
+                })
+                .catch((e) => {
+                    console.debug("config.json load failed: " + e +
+                                  "; Trying to save a draft");
+                    return config.save()
                     .then(() => {
-                        Cookies.set("cache_url", url, {
-                            expires: 365
-                        });
-                        $(document).trigger("reload_ui");
+                        return cache_connect(url);
                     })
                     .catch((e) => {
-                        console.debug("config.json load failed: " + e +
-                            "; Trying to save a draft");
-                        return config.save()
-                            .then(() => {
-                                return cache_connect(url);
-                            })
-                            .catch((e) => {
-                                console.debug("Bootstrap failed: " + e);
-                                $.alert({
-                                    title: "Bootstrap failed",
-                                    content: "Could not write config.json"
-                                });
-                                return promise_to_reconnect();
-                            });
+                        console.debug("Bootstrap failed: " + e);
+                        $.alert({
+                            title: "Bootstrap failed",
+                            content: "Could not write config.json"
+                        });
+                        return promise_to_reconnect();
                     });
+                });
             })
-            .catch((e) => {
-                console.debug(url + " connect failed: " + e);
-                if (e == 401) {
-                    // XMLHttpRequest will only prompt for credentials if
-                    // the request is for the same origin with no explicit
-                    // credentials. So we have to handle credentials.
-                    return promise_to_authenticate(url);
-                }
-                return promise_to_reconnect(url);
-            });
+        .catch((e) => {
+            console.debug(url + " connect failed: " + e);
+            if (e == 401) {
+                // XMLHttpRequest will only prompt for credentials if
+                // the request is for the same origin with no explicit
+                // credentials. So we have to handle credentials.
+                return promise_to_authenticate(url);
+            }
+            return promise_to_reconnect(url);
+        });
 
     };
 

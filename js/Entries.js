@@ -108,7 +108,6 @@ Entries.prototype.getEntries = function () {
 
 /** Make a simple date string */
 Entries.formatDate = function (date) {
-    debugger;
     return date.toISOString().replace(/T.*/, "");
 };
 
