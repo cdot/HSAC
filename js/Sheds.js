@@ -39,11 +39,13 @@
             portable_filter_coeff_b: 1.124939,
             portable_filter_coeff_c: 14.60044,
             portable_filter_coeff_d: -0.3252651,
+            portable_filter_sensor_id: null,
             static_filter_lifetime: 40,
             static_filter_coeff_a: 3.798205,
             static_filter_coeff_b: 1.149582,
             static_filter_coeff_c: 11.50844,
-            static_filter_coeff_d: -0.4806983
+            static_filter_coeff_d: -0.4806983,
+            static_filter_sensor_id: null
         });
 
     const roles = new Roles({
@@ -82,6 +84,7 @@
                 inventory.reload_ui(loans)
             ])
             .then(() => {
+                restart_sampling();
                 $("#main_tabs").tabs("option", "disabled", []);
                 return roles.reload_ui();
             });
@@ -130,55 +133,58 @@
     }
 
     /**
-     * Sort-of-generic mechanism for updating a field value from data
-     * obtained from an ajax call which retrieves a CSV file. The source
-     * is specified in an HTML5 data attibute data-get-from, which specifies
-     * a configuration entry name. This entry is formatted thus:
-     * 5000,source_url,0,0
-     * Once every 5 seconds this will retrieve [0][0] from the CSV found
-     * at the source_url, and set the element.val() to it. You can use
-     * negative indices e.g.
-     * 5000,source_url!-1,-1 will get the last entry on the last row
-     * @param spec the name of the config entry that has the source
-     * @param element the DOM element to update
+     * Start/restart sampling from the sensor data file
      */
-    function update_sample(spec, element) {
-        let indices = spec.split(",");
-        let interval = parseInt(indices[0]);
-        let url = indices[1];
-        let r = parseInt(indices[2]);
-        let c = parseInt(indices[3]);
+    function restart_sampling() {
+        const self = this;
         
-        let sample = () => {
-            console.debug("sample", interval, url, config.get(url), r, c);
+        function sample() {
+            const url = config.get("sensor_url");
+            if (typeof url !== "string" || url.length === 0)
+                return;
             $.ajax({
-                url: config.get(url),
+                url: url,
                 data: {
-                    t: Date.now() // nocache
+                    t: Date.now() // defeat cache
                 },
                 dataType: "text"
             })
             .then((list) => {
-                let rows = $.csv.toArrays(list);
-                let row = rows[r < 0 ? rows.length + r : r];
-                let datum = row[c < 0 ? row.length + c : c];
-                $(element).val(datum).prop("disabled", true);
-            })
-            .catch((e) => {
-                $(element).prop("disabled", false);
+                const rows = $.csv.toArrays(list);
+                // Get the most recent sample for each unique ID
+                this.samples = {};
+                for (let r of rows) {
+                    this.samples[r[0]] = { time: r[1], sample: r[2] }
+                }
+                $("input[data-sampler]").each(function() {
+                    let spec = $(this).data("sampler");
+                    if (typeof spec.config !== "undefined")
+                        spec.id = config.get(spec.config);
+                    let sample = self.samples[spec.id];
+                    let thresh = Date.now() - spec.max_age;
+                    if (typeof sample === "undefined" || sample.time < thresh) {
+                        $(this).prop("readonly", null);
+                        $(this).removeClass("greyed_out");
+                        $(spec.disabled).hide();
+                    } else {
+                        $(this).val(sample.sample);
+                        $(this).addClass("greyed_out");
+                        $(this).closest(".validated_form").valid();
+                        $(this).prop("readonly", "readonly");
+                        $(spec.disabled).show();
+                    }
+                });
             })
             .always(() => {
-                setTimeout(sample, interval);
+                // Re-sample every 5 seconds
+                self.sampler = setTimeout(sample, 5000);
             });
         }
-        sample();
-    }
 
-    function start_sampling() {
-        $(document).find("input[data-sample]").each(function() {
-            let spec = $(this).data("sample");
-            update_sample(spec, this);
-        });
+        if (typeof this.sampler !== "undefined")
+            clearTimeout(this.sampler);
+        
+        sample();
     }
     
     function initialise_ui() {
@@ -197,6 +203,13 @@
             });
         });
 
+        $("input").on("keypress", function (e) {
+            if (e.charCode == 13 && /Android/.test(navigator.userAgent)) {
+                e.preventDefault();
+                $(this).blur();
+            }
+        });
+                      
         // Start the clock
         tick();
 
@@ -340,7 +353,6 @@
                     Cookies.set("cache_url", url, {
                         expires: 365
                     });
-                    start_sampling();
                     $(document).trigger("reload_ui");
                 })
                 .catch((e) => {

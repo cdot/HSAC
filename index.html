@@ -123,7 +123,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20" data-sample="5000,intake_sample_url,-1,-1"> &deg;C
+                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20" data-sampler='{"config":"static_filter_sensor_id","max_age":300000,"disabled":"#from_sensor"}'> &deg;C <span style="display:none" id="from_sensor">(detected)</span>
                 </td>
               </tr>
               <!--
@@ -358,37 +358,51 @@
           <tr>
             <th class="input_label">
               <span data-info="#infoLifetime">
-                Static Compressor Filter Parameters
+                Static Compressor
               </span>
             </th>
             <td class="widest">
-              Lifetime:
+              Predicted Lifetime:
               <input type="number" class="integer" step="any" required name="static_filter_lifetime"> hours
               <table>
-                <tr><td>Coefficients:</td><td class="widest">
-                A <input type="number" class="floating_point" step="any" required name="static_filter_coeff_a">
-                B <input type="number" class="floating_point" step="any" required name="static_filter_coeff_b"><br/>
-                C <input type="number" class="floating_point" step="any" required name="static_filter_coeff_c">
-                D <input type="number" class="floating_point" step="any" required name="static_filter_coeff_d">
-              </td></tr></table>
+                <tr>
+                  <td>Coefficients:</td>
+                  <td class="widest">
+                    A <input type="number" class="floating_point" step="any" required name="static_filter_coeff_a">
+                    B <input type="number" class="floating_point" step="any" required name="static_filter_coeff_b"><br/>
+                    C <input type="number" class="floating_point" step="any" required name="static_filter_coeff_c">
+                    D <input type="number" class="floating_point" step="any" required name="static_filter_coeff_d">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Temperature sensor ID:</td>
+                  <td>
+                    <input type="text" name="static_filter_sensor_id">
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
           <tr>
             <th class="input_label">
               <span data-info="#infoLifetime">
-                Portable Compressor Filter Parameters
+                Portable Compressor
               </span>
             </th>
             <td class="widest">
-              Lifetime:
+              Predicted Lifetime:
               <input type="number" class="integer" step="any" required name="portable_filter_lifetime"> hours
               <table>
-                <tr><td>Coefficients:</td><td class="widest">
-                A <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_a">
-                B <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_b"><br/>
-                C <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_c">
-                D <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_d">
-              </td></tr></table>
+                <tr>
+                  <td>Coefficients:</td>
+                  <td class="widest">
+                    A <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_a">
+                    B <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_b"><br/>
+                    C <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_c">
+                    D <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_d">
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
           <tr>
@@ -398,16 +412,20 @@
             <td>
               <table>
                 <tr>
-                  <td>Online DB index URL:</td>
+                  <td>Online DB (Google Drive) index URL:</td>
                   <td class="widest"><input style="width:100%" type="text" url required name="db_index_url"></td>
                 </tr>
                 <tr>
-                  <td>Store cache URL:</td>
-                  <td class="widest"><input style="width:100%" type="text" url required name="cache_url"></td>
+                  <td>Store cache (WebDAV) URL:</td>
+                  <td class="widest">
+                    <input class="widest" type="text" url required name="cache_url">
+                  </td>
                 </tr>
                 <tr>
-                  <td>Intake temperature sample url:</td>
-                  <td class="widest"><input style="width:100%" type="text" url required name="intake_sample_url"></td>
+                  <td>Sample URL:</td>
+                  <td class="widest">
+                    <input style="width:100%" type="text" url required name="sensor_url">
+                  </td>
                 </tr>
               </table>
             </td>
@@ -469,10 +487,10 @@
       want to be trained, contact hsac.training@gmail.com
     </div>
     <div class="hidden info" id="infoTemperature">
-      Temperature must be taken from the thermometer on the
-      compressor air intake at the <strong>end</strong> of the
-      filling session. If the electronic thermometer is functioning,
-      this will be sensed automatically.
+      If the electronic thermometer is functioning, the temperature will be
+      sensed automatically. Otherwise the temperature must be taken from the
+      thermometer on the compressor air intake at the <strong>end</strong>
+      of the filling session and entered manually.
     </div>
     <div class="hidden info" id="infoFilters">
       Select this <strong>only</strong> if the filters have just

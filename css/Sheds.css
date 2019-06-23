@@ -190,3 +190,30 @@ table td,th {
 .widest {
     width: 100%;
 }
+
+/* Tabs restyling for optimum space on Lenovo TAB 3 8 landscape mode */
+.ui-tabs-nav {
+    font-size: 17pt;
+    padding: 0;
+}
+
+.ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+    padding: .2em 1em;
+}
+
+#static {
+    font-size: 20pt;
+}
+
+#portable {
+    font-size: 20pt;
+}
+
+#nitrox {
+    font-size: 18pt;
+}
+
+.greyed_out {
+    background-color: lightgrey;
+    color: darkgrey;
+}

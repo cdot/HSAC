@@ -30,8 +30,8 @@ Config.prototype.load = function () {
 Config.prototype.save = function () {
     return this.store.write("config.json", JSON.stringify(this.store_data))
     .catch((e) => {
-        $.alert({title: "Config save failed",
-                 content: e.message });
+        $.alert({ title: "Config save failed",
+                  content: e.message });
     });
 };
 

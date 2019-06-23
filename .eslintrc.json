@@ -235,7 +235,7 @@
             "error",
             "always"
         ],
-        "object-property-newline": "error",
+        "object-property-newline": "off",
         "object-shorthand": "off",
         "one-var": "off",
         "one-var-declaration-per-line": "off",
@@ -247,7 +247,7 @@
         "padded-blocks": "off",
         "padding-line-between-statements": "error",
         "prefer-arrow-callback": "off",
-        "prefer-const": "error",
+        "prefer-const": "warn",
         "prefer-destructuring": "off",
         "prefer-numeric-literals": "error",
         "prefer-object-spread": "error",

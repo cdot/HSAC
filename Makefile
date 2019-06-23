@@ -61,19 +61,11 @@ version:
 # Clean generated stuff
 
 clean:
-	rm -rf release
 	$(FIND) '*~' -exec rm \{\} \;
 	$(FIND) '*.esl' -exec rm \{\} \;
 	rm -f $(patsubst %.js,%.min.js,$(JS)) \
 		$(patsubst %.js,%.map,$(JS)) \
 		$(patsubst %.css,%.min.css,$(CSS))
-
-# Formatting
-
-%.js.tidy : %.js
-	js-beautify -j --good-stuff -o $^ $^
-
-tidy : $(patsubst %.js,%.js.tidy,$(JS))
 
 # eslint
 
@@ -81,54 +73,3 @@ tidy : $(patsubst %.js,%.js.tidy,$(JS))
 	-eslint $^ && touch $@
 
 lint : $(JS:%.js=%.esl)
-
-# release
-
-release/%.js : %.js
-	@mkdir -p $(@D)
-	node_modules/.bin/babel $< -o $@
-
-release/%.css : %.css
-	@mkdir -p $(@D)
-	cp $< $@
-
-release/%.html : %.html
-	@mkdir -p $(@D)
-	sed -e 's/<!--babel\(.*\)-->/<script\1>/' $< > $@
-
-release/libs/polyfill.min.js : node_modules/@babel/polyfill/dist/polyfill.min.js
-	@mkdir -p $(@D)
-	cp $< $@
-
-release/%.png : %.png
-	@mkdir -p $(@D)
-	cp $< $@
-
-release/%.gif : %.gif
-	@mkdir -p $(@D)
-	cp $< $@
-
-release/%.ico : %.ico
-	@mkdir -p $(@D)
-	cp $< $@
-
-release/%.woff : %.woff
-	@mkdir -p $(@D)
-	cp $< $@
-
-release/%.woff2 : %.woff2
-	@mkdir -p $(@D)
-	cp $< $@
-
-release/%.ttf : %.ttf
-	@mkdir -p $(@D)
-	cp $< $@
-
-release : version \
-	release/libs/polyfill.min.js \
-	$(JS:%=release/%) \
-	$(CSS:%=release/%) \
-	$(LIBS:%=release/%) \
-	$(IMAGES:%=release/%) \
-	release/index.html \
-	release/README.html

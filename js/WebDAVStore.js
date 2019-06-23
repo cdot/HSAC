@@ -16,7 +16,7 @@ if (typeof AbstractStore === "undefined")
 
 function WebDAVStore() {
     "use strict";
-
+    
     AbstractStore.call(self);
 }
 
@@ -29,7 +29,7 @@ WebDAVStore.prototype.setCredentials = function (user, pass) {
 
 WebDAVStore.prototype._error = function(res) {
     if (typeof res.body === "string" && res.body.length > 0)
-        return new Error(res.body.replace(/^.*<body>(.*)<\/body>.*$/si, "$1"));
+        return new Error(res.body.replace(/^.*<body>(.*)<\/body>.*$/i, "$1"));
     return new Error("WebDAV Error " + res.status);
 };
 
@@ -39,9 +39,13 @@ WebDAVStore.prototype.connect = function (url) {
     if (url && url.lastIndexOf('/') !== url.length - 1)
         url += '/';
 
+    var getUrl = window.location;
+    var baseUrl = getUrl.protocol + "//" + getUrl.host + "/"
+        + getUrl.pathname.split('/')[1];
+    console.debug("Base", baseUrl);
     if (typeof URL !== "undefined") {
         try {
-            url = new URL(url);
+            url = new URL(url, baseUrl);
         } catch (e) {
             console.debug("WebDAVStore.connect to " + url + " failed: " + e);
             return Promise.reject(new Error(
@@ -70,7 +74,8 @@ WebDAVStore.prototype.disconnect = function () {
 
 WebDAVStore.prototype.read = function (path) {
     "use strict";
-    let self = this;
+    
+    const self = this;
     path = path.replace(/^\/+/, "");
     console.debug("WebDAVStore: Reading " + path);
     return this.DAV
@@ -93,7 +98,7 @@ WebDAVStore.prototype._mkpath = function (path) {
     if (path.length === 0)
         return Promise.resolve(); // at the root, always exists
 
-    let self = this;
+    const self = this;
 
     return this.DAV
         .request('PROPFIND', path.join('/'), {
@@ -117,7 +122,7 @@ WebDAVStore.prototype._mkpath = function (path) {
 WebDAVStore.prototype.write = function (path, data) {
     "use strict";
 
-    let self = this;
+    const self = this;
 
     console.debug("WebDAVStore: Writing " + path);
 
