@@ -37,6 +37,7 @@ doc: README.html
 
 # Get a list of interesting files from index.html (the ones with ?version=)
 # and use git log to get the latest checked-in date
+# DO THIS AFTER CHECKING IN - it is basically building a release
 reversion:
 	@INTERESTING=`grep -P '\?version=[a-f0-9]*' index.html | sed -e 's/^.*\(src\|href\)="//;s/\?version.*//'`;\
 	for c in $$INTERESTING; do \
