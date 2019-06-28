@@ -217,3 +217,8 @@ table td,th {
     background-color: lightgrey;
     color: darkgrey;
 }
+
+.digital {
+    font-size: 24pt !important;
+    font-family: "Courier New", Courier, monospace !important
+}

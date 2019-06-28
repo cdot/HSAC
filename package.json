@@ -27,15 +27,19 @@
     "js-beautify": ">=1.8.9"
   },
   "babel": {
-      "presets": [
-          [
-              "@babel/preset-env", {
-                  "debug": true,
-                  "modules": "commonjs",
-                  "useBuiltIns": "entry"
-              }
-          ]
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "debug": true,
+          "modules": "commonjs",
+          "useBuiltIns": "entry"
+        }
       ]
+    ]
   },
-    "browserslist": "> 0.25%, not dead"
+  "browserslist": "> 0.25%, not dead",
+  "dependencies": {
+    "jquery": "^3.4.1"
+  }
 }

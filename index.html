@@ -97,7 +97,7 @@
           <form id="static_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span> on
-              <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />
+              <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">hours <span class='fas fa-cog'></span></span><br />
               <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span class="cr_flr">?</span> hours</span>
             </div>
             <div>
@@ -126,18 +126,16 @@
                   <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20" data-sampler='{"config":"static_filter_sensor_id","max_age":300000,"disabled":"#from_sensor"}'> &deg;C <span style="display:none" id="from_sensor">(detected)</span>
                 </td>
               </tr>
-              <!--
-                  <tr>
-                    <th class="input_label">
-                      <span data-with-info="#infoHumidity">
-                        Relative Humidity
-                      </span>
-                    </th>
-                    <td class="widest">
-                      <input data-msg="Must be between 0 and 100" name="humidity" type="number" class="integer" min="0" max="100"> %
-                    </td>
-                  </tr>
-              -->
+              <tr>
+                <th class="input_label">
+                  <span data-with-info="#infoHumidity">
+                    Humidity
+                  </span>
+                </th>
+                <td class="widest">
+                  <input data-msg="Must be between 0 and 80" name="humidity" type="number" class="integer" min="0" max="80"> %
+                </td>
+              </tr>
               <tr>
                 <th class="input_label">
                   <span data-with-info="#infoRuntime">
@@ -145,8 +143,81 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" class="floating_point" step="0.01" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required>
-                  minutes
+                  <select class="digital" name="runtime1000">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                  </select>
+                  <select class="digital" name="runtime100">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                  </select>
+                  <select class="digital" name="runtime10">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                  </select>
+                  <select class="digital" name="runtime1">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                  </select>
+                  .
+                  <select class="digital" name="runtime0.1">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                  </select>
+                  <select class="digital" name="runtime0.01">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                  </select>
+                  <input style="display:none" readonly="readonly" type="floating_point" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required>
+hours
                 </td>
               </tr>
             </table>
@@ -154,6 +225,8 @@
               <label for="static_filters_changed">Filters changed</label>
               <input data-with-info="#infoFilters" type="checkbox" id="static_filters_changed" name="filters_changed">
             </div>
+            <span class="cr_delta"></span>
+            <span style="display:none" class="cr_filters_changed"> FILTERS HAVE BEEN CHANGED</span>
           </form>
           <button name="add_record">Touch here to record this run</button>
         </div>
@@ -162,7 +235,7 @@
           <form id="portable_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span> on
-              <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">minutes <span class='fas fa-cog'></span></span><br />
+              <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">hours <span class='fas fa-cog'></span></span><br />
               <span data-with-info="#infoFilterEfficiency">Filter lifetime remaining is <span class="cr_flr">?</span> hours at 20&deg;C</span>
             </div>
             <div>
@@ -218,7 +291,7 @@
                   </button>
                   This session: <span class="session_time">00:00</span>,
                   <span data-with-info="#infoManualHours">Total</span>
-                  <input type="floating_point" step="0.01" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required> minutes
+                  <input type="floating_point" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required> hours
                 </td>
               </tr>
             </table>
@@ -310,7 +383,7 @@
             </p>
             <p>
               <label for="nox_o2s" data-with-info="#infoBankSize">Pure O<sub>2</sub> cylinder size</label>
-              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" min="10" max="100" step="0.01" value="47.2"> L,
+              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" min="10" max="100" value="47.2"> L,
               <label for="nox_o2p">Pressure</label>
               <input id="nox_o2p" name="O2_bank_pressure" data-msg="Must be between 1 and 300" required type="number" class="integer" min="1" max="300" value="200"> bar
             </p>
@@ -342,7 +415,7 @@
               </span>
             </th>
             <td class="widest">
-              <input type="number" class="floating_point" step="any" required name="o2_price">
+              <input type="number" class="number" step="any" required name="o2_price">
             </td>
           </tr>
           <tr>
@@ -352,7 +425,7 @@
               </span>
             </th>
             <td class="widest">
-              <input type="number" class="floating_point" step="any" required name="ppO2max"> bar
+              <input type="number" class="number" step="any" required name="ppO2max"> bar
             </td>
           </tr>
           <tr>
@@ -368,10 +441,10 @@
                 <tr>
                   <td>Coefficients:</td>
                   <td class="widest">
-                    A <input type="number" class="floating_point" step="any" required name="static_filter_coeff_a">
-                    B <input type="number" class="floating_point" step="any" required name="static_filter_coeff_b"><br/>
-                    C <input type="number" class="floating_point" step="any" required name="static_filter_coeff_c">
-                    D <input type="number" class="floating_point" step="any" required name="static_filter_coeff_d">
+                    A <input type="number" class="number" step="any" required name="static_filter_coeff_a">
+                    B <input type="number" class="number" step="any" required name="static_filter_coeff_b"><br/>
+                    C <input type="number" class="number" step="any" required name="static_filter_coeff_c">
+                    D <input type="number" class="number" step="any" required name="static_filter_coeff_d">
                   </td>
                 </tr>
                 <tr>
@@ -396,10 +469,10 @@
                 <tr>
                   <td>Coefficients:</td>
                   <td class="widest">
-                    A <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_a">
-                    B <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_b"><br/>
-                    C <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_c">
-                    D <input type="number" class="floating_point" step="any" required name="portable_filter_coeff_d">
+                    A <input type="number" class="number" step="any" required name="portable_filter_coeff_a">
+                    B <input type="number" class="number" step="any" required name="portable_filter_coeff_b"><br/>
+                    C <input type="number" class="number" step="any" required name="portable_filter_coeff_c">
+                    D <input type="number" class="number" step="any" required name="portable_filter_coeff_d">
                   </td>
                 </tr>
               </table>
@@ -492,6 +565,9 @@
       thermometer on the compressor air intake at the <strong>end</strong>
       of the filling session and entered manually.
     </div>
+    <div class="hidden info" id="infoHumidity">
+      Enter the relative humidity (between 0% and 80%)
+    </div>
     <div class="hidden info" id="infoFilters">
       Select this <strong>only</strong> if the filters have just
       been changed. It will reset the filter lifetime clock.
@@ -504,7 +580,7 @@
       Tap <span class="fas fa-play"></span> when the compressor starts, and <span class="fas fa-pause"></span> if you need to temporarily stop the compressor for longer than a bottle change. When the session is finished, click <span class="fas fa-pause"></span> and then "Touch here to record this run"
     </div>
     <div class="hidden info" id="infoManualHours">
-      If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>minutes</b> you have run for. Enter the total here and record the run.
+      If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
     </div>
 
     <!-- Loans help -->

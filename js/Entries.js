@@ -129,7 +129,8 @@ Entries.prototype.load = function () {
 
     return new Promise((resolve, reject) => {
         return lp
-            .then((list) => {
+        .then((list) => {
+            if (typeof list !== "undefined") {
                 var data = $.csv.toArrays(list);
                 if (this.asArrays) {
                     this.heads = data.shift();
@@ -141,20 +142,21 @@ Entries.prototype.load = function () {
                         this.entries.push(this.array2map(this.heads, data[i]));
                     }
                 }
-                this.loaded = true;
-                resolve();
-            })
-            .catch((e) => {
-                console.debug("Error reading " + (this.url || this.file) +
-                    ": " + e);
-                this.heads = [];
-                this.entries = [];
-                // Resolve it as an empty list
-                this.loaded = true;
-                resolve();
-                //reject(new Error("Error reading " + (this.url || this.file) + ": " +
-                //(e.status ? e.status : e)));
-            });
+            }
+            this.loaded = true;
+            resolve();
+        })
+        .catch((e) => {
+            console.debug("Error reading " + (this.url || this.file) +
+                          ": ", e);
+            this.heads = [];
+            this.entries = [];
+            // Resolve it as an empty list
+            this.loaded = true;
+            resolve();
+            //reject(new Error("Error reading " + (this.url || this.file) + ": " +
+            //(e.status ? e.status : e)));
+        });
     });
 };
 
@@ -181,14 +183,12 @@ Entries.prototype.save = function () {
             heads.push(k);
     }
     var data = [heads];
-    for (var row = 0; row < this.entries.length; row++) {
-        if (this.asArrays) {
-            data.push(this.entries[row]);
-        } else {
-            data.push(this.map2array(heads, this.entries[row]));
-        }
+    for (let row of this.entries) {
+        if (this.asArrays)
+            data.push(row);
+        else
+            data.push(this.map2array(heads, row));
     }
-
     return this.store.write(this.file, $.csv.fromArrays(data));
 };
 
@@ -226,7 +226,7 @@ Entries.prototype.deserialise = function (key, val) {
     switch (this.keys[key]) {
     case 'Date':
         if (/^[0-9]+$/.test(val))
-            // Numeric date
+            // Numeric date (ms since 1/1/70)
             return new Date(parseInt(val));
         // String date
         if (val === "")
@@ -236,6 +236,9 @@ Entries.prototype.deserialise = function (key, val) {
         if (val === "")
             return 0;
         return parseFloat(val);
+    case 'boolean':
+        // "on", "true" and "1" are taken as true. Anything else as false.
+        return (val === "true" || val === "1" || val == "on");
     default:
         return val;
     }
@@ -251,8 +254,8 @@ Entries.prototype.deserialise = function (key, val) {
  */
 Entries.prototype.serialise = function (key, val) {
     if (typeof val !== "undefined" && this.keys[key] === "Date")
-        // Dates are serialised as numbers
-        return val.getTime();
+        // Dates are serialised as simplified ISO8601 strings
+        return val.toISOString();
     return val;
 };
 
