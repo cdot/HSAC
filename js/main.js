@@ -24,8 +24,8 @@ requirejs.config({
         "js-cookie" : "node_modules/js-cookie/src/js.cookie",
 
         // from https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0
-        "jquery-validate" : "libs/jquery-validate/jquery.validate",
-        "additional-methods" : "libs/jquery-validate/additional-methods",
+        "jquery-validate" : "node_modules/jquery-validation/dist/jquery.validate",
+        "additional-methods" : "node_modules/jquery-validation/dist/additional-methods",
 
         // from https://github.com/evanplaice/jquery-csv/tree/master/src 
         "jquery-csv" : "libs/jquery.csv.min",
