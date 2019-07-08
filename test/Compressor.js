@@ -1,32 +1,48 @@
+/*@preserve Copyright (C) 2018-2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /*eslint-env node, mocha */
-const assert = require("chai").assert;
-var Config = require("../Config");
-var Entries;
-const { JSDOM } = require('jsdom');
-const jsdom = new JSDOM('<!doctype html><html><body></body></html>');
-const { window } = jsdom;
-global.$ = global.jQuery = require('jquery')(window);
-require('../../libs/jquery.csv.min.js');
 
-var Compressor = require("../Compressor");
+if (typeof module !== "undefined") {
+    requirejs = require('requirejs');
+    // node.js
+    const { JSDOM } = require('jsdom');
+    document = new JSDOM('<!doctype html><html><body></body></html>');
+    const { window } = document;
+    global.window = window;
+    global.document = window.document;
+    global.navigator = { userAgent: "node.js" };
+    let jQuery = require('jquery');
+    global.jQuery = jQuery;
+    global.$ = jQuery;
 
-var reset = {
-    "compressor.csv": "date,operator,temperature,runtime,filters_changed"
-};
+    $.getTapEvent = function() { return "click"; }
+}
 
-var store = $.extend({}, reset);
-let test_points = { 
-    50: 0.20,
-    40: 0.34,
-    30: 0.57,
-    20: 1.00,
-    10: 1.85,
-     5: 2.60,
-     0: 3.80
-};
+requirejs.config({
+    baseUrl: ".."
+});
 
-describe("Compressor tests", function() {
-    var cfg = new Config(
+requirejs(["js/Compressor", "js/Config", "test/TestRunner", "jquery"], function(Compressor, Config, TestRunner) {
+
+    let tr = new TestRunner("Compressor");
+    let assert = tr.assert;
+    let stdheads = ["date","operator","temperature","humidity", "runtime","filters_changed"];
+    let reset = {
+        "compressor.csv": stdheads.join(",")
+    };
+
+    let store = $.extend({}, reset);
+    let test_points = { 
+        50: 0.20,
+        40: 0.34,
+        30: 0.57,
+        20: 1.00,
+        10: 1.85,
+        5: 2.60,
+        0: 3.80
+    };
+
+    let cfg = new Config(
+        // Dummy store
         {
             read: (what) => {
                 return Promise.resolve(store[what]);
@@ -36,33 +52,36 @@ describe("Compressor tests", function() {
                 return Promise.resolve();
             }
         },
+        // Set up test compressor config, using coefficients calculated
+        // for test_points in mycurvefit.com
         {
-            // Set up test compressor, using coefficients calculated
-            // for test_points in mycurvefit.com
             test_filter_lifetime: 50,
             test_filter_coeff_a: 3.798205,
             test_filter_coeff_b: 1.149582,
             test_filter_coeff_c: 11.50844,
             test_filter_coeff_d: -0.4806983
-        });
+        }
+        //, console.debug
+    );
 
-    it("initialises", () => {
+    tr.addTest("initialises", () => {
         store = $.extend({}, reset);
         var comp = new Compressor({ id: "test", config: cfg });
         assert.equal(comp.remaining_filter_life(),
                      cfg.get("test_filter_lifetime"));
-        return comp.add({ operator: "Nuts", temperature: 20, runtime: 0 })
+        return comp.add({ operator: "Nuts", temperature: 20, humidity:50,runtime: 0 })
         .then(() => {
             assert.equal(comp.length(), 1);
             var e = comp.get(0);
             assert.equal(e.temperature, 20);
+            assert.equal(e.humidity, 50);
             assert.equal(e.operator, "Nuts");
             assert.equal(e.runtime, 0);
             assert(!e.filters_changed);
         });
     });
 
-    it("saves", () => {
+    tr.addTest("saves", () => {
         store = $.extend({}, reset);
         var comp = new Compressor({ id:"test", config: cfg });
         return comp.add({ operator: "Nuts", temperature: 20, runtime: 1 })
@@ -75,16 +94,15 @@ describe("Compressor tests", function() {
         .then(() => {
             var s = $.csv.toArrays(store["test_compressor.csv"]);
             assert.equal(s.length, 2);
-            assert.deepEqual(s[0],
-                             ["date","operator","temperature","runtime","filters_changed"]);
+            assert.deepEqual(s[0], stdheads);
             assert(Date.now() - new Date(s[1][0]).getTime() <= 1000,
                   s);
             assert.deepEqual(s[1],
-                             [s[1][0],"Nuts","20","1","false"]);
+                             [s[1][0],"Nuts","20","","1","false"]);
         });
     });
 
-    it("predicts filter life at 20C", () => {
+    tr.addTest("predicts filter life at 20C", () => {
         store = $.extend({}, reset);
         let comp = new Compressor({ id: "test", config: cfg });
         return comp.add({ temperature: 20, runtime: 0, filters_changed: true })
@@ -99,7 +117,7 @@ describe("Compressor tests", function() {
         });
     });
 
-    it("predicts filter life at 40C", () => {
+    tr.addTest("predicts filter life at 40C", () => {
         store = $.extend({}, reset);
         let comp = new Compressor({ id: "test", config: cfg });
         // At 40C, multiplicative coefficient should be 0.34, so
@@ -111,7 +129,7 @@ describe("Compressor tests", function() {
         });
     });
 
-    it("predicts filter life at 0C", () => {
+    tr.addTest("predicts filter life at 0C", () => {
         store = $.extend({}, reset);
         let comp = new Compressor({ id: "test", config: cfg });
         // At 0C, multiplicative coefficient is 3.8, so
@@ -123,7 +141,7 @@ describe("Compressor tests", function() {
         });
     });
     
-    it("accumulates usage", () => {
+    tr.addTest("accumulates usage", () => {
         store = $.extend({}, reset);
         var comp = new Compressor({ id: "test", config: cfg });
         let flt = cfg.get("test_filter_lifetime");
@@ -136,9 +154,10 @@ describe("Compressor tests", function() {
         }
         return prom
         .then(() => {
-            //console.debug(comp.remaining_filter_life(), flt);
             assert(Math.abs(comp.remaining_filter_life() - flt) < 0.5,
                   comp.remaining_filter_life() +" "+ flt);
         })
     });
+
+    tr.run();
 });

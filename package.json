@@ -1,45 +1,84 @@
 {
   "name": "hsac",
   "version": "1.0.0",
+  "license": "MIT",
   "description": "HSAC Sheds",
-  "main": "js/Sheds.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cdot/HSAC.git"
   },
   "author": "Crawford Currie",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/cdot/HSAC/issues"
   },
   "homepage": "https://github.com/cdot/HSAC",
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 6
+    },
+    "env": {
+      "shared-node-browser": true,
+      "jquery": true
+    },
+    "globals": {
+      "define": false
+    },
+    "rules": {
+      "strict": 0,
+      "no-underscore-dangle": 0,
+      "curly": 0,
+      "camelcase": 0,
+      "no-unused-vars": 1,
+      "no-console": 0,
+      "no-debugger": 0,
+      "no-alert": 1,
+      "no-new": 0,
+      "new-cap": 0,
+      "dot-notation": 1,
+      "no-trailing-spaces": 0,
+      "no-useless-escape": 1,
+      "no-use-before-define": 1,
+      "no-loop-func": 1,
+      "no-eval": 1,
+      "quotes": 0
+    }
+  },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.2.2",
-    "@babel/polyfill": "^7.2.5",
-    "@babel/preset-env": "^7.2.3",
-    "@babel/preset-minify": "^7.2.3",
-    "babel-minify": ">=0.5.0",
-    "cleancss": ">=1.0.12",
-    "js-beautify": ">=1.8.9"
+    "axios": "^0.19.0",
+    "btoa": "^1.2.1",
+    "c8": "^3.5.0",
+    "chai": "^4.2.0",
+    "chai-http": "*",
+    "clean-css": ">=4.1.9",
+    "cookies": "^0.7.3",
+    "eslint": "^5.16.0",
+    "eslint-plugin-promise": "^4.1.1",
+    "express": "^4.16.4",
+    "express-basic-auth": "^1.2.0",
+    "fs-extra": "^7.0.1",
+    "html-minifier": "^4.0.0",
+    "jquery-confirm": "^3.3.4",
+    "jquery-csv": "^1.0.3",
+    "jsdom": "^14.0.0",
+    "mocha": "^6.1.4",
+    "node-getopt": "^0.3.2",
+    "npm-check": "^5.5.2",
+    "request": "^2.88.0",
+    "uglify-es": "^3.3.9",
+    "url-parse": "^1.4.4",
+    "window": "^4.2.6",
+    "xhr2": "^0.1.4"
   },
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "debug": true,
-          "modules": "commonjs",
-          "useBuiltIns": "entry"
-        }
-      ]
-    ]
-  },
-  "browserslist": "> 0.25%, not dead",
   "dependencies": {
-    "jquery": "^3.4.1"
+    "fontawesome": "^5.6.3",
+    "jquery": "^3.4.1",
+    "jquery-ui": "^1.12.1",
+    "jquery-ui-dist": "^1.12.1",
+    "jquery-ui-iconfont": "^2.3.2",
+    "js-cookie": "^2.2.0",
+    "requirejs": "^2.3.6",
+    "tablesorter": "^2.31.1",
+    "text": "github:requirejs/text"
   }
 }
