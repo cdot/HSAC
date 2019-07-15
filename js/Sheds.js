@@ -167,13 +167,15 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                         if (typeof sample === "undefined" || sample.time < thresh) {
                             $(this).prop("readonly", null);
                             $(this).removeClass("greyed_out");
-                            $(spec.disabled).hide();
+                            $(spec.sampled).hide();
+                            $(spec.unsampled).show();
                         } else {
                             $(this).val(sample.sample);
                             $(this).addClass("greyed_out");
                             $(this).closest(".validated_form").valid();
                             $(this).prop("readonly", "readonly");
-                            $(spec.disabled).show();
+                            $(spec.sampled).show();
+                            $(spec.unsampled).hide();
                         }
                     });
                 })
@@ -284,6 +286,28 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                 $(this).with_info();
             });
 
+            $(".slider").each(function() {
+                let $self = $(this);
+                let data = $self.data("slider");
+                if (data) {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        console.debug(e);
+                    }
+                }
+                data.animate = true;
+                if (data.friend) {
+                    data.slide = (e, ui) => {
+                        $(data.friend).val(ui.value);
+                    };
+                }
+                $(this).slider(data);
+                if (data.friend) {
+                    $self.slider("value", $(data.friend).val());
+                }
+            });
+            
             $(document).on("reload_ui", function () {
                 self.reload_ui().then(() => {
                     $("#loading").hide();

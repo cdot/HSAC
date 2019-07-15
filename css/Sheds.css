@@ -222,3 +222,11 @@ table td,th {
     font-size: 24pt !important;
     font-family: "Courier New", Courier, monospace !important
 }
+
+.slider {
+    margin-top: 0.4em;
+}
+
+input[name="temperature"], input[name="humidity"] {
+    width: 3em;
+}

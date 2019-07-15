@@ -90,7 +90,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20" data-sampler='{"config":"static_filter_sensor_id","max_age":300000,"disabled":"#from_sensor"}'> &deg;C <span style="display:none" id="from_sensor">(detected)</span>
+                  <input type="number" value="18" name="temperature" id="static_temp" value="4" disabled data-sampler='{"config":"static_filter_sensor_id","max_age":300000,"sampled":"#static_from_sensor", "unsampled":"#static_temp_slider"}'>&deg;C <span style="display:none" id="static_from_sensor">(detected)</span> <div class="slider" id="static_temp_slider" data-slider='{"min":4,"max":40,"friend":"#static_temp"}'></div>
                 </td>
               </tr>
               <tr>
@@ -100,7 +100,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input data-msg="Must be between 0 and 80" name="humidity" type="number" class="integer" min="0" max="80"> %
+                  <input name="humidity" type="number" id="static_hum" disabled value="50">% <div class="slider" data-slider='{"min":0,"max":80,"friend":"#static_hum"}'></div>
                 </td>
               </tr>
               <tr>
@@ -228,7 +228,8 @@ hours
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" class="integer" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required min="4" max="40" value="20"> &deg;C
+                  <input type="number" class="integer" name="temperature" id="portable_temp" value="18" disabled>&deg;C
+                  <div class="slider" data-slider='{"min":4,"max":40,"friend":"#portable_temp"}'></div>
                 </td>
               </tr>
               <!--
@@ -258,7 +259,7 @@ hours
                   </button>
                   This session: <span class="session_time">00:00</span>,
                   <span data-with-info="#infoManualHours">Total</span>
-                  <input type="floating_point" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required> hours
+                  <input type="number" name="runtime" data-msg="Must be greater than the last recorded runtime" min="0" required> hours
                 </td>
               </tr>
             </table>
@@ -530,10 +531,10 @@ hours
       If the electronic thermometer is functioning, the temperature will be
       sensed automatically. Otherwise the temperature must be taken from the
       thermometer on the compressor air intake at the <strong>end</strong>
-      of the filling session and entered manually.
+      of the filling session and entered manually by dragging the slider.
     </div>
     <div class="hidden info" id="infoHumidity">
-      Enter the relative humidity (between 0% and 80%)
+      Drage the slider to set the relative humidity (must be between 0% and 80%)
     </div>
     <div class="hidden info" id="infoFilters">
       Select this <strong>only</strong> if the filters have just

@@ -44,12 +44,19 @@
       "quotes": 0
     }
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "clean-css": "^4.2.1",
+    "fs-extra": "^8.1.0",
+    "html-minifier": "^4.0.0",
+    "request": "^2.88.0"
+  },
   "dependencies": {
     "jquery": "^3.4.1",
     "jquery-confirm": "^3.3.4",
+    "jquery-csv": "^1.0.3",
     "jquery-ui-dist": "^1.12.1",
     "jquery-ui-iconfont": "^2.3.2",
+    "jquery-ui-touch-punch": "^0.2.3",
     "jquery-validation": "^1.19.1",
     "js-cookie": "^2.2.0",
     "requirejs": "^2.3.6",

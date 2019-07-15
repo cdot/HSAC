@@ -28,8 +28,10 @@ requirejs.config({
         "additional-methods" : "node_modules/jquery-validation/dist/additional-methods",
 
         // from https://github.com/evanplaice/jquery-csv/tree/master/src 
-        "jquery-csv" : "libs/jquery.csv.min",
+        "jquery-csv" : "node_modules/jquery-csv/src/jquery.csv",
 
+        "touch-punch" : "node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch",
+        
         // From https://github.com/craftpip/jquery-confirm 
         "jquery-confirm" : "node_modules/jquery-confirm/js/jquery-confirm",
 

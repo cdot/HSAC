@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("js/Compressor", ["js/Entries", "jquery"], (Entries) => {
+define("js/Compressor", ["js/Entries", "jquery", "touch-punch"], (Entries) => {
 
     class Compressor extends Entries {
         
@@ -139,6 +139,7 @@ define("js/Compressor", ["js/Entries", "jquery"], (Entries) => {
             this.session_time = 0; // ms
             let session_step_start;
 
+            // Handler for a clock time event
             $session_time.on("ticktock", function () {
                 let seconds = Math.round(self.session_time / 1000);
                 let minutes = Math.floor(seconds / 60);
@@ -157,6 +158,7 @@ define("js/Compressor", ["js/Entries", "jquery"], (Entries) => {
                 // Convert to hours
                 rta += self.session_time / 3600000;
                 set_runtime(rta);
+                $(this).closest(".validated_form").valid();
             });
 
             function tock() {
@@ -177,7 +179,7 @@ define("js/Compressor", ["js/Entries", "jquery"], (Entries) => {
                 tick();
                 $(this).button("disable");
                 $session_pause.button("enable");
-                $rta.prop("disabled", true);
+                $rta.prop("readonly", "readonly");
             });
 
             $session_pause.click(function () {
@@ -187,7 +189,7 @@ define("js/Compressor", ["js/Entries", "jquery"], (Entries) => {
                 tock();
                 $(this).button("disable");
                 $session_play.button("enable");
-                $rta.prop("disabled", false);
+                $rta.prop("readonly", null);
             });
 
             $submit
@@ -238,6 +240,22 @@ define("js/Compressor", ["js/Entries", "jquery"], (Entries) => {
                 $tab.find(".cr_time").text(Entries.formatDate(cur.date));
                 $tab.find(".cr_flr").text(new Number(this.remaining_filter_life()).toFixed(2));
                 $tab.find(".cr_runtime").text(cur.runtime);
+                $tab.find(".cr_temp_slider").slider({
+                    min: 4, max: 40,
+                    animate: true,
+                    slide: function(e, ui) {
+                        let v = ui.value;
+                        $tab.find("[name='temperature']").val(v);
+                    }
+                });
+                $tab.find(".cr_hum_slider").slider({
+                    min: 0, max: 100,
+                    animate: true,
+                    slide: function(e, ui) {
+                        let v = ui.value;
+                        $tab.find("[name='humidity']").val(v);
+                    }
+                });
                 if ($rta.length && $rta.attr("type") !== "hidden") {
                     $rta.rules("remove", "min");
                     $rta.rules("add", {

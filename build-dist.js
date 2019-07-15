@@ -9,7 +9,7 @@ const DESCRIPTION =
 // out what r.js was doing!
 let requirejs = require("requirejs");
 
-requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html-minifier", "jsdom", "js/Locales"], function(request, getopt, fs, uglify, MinifyCSS, MinifyHTML, jsdom, Locales) {
+requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html-minifier", "jsdom"], function(request, getopt, fs, uglify, MinifyCSS, MinifyHTML, jsdom) {
 
     let opts = getopt
         .create([
@@ -301,12 +301,6 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
     function processJS() {
         return Promise.all([
             
-            // Analyse dependencies rooted at js/help.js
-            getConfig("js/help")
-            .then((cfg) => {
-                return analyse("js/help", cfg);
-            }),
-
             // Analyse dependencies rooted at js/main.js
             getConfig("js/main")
             .then((cfg) => {
@@ -349,7 +343,6 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
         // Generate JS for all dependencies
         .then(() => {
             return Promise.all([
-                generateJS("js/help"),
                 generateJS("js/main")
             ]);
         });
@@ -477,6 +470,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
         return Promise.all([
             mkpath("dist/js"),
             mkpath("dist/images"),
+            mkpath("dist/libs"),
             mkpath("dist/css"),
             mkpath("dist/locale"),
         ])
@@ -484,11 +478,9 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
         .then(() => {
             return Promise.all([
                 processDir("images", /\.(svg|png|icon|gif)$/),
-                processDir("locale", /\.json$/),
+                processDir("libs", /\.(svg|png|icon|gif)$/),
                 processJS("main"),
-                processJS("help"),
                 processHTML("index"),
-                processHTML("help")
             ]);
         })
         
@@ -518,11 +510,6 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
         });
     }
 
-    let locales = new Locales(debug);
-    let promise = locales.loadStrings();
-    
-    if (typeof opts.translate !== "undefined")
-        promise = promise.then(target_translate(opts.translate, opts.language));
-    else
-        promise = promise.then(target_release());
+    target_release()
+    .then(() => {});
 })
