@@ -90,7 +90,8 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" value="18" name="temperature" id="static_temp" value="4" disabled data-sampler='{"config":"static_filter_sensor_id","max_age":300000,"sampled":"#static_from_sensor", "unsampled":"#static_temp_slider"}'>&deg;C <span style="display:none" id="static_from_sensor">(detected)</span> <div class="slider" id="static_temp_slider" data-slider='{"min":4,"max":40,"friend":"#static_temp"}'></div>
+                  <input type="number" value="18" name="temperature" id="static_temp" value="4" disabled data-sampler='{"config":"static_filter_sensor_id","max_age":300000,"sampled":"#static_from_sensor", "unsampled":"#static_temp_slider"}'>&deg;C <span style="display:none" id="static_from_sensor">(detected)</span>
+                  <div class="temperature slider" id="static_temp_slider" data-slider='{"min":4,"max":40,"friend":"#static_temp"}'><div class="min">4&deg;C</div><div class="max">40&deg;C</div></div>
                 </td>
               </tr>
               <tr>
@@ -100,7 +101,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="humidity" type="number" id="static_hum" disabled value="50">% <div class="slider" data-slider='{"min":0,"max":80,"friend":"#static_hum"}'></div>
+                  <input name="humidity" type="number" id="static_hum" disabled value="50">%  <div class="humidity slider" data-slider='{"min":0,"max":80,"friend":"#static_hum"}'><div class="min">0%</div><div class="max">80%</div></div>
                 </td>
               </tr>
               <tr>
@@ -229,7 +230,7 @@ hours
                 </th>
                 <td class="widest">
                   <input type="number" class="integer" name="temperature" id="portable_temp" value="18" disabled>&deg;C
-                  <div class="slider" data-slider='{"min":4,"max":40,"friend":"#portable_temp"}'></div>
+                  <div class="temperature slider" data-slider='{"min":4,"max":40,"friend":"#portable_temp"}'><div class="min">4&deg;C</div><div class="max">40&deg;C</div></div>
                 </td>
               </tr>
               <!--

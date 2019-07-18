@@ -222,7 +222,7 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
 
             let $gear = $('#settings');
             $gear.on("click", function () {
-                self.config.open_dialog({
+                self.config.open({
                     buttons: {
                         "Update cache from web": function () {
                             let $a = $.confirm({
@@ -238,10 +238,11 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                                         m + "</div>");
                                 });
                             })
-                            .then(reload_ui);
+                            .then(() => { self.reload_ui(); });
                         },
                         close: function () {
-                            self.config.save().then(reload_ui);
+                            self.config.save()
+                            .then(() => { self.reload_ui(); });
                         }
                     },
                     validity: function (ok) {
@@ -289,13 +290,6 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
             $(".slider").each(function() {
                 let $self = $(this);
                 let data = $self.data("slider");
-                if (data) {
-                    try {
-                        data = JSON.parse(data);
-                    } catch (e) {
-                        console.debug(e);
-                    }
-                }
                 data.animate = true;
                 if (data.friend) {
                     data.slide = (e, ui) => {

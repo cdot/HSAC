@@ -230,3 +230,27 @@ table td,th {
 input[name="temperature"], input[name="humidity"] {
     width: 3em;
 }
+
+.temperature.slider {
+    background-image: linear-gradient(
+      to right, #3c89d0, #F9423A
+    );
+}
+
+.humidity.slider {
+    background-image: linear-gradient(
+      to right, #f2d16b, #086294
+    );
+}
+
+.slider > div.min {
+    float: left;
+    color: white;
+    font-size: smaller;
+}
+
+.slider > div.max {
+    float: right;
+    color: white;
+    font-size: smaller;
+}
