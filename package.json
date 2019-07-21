@@ -53,7 +53,7 @@
   "dependencies": {
     "jquery": "^3.4.1",
     "jquery-confirm": "^3.3.4",
-    "jquery-csv": "^1.0.3",
+    "jquery-csv": "^1.0.5",
     "jquery-ui-dist": "^1.12.1",
     "jquery-ui-iconfont": "^2.3.2",
     "jquery-ui-touch-punch": "^0.2.3",

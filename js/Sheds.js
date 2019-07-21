@@ -30,7 +30,7 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                 {
                     ppO2max: 1.4,
                     loan_return: 10,
-                    o2_price: 0.02,
+                    o2_price: 0.005,
                     portable_filter_lifetime: 15,
                     portable_filter_coeff_a: 1.84879,
                     portable_filter_coeff_b: 1.124939,
@@ -326,12 +326,20 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                         .val(url ? url : "");
                         jc.$content.find(".url").text(url);
                         jc.buttons.try_again.setText("Try again");
+                        jc.buttons.continue_without.setText("Continue without cache");
                     },
                     buttons: {
                         try_again: function () {
                             let nurl = this.$content.find("input").val();
-                            if (self.debug) self.debug("Trying again with " + nurl);
+                            if (self.debug) self.debug("Trying again with", nurl);
                             resolve(self.cache_connect(nurl));
+                        },
+                        continue_without:  function () {
+                            if (self.debug)
+                                self.debug("Continuing without cache");
+                    
+                            $(document).trigger("reload_ui");
+                            resolve();
                         }
                     }
                 });
@@ -352,7 +360,7 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                         });
                     },
                     buttons: {
-                        "login": function () {
+                        login: function () {
                             let user = this.$content.find("input[name='user']").val();
                             let pass = this.$content.find("input[name='pass']").val();
                             self.config.store.setCredentials(user, pass);
@@ -365,16 +373,17 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
 
         cache_connect(url) {
             let self = this;
-            if (self.debug) self.debug("Trying to connect to " + url);
+            if (self.debug) self.debug("Trying to connect to", url);
             return this.config.store
             .connect(url)
             .then(() => {
-                if (self.debug) self.debug(url + " connected, loading config");
+                if (self.debug) self.debug(url, "connected, loading config");
                 return self.config.load()
                 .then(() => {
                     Cookies.set("cache_url", url, {
                         expires: 365
                     });
+                    
                     $(document).trigger("reload_ui");
                 })
                 .catch((e) => {
@@ -385,7 +394,7 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                         return self.cache_connect(url);
                     })
                     .catch((e) => {
-                        if (self.debug) self.debug("Bootstrap failed: " + e);
+                        if (self.debug) self.debug("Bootstrap failed:", e);
                         $.alert({
                             title: "Bootstrap failed",
                             content: "Could not write config.json"
@@ -395,11 +404,12 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                 });
             })
             .catch((e) => {
-                if (self.debug) self.debug(url + " connect failed: " + e);
+                if (self.debug) self.debug(url, "connect failed", e);
                 if (e == 401) {
                     // XMLHttpRequest will only prompt for credentials if
                     // the request is for the same origin with no explicit
                     // credentials. So we have to handle credentials.
+                    if (self.debug) self.debug("Auth failure, get auth");
                     return self.promise_to_authenticate(url);
                 }
                 return self.promise_to_reconnect(url);

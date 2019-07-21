@@ -352,7 +352,7 @@ hours
             </p>
             <p>
               <label for="nox_o2s" data-with-info="#infoBankSize">Pure O<sub>2</sub> cylinder size</label>
-              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" min="10" max="100" value="47.2"> L,
+              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" value="47.2"> L,
               <label for="nox_o2p">Pressure</label>
               <input id="nox_o2p" name="O2_bank_pressure" data-msg="Must be between 1 and 300" required type="number" class="integer" min="1" max="300" value="200"> bar
             </p>
@@ -458,7 +458,7 @@ hours
                   <td class="widest"><input style="width:100%" type="text" url required name="db_index_url"></td>
                 </tr>
                 <tr>
-                  <td>Store cache (WebDAV) URL:</td>
+                  <td>Local cache (WebDAV) URL:</td>
                   <td class="widest">
                     <input class="widest" type="text" url required name="cache_url">
                   </td>
@@ -492,10 +492,12 @@ hours
     </div>
     
     <div id="connect_failed_dialog" class="hidden" title="Connect failed">
-      Could not connect to store cache at '<span class="url">?</span>'
+      Could not connect to local cache at '<span class="url">?</span>'.
+      You can continue without the cache, but if you do then no records
+      will be loaded or saved.
       <table>
         <tr>
-          <td>Store cache URL:</td>
+          <td>Local cache URL:</td>
           <td class="widest"><input class="widest" type="text" name="cache_url"></td>
         </tr>
       </table>

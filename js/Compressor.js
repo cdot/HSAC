@@ -240,22 +240,6 @@ define("js/Compressor", ["js/Entries", "jquery", "touch-punch"], (Entries) => {
                 $tab.find(".cr_time").text(Entries.formatDate(cur.date));
                 $tab.find(".cr_flr").text(new Number(this.remaining_filter_life()).toFixed(2));
                 $tab.find(".cr_runtime").text(cur.runtime);
-                $tab.find(".cr_temp_slider").slider({
-                    min: 4, max: 40,
-                    animate: true,
-                    slide: function(e, ui) {
-                        let v = ui.value;
-                        $tab.find("[name='temperature']").val(v);
-                    }
-                });
-                $tab.find(".cr_hum_slider").slider({
-                    min: 0, max: 100,
-                    animate: true,
-                    slide: function(e, ui) {
-                        let v = ui.value;
-                        $tab.find("[name='humidity']").val(v);
-                    }
-                });
                 if ($rta.length && $rta.attr("type") !== "hidden") {
                     $rta.rules("remove", "min");
                     $rta.rules("add", {
