@@ -51,16 +51,6 @@
     "request": "^2.88.0"
   },
   "dependencies": {
-    "jquery": "^3.4.1",
-    "jquery-confirm": "^3.3.4",
-    "jquery-csv": "^1.0.5",
-    "jquery-ui-dist": "^1.12.1",
-    "jquery-ui-iconfont": "^2.3.2",
-    "jquery-ui-touch-punch": "^0.2.3",
-    "jquery-validation": "^1.19.1",
-    "js-cookie": "^2.2.0",
-    "requirejs": "^2.3.6",
-    "tablesorter": "^2.31.1",
-    "text": "github:requirejs/text"
+    "jquery-ui-iconfont": "^2.3.2"
   }
 }
