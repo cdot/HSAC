@@ -69,6 +69,8 @@ define("js/WebDAVStore", ["js/AbstractStore", "js/DAVClient"], (AbstractStore, D
             const self = this;
             path = path.replace(/^\/+/, "");
             if (this.debug) this.debug("WebDAVStore: Reading " + path);
+            if (!this.DAV)
+                return Promise.reject(new Error("WebDAVStore not connected"));
             return this.DAV
             .request('GET', path, {
                 "Cache-Control": "no-cache"
@@ -120,6 +122,9 @@ define("js/WebDAVStore", ["js/AbstractStore", "js/DAVClient"], (AbstractStore, D
             path = path.replace(/^\/+/, "").split('/');
             var folder = path.slice();
             folder.pop();
+
+            if (!this.DAV)
+                return Promise.reject(self._error(new Error("WebDAVStore not connected")));
 
             return self._mkpath(folder)
             .then(() => {
