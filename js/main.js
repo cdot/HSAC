@@ -2,11 +2,11 @@
 /* eslint-env browser */
 
 let suppression = "";
-let min = "";
+let min = ".min";
 
-if (/debug/.test(window.location.search.substring(1)) {
+if (/debug/.test(window.location.search.substring(1))) {
     suppression = "t=" + Date.now();
-    min = ".min";
+    min = "";
 }
 
 requirejs.config({
@@ -40,7 +40,7 @@ requirejs.config({
         "touch-punch" : "https://cdn.jsdelivr.net/npm/jquery-ui-touch-punch@0.2.3/jquery.ui.touch-punch" + min,
         
         // From https://github.com/craftpip/jquery-confirm 
-        "jquery-confirm" : "https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm",
+        "jquery-confirm" : "https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm" + min,
 
         // from https://github.com/Mottie/tablesorter 
         "tablesorter" : "https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.combined" + min

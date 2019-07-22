@@ -18,7 +18,12 @@ if (typeof module !== "undefined") {
 }
 
 requirejs.config({
-    baseUrl: ".."
+    baseUrl: "..",
+    paths: {
+        jquery: "node_modules/jquery/dist/jquery",
+        "jquery-csv": "node_modules/jquery-csv/src/jquery.csv",
+        "touch-punch": "node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch"
+    }
 });
 
 requirejs(["js/Compressor", "js/Config", "test/TestRunner", "jquery"], function(Compressor, Config, TestRunner) {

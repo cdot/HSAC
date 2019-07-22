@@ -16,7 +16,10 @@ if (typeof module !== "undefined") {
 }
 
 requirejs.config({
-    baseUrl: ".."
+    baseUrl: "..",
+    paths: {
+        jquery: "node_modules/jquery/dist/jquery"
+    }
 });
 
 requirejs(["js/Nitrox", "test/TestRunner", "jquery"], function(Nitrox, TestRunner) {
