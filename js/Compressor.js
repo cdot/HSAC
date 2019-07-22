@@ -6,10 +6,12 @@ define("js/Compressor", ["js/Entries", "jquery", "touch-punch"], (Entries) => {
     class Compressor extends Entries {
         
         /**
-         * Entries for Compressor runtime events. This is a stack - the only
-         * editing available is to delete the last entry. Standard params same as
-         * Entries.
+         * Entries for Compressor runtime events. This is a stack -
+         * the only editing available is to delete the last
+         * entry. Standard params same as Entries.
          * @param params.config Config object
+         * @param params.id string identifier
+         * @param params.debug debug method
          */
         constructor(params) {
             super({
