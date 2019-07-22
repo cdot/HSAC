@@ -246,11 +246,11 @@ input[name="temperature"], input[name="humidity"] {
 .slider > div.min {
     float: left;
     color: white;
-    font-size: smaller;
+    font-size: 50%;
 }
 
 .slider > div.max {
     float: right;
     color: white;
-    font-size: smaller;
+    font-size: 50%;
 }

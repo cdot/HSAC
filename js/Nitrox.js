@@ -74,8 +74,7 @@ define("js/Nitrox", () => {
                     "This will use " +
                     Math.round(result.use) +
                     " litres of O<sub>2</sub> at a cost of <strong>&pound;" +
-                    (Math.round(100 * (result.use *
-                                       parseFloat(this.cfg.get("o2_price")))) / 100) +
+                    (result.use * parseFloat(this.cfg.get("o2_price"))).toFixed(2) +
                     "</strong><br>");
             }
         }

@@ -30,7 +30,7 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                 {
                     ppO2max: 1.4,
                     loan_return: 10,
-                    o2_price: 0.005,
+                    o2_price: 0.01,
                     portable_filter_lifetime: 15,
                     portable_filter_coeff_a: 1.84879,
                     portable_filter_coeff_b: 1.124939,
