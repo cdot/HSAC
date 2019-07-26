@@ -11,7 +11,7 @@ define("sensors/js/DS18x20", ['ds18b20-raspi'], function(DS18B20_raspi) {
 
         read() {
             return new Promise((resolve, reject) => {
-                DS18B20_interface.readSimpleC((err, temp) => {
+                DS18B20_raspi.readSimpleC((err, temp) => {
                     if (err) {
                         reject(err);
                     } else {

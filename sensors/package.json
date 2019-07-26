@@ -44,13 +44,12 @@
       "quotes": 0
     }
   },
-  "devDependencies": {
-    "request": "^2.88.0"
-  },
-    "dependencies": {
-        "node-dht-sensor": "^0.3.0",
-        "ds18b20-raspi": "^0.3.3",
-        "requirejs": "^2.3.6"
-    }
+  "devDependencies": {},
+  "dependencies": {
+    "ds18b20-raspi": "^0.3.3",
+    "fs-extra": "^8.1.0",
+    "node-dht-sensor": "^0.3.0",
+    "requirejs": "^2.3.6",
+    "webdav": "^2.9.1"
   }
 }
