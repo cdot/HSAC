@@ -90,7 +90,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="temperature" type="number" value="18" id="static_temp" disabled data-sampler='{"config":"static_intake_temp_id","max_age":300000,"sampled":"#static_temp_from_sensor","unsampled":"#static_intake_temp_slider"}'>&deg;C
+                  <input name="temperature" type="number" value="18" id="static_temp" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" data-sampler='{"config":"static_intake_temp_id","max_age":300000,"sampled":"#static_temp_from_sensor","unsampled":"#static_intake_temp_slider"}'>&deg;C
                   <span style="display:none" id="static_temp_from_sensor">(detected)</span>
                   <div class="temperature slider" id="static_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#static_temp"}'>
                     <div class="min">4&deg;C</div><div class="max">40&deg;C</div>
@@ -104,7 +104,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="humidity" type="number"  value="50" id="static_hum" disabled data-sampler='{"config":"static_intake_hum_id","max_age":300000,"sampled":"#static_hum_from_sensor","unsampled":"#static_intake_hum_slider"}'>%
+                  <input name="humidity" type="number" value="50" id="static_hum" min="0" max="80" data-msg-max="Must be ≤80%" data-sampler='{"config":"static_intake_hum_id","max_age":300000,"sampled":"#static_hum_from_sensor","unsampled":"#static_intake_hum_slider"}'>%
                   <span style="display:none" id="static_hum_from_sensor">(detected)</span>
                   <div class="humidity slider" id="static_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#static_hum"}'>
                     <div class="min">0%</div><div class="max">80%</div>
