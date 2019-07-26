@@ -2,7 +2,7 @@
 
 /* eslint-env jquery */
 
-define("js/Roles", ["js/Entries"], (Entries) => {
+define("app/js/Roles", ["app/js/Entries"], (Entries) => {
 
     class Roles extends Entries {
         /**

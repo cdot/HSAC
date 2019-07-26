@@ -40,7 +40,7 @@ requirejs.config({
     }
 });
 
-requirejs(["jquery", "jquery-ui", "js/Sheds"], function (jq, jqui, Sheds) {
+requirejs(["jquery", "jquery-ui", "app/js/Sheds"], function (jq, jqui, Sheds) {
     $(function() {
         new Sheds().begin();
     });

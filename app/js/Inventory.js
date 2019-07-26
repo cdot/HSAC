@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser, jquery */
 
-define("js/Inventory", ["js/Entries", "js/jq/with-info"], (Entries) => {
+define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) => {
         // Inventory columns that are NOT to be used in a descriptor
     const hide_cols = {
         "Kit Pool": true,

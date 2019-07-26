@@ -7,7 +7,7 @@
  * @param params.config Config object
  * @param params.roles Roles object
  */
-define("js/Loans", ["js/Entries", "tablesorter", "js/jq/in-place"], (Entries) => {
+define("app/js/Loans", ["app/js/Entries", "tablesorter", "app/js/jq/in-place"], (Entries) => {
 
     class Loans extends Entries {
         constructor(params) {

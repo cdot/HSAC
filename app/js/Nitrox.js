@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("js/Nitrox", () => {
+define("app/js/Nitrox", () => {
 
     const ATMOSPHERIC_O2 = 100 * 0.209;
     

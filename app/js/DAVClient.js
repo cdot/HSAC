@@ -1,7 +1,7 @@
 /*
  * From github; hacked around to make it work by CC
  */
-define("js/DAVClient", () => {
+define("app/js/DAVClient", () => {
 
     const _XML_CHAR_MAP = {
         '<': '&lt;',

@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("js/WebDAVStore", ["js/AbstractStore", "js/DAVClient"], (AbstractStore, DAVClient) => {
+define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (AbstractStore, DAVClient) => {
 
     /**
      * Store on a remote webdav server

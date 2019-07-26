@@ -16,13 +16,13 @@ if (typeof module !== "undefined") {
 }
 
 requirejs.config({
-    baseUrl: "..",
+    baseUrl: "../..",
     paths: {
-        jquery: "node_modules/jquery/dist/jquery"
+        jquery: "app/node_modules/jquery/dist/jquery"
     }
 });
 
-requirejs(["js/Nitrox", "test/TestRunner", "jquery"], function(Nitrox, TestRunner) {
+requirejs(["app/js/Nitrox", "app/test/TestRunner", "jquery"], function(Nitrox, TestRunner) {
     let tr = new TestRunner("Compressor");
     let assert = tr.assert;
 

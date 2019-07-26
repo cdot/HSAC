@@ -1,6 +1,6 @@
 /*@preserve Copyright (C) 2015-2018 Crawford Currie http://c-dot.co.uk license MIT*/
 
-define("js/AbstractStore", () => {
+define("app/js/AbstractStore", () => {
     /**
      * Pure virtual base class of store providers.
      *

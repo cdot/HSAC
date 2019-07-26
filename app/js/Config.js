@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("js/Config", () => {
+define("app/js/Config", () => {
 
     class Config {
         /**
@@ -31,7 +31,7 @@ define("js/Config", () => {
 
         save() {
             return this.store.write("config.json",
-                                    JSON.stringify(this.store_data))
+                                    JSON.stringify(this.store_data, null, 1))
             .then(() => {
                 if (this.debug) this.debug("Config saved");
             })

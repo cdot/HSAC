@@ -2,7 +2,7 @@
   "name": "hsac",
   "version": "1.0.0",
   "license": "MIT",
-  "description": "HSAC Sheds",
+  "description": "HSAC Shed Sensors",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cdot/HSAC.git"
@@ -45,15 +45,12 @@
     }
   },
   "devDependencies": {
-    "clean-css": "^4.2.1",
-    "fs-extra": "^8.1.0",
-    "html-minifier": "^4.0.0",
-    "jquery": "^3.4.1",
-    "jquery-csv": "^1.0.5",
-    "jquery-ui-touch-punch": "^0.2.3",
     "request": "^2.88.0"
   },
-  "dependencies": {
-    "jquery-ui-iconfont": "^2.3.2"
+    "dependencies": {
+        "node-dht-sensor": "^0.3.0",
+        "ds18b20-raspi": "^0.3.3",
+        "requirejs": "^2.3.6"
+    }
   }
 }

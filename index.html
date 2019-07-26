@@ -31,16 +31,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/css/theme.jui.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.css" rel="stylesheet">
     
-    <link href="css/with-info.css" rel="stylesheet">
-    <link href="css/in-place.css" rel="stylesheet">
-    <link href="css/Sheds.css" rel="stylesheet">
+    <link href="app/css/with-info.css" rel="stylesheet">
+    <link href="app/css/in-place.css" rel="stylesheet">
+    <link href="app/css/Sheds.css" rel="stylesheet">
     
-    <link href="libs/fontawesome/css/solid.min.css" rel="stylesheet">
-    <link href="libs/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/solid.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/fontawesome.min.css" rel="stylesheet">
 
     <link href="" rel="stylesheet">
 
-    <script data-main="js/main" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
+    <script data-main="app/js/main" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
 
   </head>
   <body>
@@ -90,8 +90,11 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input type="number" value="18" name="temperature" id="static_temp" value="4" disabled data-sampler='{"config":"static_filter_sensor_id","max_age":300000,"sampled":"#static_from_sensor", "unsampled":"#static_temp_slider"}'>&deg;C <span style="display:none" id="static_from_sensor">(detected)</span>
-                  <div class="temperature slider" id="static_temp_slider" data-slider='{"min":4,"max":40,"friend":"#static_temp"}'><div class="min">4&deg;C</div><div class="max">40&deg;C</div></div>
+                  <input name="temperature" type="number" value="18" id="static_temp" disabled data-sampler='{"config":"static_intake_temp_id","max_age":300000,"sampled":"#static_temp_from_sensor","unsampled":"#static_intake_temp_slider"}'>&deg;C
+                  <span style="display:none" id="static_temp_from_sensor">(detected)</span>
+                  <div class="temperature slider" id="static_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#static_temp"}'>
+                    <div class="min">4&deg;C</div><div class="max">40&deg;C</div>
+                  </div>
                 </td>
               </tr>
               <tr>
@@ -101,7 +104,11 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="humidity" type="number" id="static_hum" disabled value="50">%  <div class="humidity slider" data-slider='{"min":0,"max":80,"friend":"#static_hum"}'><div class="min">0%</div><div class="max">80%</div></div>
+                  <input name="humidity" type="number"  value="50" id="static_hum" disabled data-sampler='{"config":"static_intake_hum_id","max_age":300000,"sampled":"#static_hum_from_sensor","unsampled":"#static_intake_hum_slider"}'>%
+                  <span style="display:none" id="static_hum_from_sensor">(detected)</span>
+                  <div class="humidity slider" id="static_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#static_hum"}'>
+                    <div class="min">0%</div><div class="max">80%</div>
+                  </div>
                 </td>
               </tr>
               <tr>
@@ -417,9 +424,21 @@ hours
                   </td>
                 </tr>
                 <tr>
-                  <td>Temperature sensor ID:</td>
+                  <td>Intake temperature sensor ID:</td>
                   <td>
-                    <input type="text" name="static_filter_sensor_id">
+                    <input type="text" name="static_intake_temp_id">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Intake humidity sensor ID:</td>
+                  <td>
+                    <input type="text" name="static_intake_hum_id">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Third stage head temperature sensor ID:</td>
+                  <td>
+                    <input type="text" name="static_3rd_stage_temp_id">
                   </td>
                 </tr>
               </table>
@@ -464,9 +483,9 @@ hours
                   </td>
                 </tr>
                 <tr>
-                  <td>Sample URL:</td>
+                  <td>Compressor sensor data file URL:</td>
                   <td class="widest">
-                    <input style="width:100%" type="text" url name="sensor_url">
+                    <input style="width:100%" type="text" url name="static_sensor_url">
                   </td>
                 </tr>
               </table>

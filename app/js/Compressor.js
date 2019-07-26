@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("js/Compressor", ["js/Entries", "jquery", "touch-punch"], (Entries) => {
+define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entries) => {
 
     class Compressor extends Entries {
         

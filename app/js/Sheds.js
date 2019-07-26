@@ -5,7 +5,7 @@
  * Shed management application. See README.md
  */
 
-define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js/Compressor", "js/Loans", "js/Inventory", "js/Nitrox", "js-cookie", "jquery-validate", "jquery-confirm"], (Config, WebDAVStore, Entries, Roles, Compressor, Loans, Inventory, Nitrox, Cookies) => {
+define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries", "app/js/Roles", "app/js/Compressor", "app/js/Loans", "app/js/Inventory", "app/js/Nitrox", "js-cookie", "jquery-validate", "jquery-confirm"], (Config, WebDAVStore, Entries, Roles, Compressor, Loans, Inventory, Nitrox, Cookies) => {
     
     /**
      * Update time displays
@@ -36,13 +36,14 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                     portable_filter_coeff_b: 1.124939,
                     portable_filter_coeff_c: 14.60044,
                     portable_filter_coeff_d: -0.3252651,
-                    portable_filter_sensor_id: null,
                     static_filter_lifetime: 40,
                     static_filter_coeff_a: 3.798205,
                     static_filter_coeff_b: 1.149582,
                     static_filter_coeff_c: 11.50844,
                     static_filter_coeff_d: -0.4806983,
-                    static_filter_sensor_id: null
+                    static_intake_temp_id: null,
+                    static_intake_hum_id: null,
+                    static_head_temp_id: null
                 },
                 this.debug
             );
@@ -85,7 +86,7 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
                 this.inventory.reload_ui(loans)
             ])
             .then(() => {
-                this.restart_sampling();
+                setInterval(() => { this.read_sensors(); }, 2000);
                 $("#main_tabs").tabs("option", "disabled", []);
                 return this.roles.reload_ui();
             });
@@ -135,62 +136,92 @@ define("js/Sheds", ["js/Config", "js/WebDAVStore", "js/Entries", "js/Roles", "js
         }
 
         /**
-         * Start/restart sampling from the sensor data file
+         * Update a sampled input field
          */
-        restart_sampling() {
-            let self = this;
-        
-            function sample() {
-                const url = self.config.get("sensor_url");
-                if (typeof url !== "string" || url.length === 0)
-                    return;
-                $.ajax({
-                    url: url,
-                    data: {
-                        t: Date.now() // defeat cache
-                    },
-                    dataType: "text"
-                })
-                .then((list) => {
-                    const rows = $.csv.toArrays(list);
-                    // Get the most recent sample for each unique ID
-                    self.samples = {};
-                    for (let r of rows) {
-                        self.samples[r[0]] = { time: r[1], sample: r[2] }
-                    }
-                    $("input[data-sampler]").each(function() {
-                        let spec = $(this).data("sampler");
-                        if (typeof spec.config !== "undefined")
-                            spec.id = self.config.get(spec.config);
-                        let sample = self.samples[spec.id];
-                        let thresh = Date.now() - spec.max_age;
-                        if (typeof sample === "undefined" || sample.time < thresh) {
-                            $(this).prop("readonly", null);
-                            $(this).removeClass("greyed_out");
-                            $(spec.sampled).hide();
-                            $(spec.unsampled).show();
-                        } else {
-                            $(this).val(sample.sample);
-                            $(this).addClass("greyed_out");
-                            $(this).closest(".validated_form").valid();
-                            $(this).prop("readonly", "readonly");
-                            $(spec.sampled).show();
-                            $(spec.unsampled).hide();
-                        }
-                    });
-                })
-                .always(() => {
-                    // Re-sample every 5 seconds
-                    self.sampler = setTimeout(sample, 5000);
-                });
+        update_sampled($el) {
+            // The data-sampler attribute specifies:
+            // config: the config item that provides the sensor ID
+            //         which uniquely identifies samples in the
+            //         sample data file
+            // max_age: maximum age for valid samples
+            // sampled: element id for the element to be shown
+            //          when a sample is found and deemed valid
+            // unsampled: element id for the element to be shown
+            //          when the sample is too old or is unavailable
+                        
+            let spec = $el.data("sampler");
+            
+            // Look up the config to get the sensor ID for this
+            // input. This indirection is required because we don't
+            // want to lock sensor id's into the HTML
+            if (typeof spec.config !== "undefined")
+                spec.id = this.config.get(spec.config);
+                        
+            let sample = this.samples[spec.id];
+            let thresh = Date.now() - spec.max_age;
+            if (typeof sample === "undefined" || sample.time < thresh) {
+                // Sample unavailable or too old
+                if (this.debug) this.debug("No sample for", spec.id, "or too old");
+                $el.prop("readonly", null);
+                $el.removeClass("greyed_out");
+                $(spec.sampled).hide();
+                $(spec.unsampled).show();
+                return;
+            }
+            // sample available and young enough
+            $el.prop("readonly", "readonly");
+            $el.addClass("greyed_out");
+            $el.val(sample.sample);
+            $(spec.sampled).show();
+            $(spec.unsampled).hide();
+            // Switch off validation message
+            $el.closest(".validated_form").valid();
+        }
+
+        /**
+         * Update the sensor readings from the remote sensor URL
+         */
+        read_sensors() {
+            const url = this.config.get("static_sensor_url");
+            if (typeof url !== "string" || url.length === 0) {
+                if (this.debug) this.debug("No sensor URL set");
+                return;
             }
             
-            if (typeof this.sampler !== "undefined")
-                clearTimeout(this.sampler);
-            
-            sample();
+            let self = this;
+            $.ajax({
+                url: url,
+                data: {
+                    t: Date.now() // defeat cache
+                },
+                dataType: "text"
+            })
+            .done((list) => {
+                // The CSV is structured as:
+                // ID time sample
+                // sample may be humidity or temperature depending on
+                // sensor type
+                const rows = $.csv.toArrays(list);
+                // Get the most recent sample for each unique ID
+                self.samples = {};
+                for (let r of rows) {
+                    let id = r[0];
+                    let row = {
+                        time: r[1], sample: r[2]
+                    };
+                    self.samples[id] = row;
+                }
+                // Have to update all sample fields, as we don't know
+                // the right ID without redirecting through config
+                $("input[data-sampler]").each(function() {
+                    self.update_sampled($(this));
+                });
+            })
+            .fail((e) => {
+                if (this.debug) this.debug("Could not get samples:", e);
+            });
         }
-    
+        
         initialise_ui() {
             let self = this;
             // Generics

@@ -43,7 +43,7 @@
  * a string. Number is a float.
  * @param params.asArrays if true, conversion to a map won't happen
  */
-define("js/Entries", ["jquery-csv"], () => {
+define("app/js/Entries", ["jquery-csv"], () => {
     class Entries {
         constructor(params) {
             params = params || {};
@@ -241,8 +241,9 @@ define("js/Entries", ["jquery-csv"], () => {
                     return 0;
                 return parseFloat(val);
             case 'boolean':
-                // "on", "true" and "1" are taken as true. Anything else as false.
-                return (val === "true" || val === "1" || val == "on");
+                // "on", "true" "yes", and "1" are taken as true.
+                // Anything else as false.
+                return (/^\s*(true|1|on|yes)\s*/i.test(val));
             default:
                 return val;
             }
