@@ -1,4 +1,4 @@
-/*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
+/*@preserve Copyright (C) 2018-2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
 /**
@@ -21,8 +21,9 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
 
     class Sheds {
 
-        constructor() {
-            this.debug = console.debug;
+        constructor(params) {
+            if (params.debug)
+                this.debug = console.debug;
             
             // Configuration defaults
             this.config = new Config(
@@ -85,8 +86,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 this.loans.reload_ui(),
                 this.inventory.reload_ui(loans)
             ])
-            .then(() => {
-                setInterval(() => { this.read_sensors(); }, 2000);
+            .then((res) => {
+                this.read_sensors();
                 $("#main_tabs").tabs("option", "disabled", []);
                 return this.roles.reload_ui();
             });
@@ -182,6 +183,9 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
          * Update the sensor readings from the remote sensor URL
          */
         read_sensors() {
+            if (this.sensor_tick)
+                clearTimeout(this.sensor_tick);
+            this.sensor_tick = null;
             const url = this.config.get("static_sensor_url");
             if (typeof url !== "string" || url.length === 0) {
                 if (this.debug) this.debug("No sensor URL set");
@@ -219,6 +223,11 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             })
             .fail((e) => {
                 if (this.debug) this.debug("Could not get samples:", e);
+            })
+            .always(() => {
+                // Queue the next poll for 5s hence
+                this.sensor_tick =
+                setTimeout(() => { self.read_sensors(); }, 5000);
             });
         }
         

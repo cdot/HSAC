@@ -4,7 +4,19 @@
 let suppression = "";
 let min = ".min";
 
-if (/debug/.test(window.location.search.substring(1))) {
+let params = {};
+let url_params = window.location.search.substring(1);
+if (url_params) {
+    for (let setting of url_params.split(/[;&]/)) {
+        let set = setting.split("=", 2);
+        if (set.length == 1)
+            params[setting] = true;
+        else
+            params[set[0]] = set[1];
+    }
+}
+
+if (params.debug) {
     suppression = "t=" + Date.now();
     min = "";
 }
@@ -41,7 +53,7 @@ requirejs.config({
 });
 
 requirejs(["jquery", "jquery-ui", "app/js/Sheds"], function (jq, jqui, Sheds) {
-    $(function() {
-        new Sheds().begin();
+    $(() => {
+        new Sheds(params).begin();
     });
 });
