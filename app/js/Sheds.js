@@ -43,7 +43,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     static_filter_coeff_d: -0.4806983,
                     static_intake_temp_id: null,
                     static_intake_hum_id: null,
-                    static_head_temp_id: null
+                    static_internal_temp_id: null
                 },
                 this.debug
             );

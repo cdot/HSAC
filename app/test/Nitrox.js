@@ -28,18 +28,21 @@ requirejs(["app/js/Nitrox", "app/test/TestRunner", "jquery"], function(Nitrox, T
 
     let tests = [
         {    name: "simple 1",
+             temperature: 4,
              cylinder_size: 12,
              start_mix: 26,  start_pressure: 30,
              target_mix: 32, target_pressure: 232,
              O2_bank_size: 49,  O2_bank_pressure: 90,
              expected: { boostTo: 61, use: 367 } },
         {    name: "simple 2",
+             temperature: 25,
              cylinder_size:  7,
              start_mix:  21,  start_pressure: 50,
              target_mix: 32, target_pressure: 232,
              O2_bank_size: 49, O2_bank_pressure: 200,
              expected: { boostTo: 83, use: 227 } },
         {    name: "simple 3",
+             temperature: 16,
              cylinder_size: 12,
              start_mix: 28,  start_pressure: 50,
              target_mix: 32, target_pressure: 232,
@@ -47,6 +50,7 @@ requirejs(["app/js/Nitrox", "app/test/TestRunner", "jquery"], function(Nitrox, T
              expected: { boostTo: 79, use: 336 } },
         // Too much O2 already in cylinder
         {    name: "too much O2",
+             temperature: 40,
              cylinder_size: 10,
              start_mix: 32, start_pressure: 200,
              target_mix: 28, target_pressure: 230,
@@ -54,6 +58,7 @@ requirejs(["app/js/Nitrox", "app/test/TestRunner", "jquery"], function(Nitrox, T
              expected: { bleedTo: 147 } },
         // Mix achievable, but not enough O2 in bank
         {    name: "not enough in bank",
+             temperature: 16,
              cylinder_size: 24,
              start_mix: 21, start_pressure: 50,
              target_mix: 28, target_pressure: 230,
@@ -61,6 +66,7 @@ requirejs(["app/js/Nitrox", "app/test/TestRunner", "jquery"], function(Nitrox, T
              expected: { bleedTo: 42 } },
         // Mix achievable, but too much pressure already in cylinder.
         {    name: "too much pressure",
+             temperature: 18,
              cylinder_size: 24,
              start_mix: 21, start_pressure: 40,
              target_mix: 32, target_pressure: 230,

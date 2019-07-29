@@ -5,54 +5,21 @@ requirejs.config({
 });
 
 /**
- * Loads config from ../config.js
+ * See sensors/README.md for information
  */
-requirejs(['sensors/js/DHTxx', 'sensors/js/DS18x20', 'fs-extra'], function(DHTxx, DS18x20, Fs) {
+requirejs(["sensors/js/SampleStore", "fs-extra"], function(SampleStore, Fs) {
+    // Load config
     const config = JSON.parse(Fs.readFileSync("config.json"));
 
-    const { createClient } = require("webdav");
-    const DAV = createClient(
-        config.URL,
-        {
-            username: config.USER,
-            password: config.PASS
-        });
+    // Make webdav interface
+    const store = new SampleStore(config.url, config.user, config.pass);
 
-    const dht = new DHTxx(config.DHT_type, config.DHT_GPIO);
-    const ds18 = new DS18x20(config.DS18_ID);
-
-    let samples = {};
-
-    function update_records(samples) {
-        return DAV.getFileContents(config.PATH)
-        .then((res) => {
-            let records;
-            if (res) {
-                let lines = res.toString().split("\n");
-                while (lines.length > config.RECORD_LIMIT - samples.length)
-                    lines.shift();
-                records = lines.map(s => s.split(","));
-            } else
-                records = [];
-            for (let sensor in samples)
-                records.push([sensor, Date.now(), samples[sensor]]);
-            let body = records.map(r => r.join(",")).join("\n");
-            return DAV.putFileContents(config.PATH,  body);
+    // Make sensors
+    for (let cfg in config.sensors) {
+        let clss = cfg["class"];
+        requirejs(["sensors/js/" + clss], function(Sensor) {
+            let sensor = new Sensor(cfg, store);
+            sensor.start();
         });
     }
-
-    setInterval(() => {
-        let p = [
-            dht.read()
-            .then((r) => {
-                samples.DHT11_t = r.t;
-                samples.DHT11_h = r.h;
-            }),
-            ds18.read()
-            .then((r) => {
-                samples[ds18.sensor_id] = r;
-            })];
-	return Promise.all(p)
-        .then(() => update_records(samples));
-    }, 2000);
 });

@@ -322,8 +322,10 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                                + this.remaining_filter_life() + " hours");
                 }
                 return this.save().then(() => {
-                    var snd = new Audio("app/sounds/save.wav");
-                    snd.play();
+                    if (typeof Audio !== "undefined") {
+                        var snd = new Audio("app/sounds/save.wav");
+                        snd.play();
+                    }
                     this.reload_ui().then(() => {
                         return r;
                     });

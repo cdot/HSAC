@@ -26,7 +26,7 @@ requirejs.config({
     }
 });
 
-requirejs(["app/js/Compressor", "app.js/Config", "app/test/TestRunner", "jquery"], function(Compressor, Config, TestRunner) {
+requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"], function(Compressor, Config, TestRunner) {
 
     let tr = new TestRunner("Compressor");
     let assert = tr.assert;

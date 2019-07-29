@@ -406,7 +406,7 @@ hours
           </tr>
           <tr>
             <th class="input_label">
-              <span data-info="#infoLifetime">
+              <span data-info="#infoCompressor">
                 Static Compressor
               </span>
             </th>
@@ -415,7 +415,7 @@ hours
               <input type="number" class="integer" step="any" required name="static_filter_lifetime"> hours
               <table>
                 <tr>
-                  <td>Coefficients:</td>
+                  <td>Coefficients</td>
                   <td class="widest">
                     A <input type="number" class="number" step="any" required name="static_filter_coeff_a">
                     B <input type="number" class="number" step="any" required name="static_filter_coeff_b"><br/>
@@ -424,21 +424,27 @@ hours
                   </td>
                 </tr>
                 <tr>
-                  <td>Intake temperature sensor ID:</td>
+                  <td>
+                    Intake temperature sensor ID
+                  </td>
                   <td>
                     <input type="text" name="static_intake_temp_id">
                   </td>
                 </tr>
                 <tr>
-                  <td>Intake humidity sensor ID:</td>
+                  <td>
+                    Intake humidity sensor ID
+                  </td>
                   <td>
                     <input type="text" name="static_intake_hum_id">
                   </td>
                 </tr>
                 <tr>
-                  <td>Third stage head temperature sensor ID:</td>
                   <td>
-                    <input type="text" name="static_3rd_stage_temp_id">
+                    Internal temperature sensor ID
+                  </td>
+                  <td>
+                    <input type="text" name="static_internal_temp_id">
                   </td>
                 </tr>
               </table>
@@ -446,7 +452,7 @@ hours
           </tr>
           <tr>
             <th class="input_label">
-              <span data-info="#infoLifetime">
+              <span data-info="#infoCompressor">
                 Portable Compressor
               </span>
             </th>
@@ -634,9 +640,13 @@ hours
     <div class="hidden info" id="infoMaxPPO2">
       Maximum ppO<sub>2</sub> used when calculating MOD
     </div>  
-    <div class="hidden info" id="infoLifetime">
-      Lifetime is the predicted lifetime of a filter that is run at the optimum
-      temperature. The coefficients are for the filter temperature degradation curve. See <a href="https://github.com/cdot/HSAC#compressor" target="_blank">https://github.com/cdot/HSAC<a> for more
+    <div class="hidden info" id="infoCompressor">
+      Filter lifetime predictions are made based on the temperature of the
+      intake air at runtime. The predicted lifetime is the lifetime of a
+      filter that is run at the optimum temperature (usually 20&deg;C).
+      The coefficients are for the filter temperature degradation curve. The
+      sensor IDs are the unique identifiers for the different environmental
+      sensors. See <a href="https://github.com/cdot/HSAC#compressor" target="_blank">https://github.com/cdot/HSAC<a> for more.
     </div>
     <div class="hidden info" id="infoDB">
       Two databases are used:

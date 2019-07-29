@@ -27,23 +27,30 @@ and cross-links to inventory
 Help information is readily available throughout the application through the <span class="fas fa-info-circle"></span> buttons.
 
 ### Compressor
-Compressor filter performance degrades significantly at higher
-temperatures, so the temperature is recorded with the runtime to
-maintain a running estimate of remaining lifetime. Filter performance
-degradation follows a curve published by compressor manufacturers,
-which is modelled using a symmetric sigmoidal curve
+Compressor manufacturers usually publish guidelines for the expected lifetime
+of the filters in their compressors. This normally includes a predicted
+lifetime for the filter when the compressor is run at a typical temperature
+(e.g. 20&deg;C). Compressor filter performance degrades significantly at higher
+temperatures (and generally improves slightly at lower temperatures), so
+manufacturers usually publish a curve indicating expected lifetime at
+different temperatures. This is normally an exponential curve that can be
+modelled using a symmetric sigmoidal curve
 `F = D + (A - D) / (1 + (T / C) ^ B)` where T is the
-temperature, F is a degradation factor, and A, B, C and D are
-constants. After each run the filter life at that temperature is predicted and
-the proportion of filter life used on that run is subtracted from the total
-predicted runtime for the filter.
+temperature, F is a lifetime degradation factor, and A, B, C and D are
+constants. We can apply this to the predicted lifetime Lp to obtain a
+predicted lifetime at that temperature in hours `Lpt = F * Lp`. For a runtime of dT hours, we can then obtain an estimate of "filter lifetime used" `Flu = dT / Lpt`. We then subtract that from `Lp` to get a new filter life prediction. 
 
-The default constants for the static compressor are derived from the data
-provided by Coltri for an MCH 16/ET, and for the portable compressor by Bauer
-for a PE100, though you can provide your own
+(Note: an improvement might be to make the prediction based on the average temperature of the last 5 runs, rather than the ideal temperature)
+
+The Sheds application supports recording the temperature and humidity with
+the runtime, either using electronic sensors or manual data entry. See <a href="#Sensors">Sensors</a> for more.
+
+The default constants for the static compressor prediction are derived from
+data provided by Coltri for an MCH 16/ET, and for the portable compressor
+by Bauer for a PE100, though you can provide your own
 coefficients to match your compressor/filters in the settings
 (accessed using the <span class="fas fa-sliders-h"></span> icon on the top
-right).
+right) (http://www.mycurvefit.com provides a convenient way to fit a curve to a set of data points)
 
 ### Loans
 Outgoing loans are recorded by selection from the inventory. Loan
@@ -182,6 +189,11 @@ extract data from the core databases (which are themselves spreadsheets)
 using `IMPORTRANGE`. The proxy sheets are then published as CSV. This
 approach gives us fine-grained control over what data enters the public
 domain.
+
+## Sensors
+The Sheds app is designed to capture environmental information to assist in filter life prediction. This can be done interactively, or can be done using digital sensors attached to a microcontroller. The app can refer to a file stored in WebDAV to obtain sensor data. This file is a CSV file with fields `Sensor ID,Date,Sample` and contains one line for each sample point. The file's URL and the requisite Sensor ID's are configured in the app settings dialog.
+
+In HSAC we use a Raspberry Pi Zero to capture sensor data from DHT11 and DS18B20 one-wire sensors. See the README in the `sensors` subdirectory for more.
 
 ## About
 Sheds was written by Crawford Currie http://c-dot.co.uk and is licensed
