@@ -7,7 +7,7 @@
  * @param params.config Config object
  * @param params.roles Roles object
  */
-define("app/js/Loans", ["app/js/Entries", "tablesorter", "app/js/jq/in-place"], (Entries) => {
+define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 
     class Loans extends Entries {
         constructor(params) {
@@ -386,7 +386,7 @@ define("app/js/Loans", ["app/js/Entries", "tablesorter", "app/js/jq/in-place"], 
                 this.capture = $.extend({}, this.defaults);
                 this.load_tfoot();
                 $("#loan_table").trigger("updateAll");
-                $("#loan_table").tablesorter({
+                /*$("#loan_table").tablesorter({
                     cancelSelection: true,
                     selectorHeaders: "> thead th",
                     selectorSort: "th",
@@ -395,7 +395,7 @@ define("app/js/Loans", ["app/js/Entries", "tablesorter", "app/js/jq/in-place"], 
                     theme: 'jui',
                     delayInit: true,
                     dateFormat: "ddmmyyyy"
-                });
+                });*/
             });
         };
 

@@ -33,7 +33,7 @@ requirejs.config({
         // text! plugin, used for importing css
         //"text" : "app/libs/text" + min,
 
-        "jquery" :"app/libs/jquery-3.4.1" + min,
+        "jquery" :"app/libs/jquery" + min,
         "jquery-ui" : "app/libs/jquery-ui" + min,
         "js-cookie" : "app/libs/js.cookie" + min,
         "jquery-validate" : "app/libs/jquery.validate" + min,
@@ -45,8 +45,10 @@ requirejs.config({
     }
 });
 
-requirejs(["jquery", "jquery-ui", "app/js/Sheds"], function (jq, jqui, Sheds) {
+requirejs(["jquery", "jquery-ui"], function () {
     $(() => {
-        new Sheds(params).begin();
+        requirejs(["app/js/Sheds"], function(Sheds) {
+            new Sheds(params).begin();
+        });
     });
 });

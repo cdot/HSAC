@@ -254,3 +254,8 @@ input[name="temperature"], input[name="humidity"] {
     color: white;
     font-size: 50%;
 }
+
+#compressor_alarm {
+    color: white;
+    background-color: red;
+}

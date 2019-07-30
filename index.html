@@ -27,7 +27,7 @@
     <link rel="apple-touch-icon" href="app/images/apple-touch-icon.png">
 
     <link href="app/libs/jquery-ui/jquery-ui.css" rel="stylesheet">
-    <link href="app/libs/jquery-ui.icon-font.min.css" rel="stylesheet">
+    <link href="app/libs/icon-font/icon-font.min.css" rel="stylesheet">
     <link href="app/libs/theme.jui.min.css" rel="stylesheet">
     <link href="app/libs/jquery-confirm.min.css" rel="stylesheet">
     
@@ -35,8 +35,8 @@
     <link href="app/css/in-place.css" rel="stylesheet">
     <link href="app/css/Sheds.css" rel="stylesheet">
     
-    <link href="app/libs/font-awesome/css/solid.min.css" rel="stylesheet">
-    <link href="app/libs/font-awesome/css/fontawesome.min.css" rel="stylesheet">
+    <link href="app/libs/font-awesome/css/fontawesome.css" rel="stylesheet">
+    <link href="app/libs/font-awesome/css/solid.css" rel="stylesheet">
 
     <script data-main="app/js/main" src="app/libs/require.js"></script>
 
@@ -59,6 +59,10 @@
         </ul>
 
         <div id="static" class="crowded_tab">
+          <div id="compressor_alarm" style="display:none">
+            COMPRESSOR INTERNAL TEMPERATURE IS TOO HIGH!
+            <span id="compressor_internal_temp"></span>&deg;C
+          </div>
           <form id="static_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span> on
@@ -438,11 +442,21 @@ hours
                   </td>
                 </tr>
                 <tr>
-                  <td>
-                    Internal temperature sensor ID
+                  <td>Compressor sensor data file URL:</td>
+                  <td class="widest">
+                    <input style="width:100%" type="text" url name="static_sensor_url">
                   </td>
-                  <td>
-                    <input type="text" name="static_internal_temp_id">
+                </tr>
+                <tr>
+                  <td>Compressor alarm sensor ID:</td>
+                  <td class="widest">
+                    <input style="width:100%" type="text" name="static_alarm_sensor_id">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Compressor alarm temperature:</td>
+                  <td class="widest">
+                    <input style="width:100%" type="text" name="static_alarm_temp">
                   </td>
                 </tr>
               </table>
@@ -484,12 +498,6 @@ hours
                   <td>Local cache (WebDAV) URL:</td>
                   <td class="widest">
                     <input class="widest" type="text" url name="cache_url">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Compressor sensor data file URL:</td>
-                  <td class="widest">
-                    <input style="width:100%" type="text" url name="static_sensor_url">
                   </td>
                 </tr>
               </table>

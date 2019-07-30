@@ -44,7 +44,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     static_filter_coeff_d: -0.4806983,
                     static_intake_temp_id: null,
                     static_intake_hum_id: null,
-                    static_internal_temp_id: null
+                    static_alarm_temp: 90,
+                    static_alarm_sensor_id: null
                 },
                 this.debug
             );
@@ -202,7 +203,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             })
             .done((list) => {
                 // The CSV is structured as:
-                // ID time sample
+                // ID,time,sample
                 // sample may be humidity or temperature depending on
                 // sensor type
                 const rows = $.csv.toArrays(list);
@@ -220,22 +221,36 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 $("input[data-sampler]").each(function() {
                     self.update_sampled($(this));
                 });
+                // Check alarm sensor
+                let alarm_sensor = this.config.get("static_alarm_sensor_id");
+                let alarm_temp = parseFloat(this.config.get("static_alarm_temp"));
+                $("#compressor_internal_temp").text(self.samples[alarm_sensor].sample);
+                if (alarm_sensor
+                    && self.samples[alarm_sensor]
+                    && self.samples[alarm_sensor].sample >= alarm_temp) {
+                    $("#compressor_alarm").show();
+                    if (typeof Audio !== "undefined") {
+                        var snd = new Audio("app/sounds/siren.wav");
+                        snd.play();
+                    }
+                } else
+                    $("#compressor_alarm").hide();
             })
             .fail((e) => {
                 if (this.debug) this.debug("Could not get samples:", e);
             })
             .always(() => {
-                // Queue the next poll for 5s hence
+                // Queue the next poll for 10s hence
                 this.sensor_tick =
-                setTimeout(() => { self.read_sensors(); }, 5000);
+                setTimeout(() => { self.read_sensors(); }, 10000);
             });
         }
         
         initialise_ui() {
             let self = this;
             // Generics
-            $("button").button();
             $(".spinner").spinner();
+            $("button").button();
             $("input[type='checkbox']").checkboxradio();
             $('.ui-spinner-button').click(function () {
                 $(this).siblings('input').change();

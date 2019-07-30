@@ -10,18 +10,20 @@ const Fs = require('fs-extra');
 const JQUERY = "https://code.jquery.com/";
 const CLOUDFLARE = "https://cdnjs.cloudflare.com/ajax/libs/";
 const JSDELIVR = "https://cdn.jsdelivr.net/npm/";
-const MKKECK = "https://mkkeck.github.io/jquery-ui-iconfont/styles/";
 const JQUERY_UI = JQUERY + "ui/1.12.1";
 const JQUERY_UI_THEME = JQUERY_UI + "/themes/smoothness";
 
 function get(url, file) {
     console.log("rm",file);
-    return request(url)
+    return request({
+        encoding: null,
+        uri: url
+    })
     .then((content) => {
         return Fs.writeFile(file, content);
     })
     .catch((e) => {
-        console.error("Error fetching", url);
+        console.error("Error fetching", url,e);
     });
 }
 
@@ -142,9 +144,15 @@ let files = [
         exts: [ ".png" ]
     },
     {
-        target: "jquery-ui.icon-font",
-        url: MKKECK + "jquery-ui.icon-font",
+        target: "icon-font/icon-font",
+        url: "https://raw.githubusercontent.com/mkkeck/jquery-ui-iconfont/master/jquery-ui-1.12.icon-font",
         exts: [ ".css", ".min.css" ]
+    },
+    {
+        target: "icon-font/font/jquery-ui",
+        url: "https://github.com/mkkeck/jquery-ui-iconfont/blob/master/font/jquery-ui",
+        url_params: "?raw=true",
+        exts: [ ".woff", ".woff2", ".ttf", ".eot" ]
     },
     {
         target: "theme.jui",
@@ -169,7 +177,7 @@ let files = [
     {
         target: "font-awesome/webfonts/fa-solid-900",
         url: CLOUDFLARE + "font-awesome/5.9.0/webfonts/fa-solid-900",
-        exts: [ ".woff", ".woff2", ".ttf" ]
+        exts: [ ".woff", ".woff2", ".ttf", ".svg" ]
     }
 ];
 
@@ -185,7 +193,8 @@ for (let file of files) {
         throw "Bad";
     }
     for (let ext of file.exts)
-        promises.push(get(file.url + ext, file.target + ext));
+        promises.push(get(file.url + ext + (file.url_params || ""),
+                          file.target + ext));
 }
 
 Promise.all(promises)
