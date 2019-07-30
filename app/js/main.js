@@ -31,24 +31,17 @@ requirejs.config({
     },
     paths: {
         // text! plugin, used for importing css
-        //"text" : "https://cdnjs.cloudflare.com/ajax/libs/require-text/2.0.12/text" + min,
+        //"text" : "app/libs/text" + min,
 
-        "jquery" :"https://code.jquery.com/jquery-3.4.1" + min,
-        
-        "jquery-ui" : "https://code.jquery.com/ui/1.12.1/jquery-ui" + min,
-
-        "js-cookie" : "https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie" + min,
-
-        "jquery-validate" : "https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate" + min,
-        "additional-methods" : "https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/additional-methods" + min,
-
-        "jquery-csv" : "https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.5/jquery.csv" + min,
-
-        "touch-punch" : "https://cdn.jsdelivr.net/npm/jquery-ui-touch-punch@0.2.3/jquery.ui.touch-punch" + min,
-        
-        "jquery-confirm" : "https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min", // only min available
-
-        "tablesorter" : "https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.combined" + min
+        "jquery" :"app/libs/jquery-3.4.1" + min,
+        "jquery-ui" : "app/libs/jquery-ui" + min,
+        "js-cookie" : "app/libs/js.cookie" + min,
+        "jquery-validate" : "app/libs/jquery.validate" + min,
+        "additional-methods" : "app/libs/additional-methods" + min,
+        "jquery-csv" : "app/libs/jquery.csv" + min,
+        "touch-punch" : "app/libs/jquery.ui.touch-punch" + min,
+        "jquery-confirm" : "app/libs/jquery-confirm.min", // only min available
+        "tablesorter" : "app/libs/jquery.tablesorter.combined" + min
     }
 });
 
