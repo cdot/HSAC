@@ -471,10 +471,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 // Trying to repeatedly connect doesn't provide any
                 // useful feedback. Rejecting at least gives a chance
                 // to feeback.
-                if (e.body) {
-                    console.log(e);
-                    $("#loading").html(e.body);
-                }
+                if (e.html)
+                    $("#loading").html(e.html);
                 return Promise.reject(e);
             });
 
