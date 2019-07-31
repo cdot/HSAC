@@ -1,4 +1,4 @@
-define("sensors/js/SampleStore", [ "webdav"], function(WebDAV) {
+define("js/SampleStore", [ "webdav" ], function(WebDAV) {
 
     /**
      * Singleton interface to a webdav service that stores .csv
@@ -59,6 +59,11 @@ define("sensors/js/SampleStore", [ "webdav"], function(WebDAV) {
 
                 // And save the new body
                 return this.mDAV.putFileContents(this.mPath,  body);
+            })
+            .catch((e) => {
+                // WebDAV errors don't kill the service
+                console.error("Failed to update", path);
+                return Promise.resolve();
             });
         }
     }

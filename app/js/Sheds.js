@@ -460,7 +460,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             })
             .catch((e) => {
                 if (self.debug) self.debug(url, "connect failed", e);
-                if (e == 401) {
+                if (e.status === 401) {
                     // XMLHttpRequest will only prompt for credentials if
                     // the request is for the same origin with no explicit
                     // credentials. So we have to handle credentials.

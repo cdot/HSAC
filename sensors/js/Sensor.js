@@ -1,4 +1,4 @@
-define("sensors/js/Sensor", function(Fs) {
+define("js/Sensor", function(Fs) {
 
     /**
      * Common base class for sensors. Controls polling.
@@ -10,17 +10,16 @@ define("sensors/js/Sensor", function(Fs) {
     class Sensor {
 
         /**
-         * @param age_limit maximum sample age, in seconds
-         * @param delay ideal delay between samples, in milliseconds
-         * @param store SampleStore
+         * @param config {age_limit:, delay:, store: } age_limit: maximum sample
+         * age, in seconds, delay: between samples, in milliseconds, 
+         * store: SampleStore
          */
-        constructor(age_limit, delay, store) {
-            this.mStore = store;
-            this.mAgeLimit = age_limit * 1000;
-            if (delay <= 100)
-                delay = 100;
-            this.mDelay = delay;
-            this.mAgeLimit = age_limit;
+        constructor(config) {
+            this.mStore = config.store;
+            if (!config.delay || config.delay <= 100)
+                config.delay = 100;
+            this.mDelay = config.delay;
+            this.mAgeLimit = (config.age_limit || 600000);
         }
 
         /**
@@ -39,7 +38,7 @@ define("sensors/js/Sensor", function(Fs) {
          * @return {Promise} to sample the sensor and save the sample
          */
         sample() {
-            throw "subclass of Sensor does not implement sample()"
+            return Promise.reject("subclass of Sensor does not implement sample()");
         }
         
         /**
@@ -48,11 +47,11 @@ define("sensors/js/Sensor", function(Fs) {
         start() {
             let self = this;
             this.sample()
+            .then(() => {
+                setTimeout(() => self.start(), self.mDelay);
+            })
             .catch((e) => {
                 console.error("Sampling error: " + e);
-            })
-            .finally(() => {
-                setTimeout(() => self.start(), self.mDelay);
             });
         }
     }

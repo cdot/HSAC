@@ -19,13 +19,14 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
         };
 
         _error(res) {
-            if (typeof res.body === "string" && res.body.length > 0)
-                return new Error(res.body.replace(/^.*<body>(.*)<\/body>.*$/i, "$1"));
-            return new Error("WebDAV Error " + res.status);
+            if (typeof res.body === "string" && res.body.length > 0) {
+                res.html =
+                res.body.replace(/^.*<body>(.*)<\/body>.*$/i, "$1");
+            }
+            return res;
         };
 
         connect(url) {
-
             if (url && url.lastIndexOf('/') !== url.length - 1)
                 url += '/';
 
@@ -57,15 +58,11 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
         };
 
         disconnect() {
-            "use strict";
-
             this.DAV = null;
             return Promise.resolve();
         };
 
         read(path) {
-            "use strict";
-            
             const self = this;
             path = path.replace(/^\/+/, "");
             if (this.debug) this.debug("WebDAVStore: Reading " + path);

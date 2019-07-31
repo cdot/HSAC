@@ -1,24 +1,28 @@
 let requirejs = require('requirejs');
+let ROOT = __dirname.replace(/\/[^\/]*$/, "");
+console.log("Starting in", ROOT);
 
 requirejs.config({
-    baseUrl: "../.."
+    baseUrl: ROOT
 });
 
 /**
  * See sensors/README.md for information
  */
-requirejs(["sensors/js/SampleStore", "fs-extra"], function(SampleStore, Fs) {
+requirejs(["js/SampleStore", "fs-extra"], function(SampleStore, Fs) {
     // Load config
-    const config = JSON.parse(Fs.readFileSync("config.json"));
+    const config = JSON.parse(Fs.readFileSync(ROOT + "/config.json"));
 
     // Make webdav interface
     const store = new SampleStore(config.url, config.user, config.pass);
 
     // Make sensors
-    for (let cfg in config.sensors) {
+    for (let cfg of config.sensors) {
         let clss = cfg["class"];
-        requirejs(["sensors/js/" + clss], function(Sensor) {
-            let sensor = new Sensor(cfg, store);
+        //console.debug("Load", clss);
+        requirejs(["js/" + clss], function(Sensor) {
+            cfg.store = store;
+            let sensor = new Sensor(cfg);
             sensor.start();
         });
     }

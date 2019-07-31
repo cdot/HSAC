@@ -1,4 +1,4 @@
-define("sensors/js/DHTxx", ['node-dht-sensor', "sensors/js/Sensor"], function(DHT, Sensor) {
+define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, Fs, Sensor) {
 
     /**
      * Interface to DHTxx temperature and humidity sensors on 
@@ -7,38 +7,42 @@ define("sensors/js/DHTxx", ['node-dht-sensor', "sensors/js/Sensor"], function(DH
     class DHTxx extends Sensor {
 
         /**
-         * @param dht_type 11 or 22
-         * @param gpio pin
-         * @param prefix prefix for sample names e.g. "DHT_"
-         * @param age_limit maximum sample age, in seconds
-         * @param delay ideal delay between samples, in milliseconds
-         * @param store SampleStore
+         * @param config {type, gpio, prefix} type 11 or 22,
+         * gpio pin, prefix for sample names e.g. "DHT_". Plus
+         * config for Sensor.
          */
-        constructor(dht_type, gpio, prefix, age_limit, delay, store) {
-            super(age_limit, delay, store);
+        constructor(config) {
+            super(config);
 
-            this.mDevice = dht_type;
-            this.mGpio = gpio;
-            this.mPrefix = prefix;
+            this.mDevice = (config.type || 11);
+            this.mGpio = (config.gpio || 14);
+            this.mPrefix = (config.prefix || "DHT_");
         }
 
         /**
          * @Override
          */
 	sample() {
-            return new Promise((resolve, reject) => {
-                DHT.read(this.mDevice, this.mGpio,
-                         (err, temperature, humidity) => {
-                             if (err)
-                                 reject(err);
-                             else
-                                 resolve({t: temperature, h: humidity});
-                         });
-            }).then((r) => {
-                return Promise.all([
-                    this.addSample(this.mPrefix + "_temperature", r.t),
-                    this.addSample(this.mPrefix + "_humidity", r.h)
-                ]);
+            return Fs.stat("/dev/gpiomem")
+            .catch((err) => {
+                return Promise.reject("GPIO not found for DHT");
+            })
+            .then(() => {
+                return new Promise((resolve, reject) => {
+                    DHT.read(
+                        this.mDevice, this.mGpio,
+                        (err, temperature, humidity) => {
+                            if (err)
+                                reject(err);
+                            else
+                                resolve({t: temperature, h: humidity});
+                        });
+                }).then((r) => {
+                    return Promise.all([
+                        this.addSample(this.mPrefix + "_temperature", r.t),
+                        this.addSample(this.mPrefix + "_humidity", r.h)
+                    ]);
+                });
             });
         }
     }

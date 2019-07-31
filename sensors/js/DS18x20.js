@@ -1,4 +1,4 @@
-define("sensors/js/DS18x20", ['ds18b20-raspi', "sensors/js/Sensor"], function(DS18B20_raspi, Sensor) {
+define("js/DS18x20", ['ds18b20-raspi', "js/Sensor"], function(DS18B20_raspi, Sensor) {
     
     /**
      * Interface to DS18x20 device on one-wire bus connected to
@@ -7,15 +7,13 @@ define("sensors/js/DS18x20", ['ds18b20-raspi', "sensors/js/Sensor"], function(DS
     class DS18x20 extends Sensor {
         
         /**
-         * @param id one-wire sensor ID for DS18x20
-         * @param age_limit maximum sample age, in seconds
-         * @param delay ideal delay between samples, in milliseconds
-         * @param store SampleStore
+         * @param config { id: } id: one-wire sensor ID for DS18x20
+         * Plus config for Sensor
          */
-        constructor(id, age_limit, delay, store) {
-            super(age_limit, delay, store);
+        constructor(config) {
+            super(config);
 
-            this.mId = id;
+            this.mId = config.id;
         }
 
         /**
@@ -26,15 +24,15 @@ define("sensors/js/DS18x20", ['ds18b20-raspi', "sensors/js/Sensor"], function(DS
                 DS18B20_raspi.readSimpleC((err, temp) => {
                     if (err) {
                         reject(err);
+                    } else if (typeof temp !== "number") {
+                        // At least once this has been "boolean"!
+                        console.error("Unexpected result from ds18x20.get");
+                        resolve();
                     } else {
-                        if (typeof temp !== "number")
-                            // At least once this has been "boolean"!
-                            reject("Unexpected result from ds18x20.get");
-                        resolve(temp);
+                        this.addSample(this.mId, temp)
+                        .then(() => resolve);
                     }
                 });
-            }).then((temp) => {
-                return this.addSample(this.mId, temp);
             });
         }
     }
