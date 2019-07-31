@@ -467,18 +467,33 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     if (self.debug) self.debug("Auth failure, get auth");
                     return self.promise_to_authenticate(url);
                 }
-                return self.promise_to_reconnect(url);
+                //return self.promise_to_reconnect(url);
+                // Trying to repeatedly connect doesn't provide any
+                // useful feedback. Rejecting at least gives a chance
+                // to feeback.
+                if (e.body) {
+                    console.log(e);
+                    $("#loading").html(e.body);
+                }
+                return Promise.reject(e);
             });
 
         }
 
         begin() {
-            let url = Cookies.get("cache_url")
             this.initialise_ui();
+
+            let url = Cookies.get("cache_url")
+            let promise;
             if (typeof url === "undefined" || url.length == 0)
-                this.promise_to_reconnect();
+                promise = this.promise_to_reconnect();
             else
-                this.cache_connect(url);
+                promise = this.cache_connect(url);
+
+            promise
+            .catch((e) => {
+                console.error("Internal failure", e);
+            });
         }
     }
 

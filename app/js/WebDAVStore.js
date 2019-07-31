@@ -20,8 +20,10 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
 
         _error(res) {
             if (typeof res.body === "string" && res.body.length > 0) {
-                res.html =
-                res.body.replace(/^.*<body>(.*)<\/body>.*$/i, "$1");
+                res.html = res.body
+                .replace(/\n/g, " ") // Firefox doesn't support dotAll
+                .replace(/^.*<body>/i, "")
+                .replace(/<\/body>.*$/i, "");
             }
             return res;
         };
