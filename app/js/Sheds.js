@@ -42,9 +42,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     static_filter_coeff_b: 1.149582,
                     static_filter_coeff_c: 11.50844,
                     static_filter_coeff_d: -0.4806983,
-                    static_intake_temp_id: null,
-                    static_intake_hum_id: null,
-                    static_alarm_temp: 90,
+                    sensor_url: null,
+                    alarm_temp: 90,
                 },
                 this.debug
             );
@@ -137,111 +136,127 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
         }
 
         /**
-         * Update a sampled input field
-         */
-        update_sampled($el) {
-            // The data-sampler attribute specifies:
-            // config: the config item that provides the sensor ID
-            //         which uniquely identifies samples in the
-            //         sample data file
-            // max_age: maximum age for valid samples
-            // sampled: element id for the element to be shown
-            //          when a sample is found and deemed valid
-            // unsampled: element id for the element to be shown
-            //          when the sample is too old or is unavailable
-
-            let spec = $el.data("sampler");
-
-            // Look up the config to get the sensor ID for this
-            // input. This indirection is required because we don't
-            // want to lock sensor id's into the HTML
-            if (typeof spec.config !== "undefined")
-                spec.id = this.config.get(spec.config);
-
-            let sample = this.samples[spec.id];
-            let thresh = Date.now() - spec.max_age;
-            if (typeof sample === "undefined" || sample.time < thresh) {
-                // Sample unavailable or too old
-                if (this.debug) this.debug("No sample for", spec.id, "or too old");
-                $el.prop("readonly", null);
-                $el.removeClass("greyed_out");
-                $(spec.sampled).hide();
-                $(spec.unsampled).show();
-                return;
-            }
-            // sample available and young enough
-            $el.prop("readonly", "readonly");
-            $el.addClass("greyed_out");
-            $el.val(sample.sample);
-            $(spec.sampled).show();
-            $(spec.unsampled).hide();
-            // Switch off validation message
-            $el.closest(".validated_form").valid();
-        }
-
-        /**
          * Update the sensor readings from the remote sensor URL
          */
         read_sensors() {
+            let self = this;
+            
+            /**
+             * Update a sampled input field
+             */
+            function update_sampled(id, sample) {
+                // The data-samples attribute specifies the sample file to get
+                // sample data.
+                let $el = $("input[data-samples='" + id + "']");
+
+                // data-sample-config further has:
+                // max_age: maximum age for valid samples
+                // sampled: element id for the element to be shown
+                //          when a sample is found and deemed valid
+                // unsampled: element id for the element to be shown
+                //          when the sample is too old or is unavailable
+                let spec = $el.data("sample-config");
+
+                if (sample) {
+                    let thresh = Date.now() - spec.max_age;
+                    if (sample.time < thresh) {
+                        // Sample unavailable or too old
+                        if (self.debug) self.debug(
+                            "Sample for", id, "too old");
+                        $el.prop("readonly", null);
+                        $el.removeClass("greyed_out");
+                        $(spec.sampled).hide();
+                        $(spec.unsampled).show();
+                        return;
+                    }
+                }
+                // sample available and young enough
+                $el.prop("readonly", "readonly");
+                $el.addClass("greyed_out");
+                $el.val(sample.sample);
+                $(spec.sampled).show();
+                $(spec.unsampled).hide();
+                // Switch off validation message
+                $el.closest(".validated_form").valid();
+            }
+
+            function get_sample(sensor) {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: url + "/" + sensor + ".csv",
+                        data: {
+                            t: Date.now() // defeat cache
+                        },
+                        dataType: "text"
+                    })
+                    .done((list) => {
+                        // The CSV is structured as rows of time,sample
+                        // where time is epoch ms
+                        const rows = $.csv.toArrays(list);
+                        // Get the most recent sample for each unique ID
+                        let last = rows.length - 1;
+                        if (last < 0) {
+                            reject();
+                        } else {
+                            resolve({
+                                time: new Date(parseInt(rows[last][0])),
+                                sample: parseFloat(rows[last][1])
+                            });
+                        }
+                    });
+                });
+            }
+            
             if (this.sensor_tick)
                 clearTimeout(this.sensor_tick);
             this.sensor_tick = null;
-            const url = this.config.get("static_sensor_url");
+            const url = this.config.get("sensor_url");
             if (typeof url !== "string" || url.length === 0) {
                 if (this.debug) this.debug("No sensor URL set");
                 return;
             }
 
-            let self = this;
-            $.ajax({
-                url: url,
-                data: {
-                    t: Date.now() // defeat cache
-                },
-                dataType: "text"
-            })
-            .done((list) => {
-                // The CSV is structured as:
-                // ID,time,sample
-                // sample may be humidity or temperature depending on
-                // sensor type
-                const rows = $.csv.toArrays(list);
-                // Get the most recent sample for each unique ID
-                self.samples = {};
-                for (let r of rows) {
-                    let id = r[0];
-                    let row = {
-                        time: r[1], sample: r[2]
-                    };
-                    self.samples[id] = row;
-                }
-                // Have to update all sample fields, as we don't know
-                // the right ID without redirecting through config
-                $("input[data-sampler]").each(function() {
-                    self.update_sampled($(this));
-                });
-                // Check alarm sensor
-                let alarm_sensor = this.config.get("static_alarm_sensor_id");
-                let alarm_temp = parseFloat(this.config.get("static_alarm_temp"));
-                $("#compressor_internal_temp").text(self.samples[alarm_sensor].sample);
-                if (alarm_sensor
-                    && self.samples[alarm_sensor]
-                    && self.samples[alarm_sensor].sample >= alarm_temp) {
-                    $("#compressor_alarm").show();
-                    if (typeof Audio !== "undefined") {
-                        var snd = new Audio("app/sounds/siren.wav");
-                        snd.play();
-                    }
-                } else
-                    $("#compressor_alarm").hide();
-            })
-            .fail((e) => {
-                if (this.debug) this.debug("Could not get samples:", e);
-            })
-            .always(() => {
-                // Queue the next poll for 10s hence
+            let promises = [];
+            
+            $("input[data-samples]").each(function() {
+                let name = $(this).data("samples");
+                promises.push(
+                    get_sample(name)
+                    .then((sample) => {
+                        update_sampled(name, sample);
+                    })
+                    .catch((e) => {
+                        if (self.debug) self.debug(
+                            "No sample for", name, "or too old");
+                        update_sampled(name, null);
+                    }));
+            });
+
+            // Check alarm sensors
+            $(".alarm[data-samples]").each(function() {
+                let $el = $(this);
+                let name = $el.data("samples");
+                promises.push(
+                    get_sample(name)
+                    .then((sample) => {
+                        $(".report_" + name).text(sample.sample);
+                        let alarm_temp = self.config.get(name + "_alarm");
+                        if (sample.sample >= alarm_temp) {
+                            $el.show();
+                            if (typeof Audio !== "undefined") {
+                                var snd = new Audio("app/sounds/siren.wav");
+                                snd.play();
+                            }
+                        } else
+                            $el.hide();
+                    }));
+            });
+
+            Promise.all(promises)
+            .then(() => {
+                // Queue the next poll for 30s hence
                 this.sensor_tick =
-                setTimeout(() => { self.read_sensors(); }, 10000);
+                setTimeout(() => { self.read_sensors(); }, 30000);
             });
         }
 
