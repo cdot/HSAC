@@ -38,7 +38,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 donation: 0
             };
 
-            var self = this;
+            let self = this;
 
             $(function () {
                 $("#loan_controls").hide();
@@ -71,7 +71,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 
                 // Add whatever is in 'capture' as a new loan (after validation)
                 $("#loan_add").on("click", () => {
-                    var bad = [];
+                    let bad = [];
                     try {
                         if (new Date(self.capture.date) > new Date())
                             bad.push("date");
@@ -141,14 +141,14 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
          * the cells in the tfoot that capture new loans
          */
         mod_number($td, field, isInteger) {
-            var entry = this.capture;
+            let entry = this.capture;
             if (typeof $td === "number") {
                 entry = this.get($td);
                 $td = $("<td></td>");
                 $td.css("text-align", "center");
             }
-            var type = this.keys[field];
-            var text = entry[field];
+            let type = this.keys[field];
+            let text = entry[field];
 
             if (type === "Date")
                 text = Entries.formatDate(text);
@@ -161,7 +161,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 $(this).edit_in_place({
                     changed: function (s) {
                         if (s !== entry[field]) {
-                            var v = Number(s);
+                            let v = Number(s);
                             if (isNaN(v) || isInteger && !v.isInteger())
                                 $td.addClass("error");
                             else {
@@ -180,13 +180,13 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
         }
 
         mod_select($td, field, set) {
-            var self = this;
-            var entry = this.capture;
+            let self = this;
+            let entry = this.capture;
             if (typeof $td === "number") {
                 entry = this.get($td);
                 $td = $("<td></td>");
             }
-            var text = entry[field];
+            let text = entry[field];
             $td.text(text);
 
             $td
@@ -220,13 +220,13 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
         }
 
         mod_date($td, field) {
-            var self = this;
-            var entry = this.capture;
+            let self = this;
+            let entry = this.capture;
             if (typeof $td === "number") {
                 entry = this.get($td);
                 $td = $("<td></td>");
             }
-            var date = entry[field];
+            let date = entry[field];
             if (typeof date !== "undefined")
                 $td.text(Entries.formatDate(date));
             else
@@ -254,8 +254,8 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
         };
 
         mod_item($td, field) {
-            var self = this;
-            var entry = this.capture;
+            let self = this;
+            let entry = this.capture;
             if (typeof $td === "number") {
                 entry = this.get($td);
                 $td = $("<td></td>");
@@ -281,28 +281,28 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 
         // The tbody is where current loans are recorded
         load_tbody () {
-            var order = $("#loan_table").data("order").split(",");
-            var $tbody = $("#loan_table>tbody");
+            let order = $("#loan_table").data("order").split(",");
+            let $tbody = $("#loan_table>tbody");
             $tbody.empty();
 
-            var show_all = $("#loan_show_all").is(':checked');
-            var someLate = false;
+            let show_all = $("#loan_show_all").is(':checked');
+            let someLate = false;
             this.each((row, r) => {
-                var active = (typeof row.returned === "undefined" ||
+                let active = (typeof row.returned === "undefined" ||
                               row.returned === "");
                 if (!active && !show_all)
                     return;
-                var $row = $("<tr></tr>");
-                var isLate = false;
+                let $row = $("<tr></tr>");
+                let isLate = false;
                 if (active) {
-                    var due = row.date.valueOf() +
+                    let due = row.date.valueOf() +
                         this.cfg.get("loan_return") * 24 * 60 * 60 * 1000;
                     if (due < Date.now()) {
                         isLate = true;
                         someLate = true;
                     }
                 }
-                for (var c = 0; c < order.length; c++) {
+                for (let c = 0; c < order.length; c++) {
                     switch (order[c]) {
                     case 'date':
                         $row.append(this.mod_date(r, "date"));
@@ -339,11 +339,11 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 
         // The tfoot is where new loans are entered
         load_tfoot() {
-            var order = $("#loan_table").data("order").split(",");
+            let order = $("#loan_table").data("order").split(",");
 
             $("#loan_table>tfoot").find(".loan_modified").removeClass("modified");
-            var $col = $("#loan_table>tfoot th").first();
-            for (var i = 0; i < order.length; i++) {
+            let $col = $("#loan_table>tfoot th").first();
+            for (let i = 0; i < order.length; i++) {
                 switch (order[i]) {
                 case 'date':
                     this.mod_date($col, "date");
@@ -405,10 +405,10 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
             });
         };
 
-        number_on_loan = function (item) {
-            var on_loan = 0;
+        number_on_loan(item) {
+            let on_loan = 0;
             this.each((row) => {
-                var active = (typeof row.returned === "undefined" ||
+                let active = (typeof row.returned === "undefined" ||
                               row.returned === "");
                 if (active && row.item === item)
                     on_loan += row.count;
