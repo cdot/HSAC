@@ -45,7 +45,6 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     static_intake_temp_id: null,
                     static_intake_hum_id: null,
                     static_alarm_temp: 90,
-                    static_alarm_sensor_id: null
                 },
                 this.debug
             );

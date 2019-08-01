@@ -40,13 +40,12 @@ Expect to see devices such as 28-0316027f81ff.
 The sampling program is run as follows:
 ```
 $ cd sensors/js
-$ node main.js
+$ node sensors.js
 ```
 The program reads its configuration from `config.json`. This file must
 contain the following configuration information:
 * sensors - list of sensor configurations
-* url - the base URL for the WebDAV service
-* path - the pathname for the sample file on WebDAV e.g. 'sensors.csv'
+* url - the base URL for the WebDAV folder where samples will be stored
 * user - the username for WebDAV
 * pass - the password for WebDAV
 
@@ -58,12 +57,12 @@ Each sensor configuration has at least:
 DHTxx sensors also have:
 * type - the type of the DHT sensor, either 11 or 22
 * gpio - the GPIO pin for DHT11 data
-* prefix - the prefix for the sensor IDs to used for DHT temperature
-  and humidity readings e.g. if prefix is "DHT" then the IDs used will
-  be "DHTtemperature" and "DHThumidity".
+* temperature_id: the id to use to record temperature readings
+* humidity_id: the id to use to record temperature readings
 
 DS18x20 sensors have:
-* id - the ID of the DS18B20 sensor
+* sensor_id - the ID of the DS18B20 sensor
+* sample_id - the ID to use to record samples
 
 ```
 an example `config.json` is:
@@ -74,15 +73,17 @@ an example `config.json` is:
    "class": "DHTxx",
    "type": 11,
    "gpio": 14,
-   "prefix": "DHT_",
+   "temperature_id": "intake_temperature",
+   "humidity_id": "intake_humidity",
    "age_limit": 86400,
    "delay": 60000
   },
   {
    "class": "DS18x20",
-   "id": "28-0316027f81ff",
+   "sensor_id": "28-0316027f81ff",
+   "sample_id": "internal_temperature",
    "age_limit": 86400,
-   "delay": 60000
+   "delay": 30000
   }
  ],
  "url": "http://192.168.1.22/DAV",
@@ -91,12 +92,11 @@ an example `config.json` is:
  "pass": "test",
  }
 ```
-Samples are recorded to the sample file in the format:
+This will record DHT11 samples read from GPIO 14 to "intake_temperature.csv" and "intake_humidity.csv", and seamples read from 28-0316027f81ff to "internal_temperature.csv". The DHT11 will be polled every 60 seconds, while the DS18x20 will be polled every 30 seconds. Samples will be kept a maximum of 24 hours. Sample files are in the format:
 ```
-ID,Date,Sample
+Date,Sample
 ```
-where ID is the sensor ID, Date is in epoch milliseconds, and Sample
-is the sample value.
+where Date is in epoch milliseconds, and Sample is the sample value.
 
 ## Running the application
 The sensors service needs to be started on boot, by `/etc/init.d/sensors.sh`
@@ -119,18 +119,16 @@ The sensors service needs to be started on boot, by `/etc/init.d/sensors.sh`
 #
 case "$1" in
   start)
-    /home/pi/HSAC/sensors/service.sh 2>&1 > /var/log/sensors/service.log
+    node /home/pi/HSAC/sensors/js/sensors.js > /var/log/sensors.log 2>&1 &
     ;;
   stop)
-    pid=`ps -Af | grep sensors/js/main.js | grep -v grep | sed -e 's/^[^0-9]*//;s/\s.*//'
+    pid=`ps -Af | grep "sensors/js/sensors.js" | grep -v grep | sed -e 's/^[^0-9]*//;s/\s.*//'
 `
     if [ "$pid"!="" ]; then
 	( echo "Service stopping $pid"; kill -9 $pid ) 2>&1 \
-	  >> /var/log/sensors/service.log
+	  >> /var/log/sensors.log
     fi
     ;;
 esac
 ```
-You will also have to create the directory /var/log/sensors.
-
 Note that if none of the specified sensors can be read the service will exit.

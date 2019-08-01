@@ -22,7 +22,6 @@ define("app/js/DAVClient", () => {
         if (!result)
             return;
 
-        
         return {
             name: result[2],
             namespace: result[1]

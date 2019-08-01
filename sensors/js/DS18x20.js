@@ -13,7 +13,13 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor"], function(DS18B20_raspi, Sen
         constructor(config) {
             super(config);
 
-            this.mId = config.id;
+            if (!config.sensor_id)
+                throw "DS18x20 no sensor_id";
+            if (!config.sample_id)
+                throw "DS18x20 no sample_id";
+
+            this.mSensorId = config.sensor_id;
+            this.mID = config.sample_id;
         }
 
         /**
@@ -29,7 +35,7 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor"], function(DS18B20_raspi, Sen
                         console.error("Unexpected result from ds18x20.get");
                         resolve();
                     } else {
-                        this.addSample(this.mId, temp)
+                        this.addSample(this.mID, temp)
                         .then(() => resolve);
                     }
                 });

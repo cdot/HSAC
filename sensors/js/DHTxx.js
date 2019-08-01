@@ -14,15 +14,26 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
         constructor(config) {
             super(config);
 
-            this.mDevice = (config.type || 11);
+            if (!config.type || config.type != 11 && config.type != 22)
+                throw "DHTxx bad type";
+            if (!config.temperature_id)
+                throw "DHTxx no temperature_id";
+            if (!config.humidity_id)
+                throw "DHTxx no humidity_id";
+            if (!config.gpio)
+                throw "DHTxx no gpio";
+
+            this.mDevice = config.type;
             this.mGpio = (config.gpio || 14);
-            this.mPrefix = (config.prefix || "DHT_");
+            this.mTempID = config.temperature_id;
+            this.mHumID = config.humidity_id;
         }
 
         /**
          * @Override
          */
 	sample() {
+            let self = this;
             return Fs.stat("/dev/gpiomem")
             .catch((err) => {
                 return Promise.reject("GPIO not found for DHT");
@@ -35,13 +46,13 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
                             if (err)
                                 reject(err);
                             else
-                                resolve({t: temperature, h: humidity});
+                                resolve([
+                                    self.addSample(self.mTempID, temperature),
+                                    self.addSample(self.mHumID, humidity)
+                                ]);
                         });
-                }).then((r) => {
-                    return Promise.all([
-                        this.addSample(this.mPrefix + "_temperature", r.t),
-                        this.addSample(this.mPrefix + "_humidity", r.h)
-                    ]);
+                }).then((promises) => {
+                    return Promise.all(promises);
                 });
             });
         }

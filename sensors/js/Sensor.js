@@ -10,22 +10,24 @@ define("js/Sensor", function(Fs) {
     class Sensor {
 
         /**
-         * @param config {age_limit:, delay:, store: } age_limit: maximum sample
+         * @param config {record_as:, age_limit:, delay:, store: }
+         * record_as: file to store samples to, age_limit: maximum sample
          * age, in seconds, delay: between samples, in milliseconds, 
          * store: SampleStore
          */
         constructor(config) {
             this.mStore = config.store;
-            if (!config.delay || config.delay <= 100)
-                config.delay = 100;
+            if (!config.delay || config.delay <= 1000)
+                config.delay = 1000;
             this.mDelay = config.delay;
-            this.mAgeLimit = (config.age_limit || 600000);
+            this.mAgeLimit = (config.age_limit || 600) * 1000;
         }
 
         /**
          * @protected
          * Used by subclasses to add a sample to the store
          * @param data sample data
+         * @param id to store the sample under
          * @return {Promise} to add the sample to the store
          */
         addSample(id, data) {

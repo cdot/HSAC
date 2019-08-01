@@ -145,7 +145,7 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
                    "FL " + comp.remaining_filter_life());
         });
     });
-    
+
     tr.addTest("accumulates usage", () => {
         store = $.extend({}, reset);
         var comp = new Compressor({ id: "test", config: cfg });
