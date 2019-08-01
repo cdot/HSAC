@@ -27,7 +27,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
             });
             this.cfg = params.config;
             this.roles = params.roles;
-            
+
             // Defaults used to populate the new entry row
             this.defaults = {
                 date: new Date(),

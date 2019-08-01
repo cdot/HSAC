@@ -31,7 +31,7 @@ define("js/Sensor", function(Fs) {
         addSample(id, data) {
             return this.mStore.addSample(data, this.mAgeLimit, id);
         }
-        
+
         /**
          * Pure virtual method to sample the sensor and pass the sample(s)
          * to the sample store by calling addSample()
@@ -40,7 +40,7 @@ define("js/Sensor", function(Fs) {
         sample() {
             return Promise.reject("subclass of Sensor does not implement sample()");
         }
-        
+
         /**
          * Start sampling
          */

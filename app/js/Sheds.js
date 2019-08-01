@@ -6,7 +6,7 @@
  */
 
 define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries", "app/js/Roles", "app/js/Compressor", "app/js/Loans", "app/js/Inventory", "app/js/Nitrox", "js-cookie", "jquery-validate", "jquery-confirm"], (Config, WebDAVStore, Entries, Roles, Compressor, Loans, Inventory, Nitrox, Cookies) => {
-    
+
     /**
      * Update time displays
      */
@@ -24,7 +24,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
         constructor(params) {
             if (params.debug)
                 this.debug = console.debug;
-            
+
             // Configuration defaults
             this.config = new Config(
                 new WebDAVStore(this.debug),
@@ -53,7 +53,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             this.roles = new Roles({
                 config: this.config
             });
-            
+
             this.static_compressor = new Compressor({
                 id: "static",
                 roles: this.roles,
@@ -74,7 +74,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             });
             this.nitrox = new Nitrox(this.config);
         }
-        
+
         /**
          * Update all UIs from the cache
          */
@@ -150,15 +150,15 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             //          when a sample is found and deemed valid
             // unsampled: element id for the element to be shown
             //          when the sample is too old or is unavailable
-                        
+
             let spec = $el.data("sampler");
-            
+
             // Look up the config to get the sensor ID for this
             // input. This indirection is required because we don't
             // want to lock sensor id's into the HTML
             if (typeof spec.config !== "undefined")
                 spec.id = this.config.get(spec.config);
-                        
+
             let sample = this.samples[spec.id];
             let thresh = Date.now() - spec.max_age;
             if (typeof sample === "undefined" || sample.time < thresh) {
@@ -192,7 +192,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 if (this.debug) this.debug("No sensor URL set");
                 return;
             }
-            
+
             let self = this;
             $.ajax({
                 url: url,
@@ -245,7 +245,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 setTimeout(() => { self.read_sensors(); }, 10000);
             });
         }
-        
+
         initialise_ui() {
             let self = this;
             // Generics
@@ -255,7 +255,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             $('.ui-spinner-button').click(function () {
                 $(this).siblings('input').change();
             });
-            
+
             $(".validated_form").each(function () {
                 $(this).validate({
                     // Don't ignore selects that are hidden by jQuery plugins
@@ -269,7 +269,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     $(this).blur();
                 }
             });
-            
+
             // Start the clock
             tick();
 
@@ -356,7 +356,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     $self.slider("value", $(data.friend).val());
                 }
             });
-            
+
             $(document).on("reload_ui", function () {
                 self.reload_ui().then(() => {
                     $("#loading").hide();
@@ -392,7 +392,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                         continue_without:  function () {
                             if (self.debug)
                                 self.debug("Continuing without cache");
-                    
+
                             $(document).trigger("reload_ui");
                             resolve();
                         }
@@ -438,7 +438,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     Cookies.set("cache_url", url, {
                         expires: 365
                     });
-                    
+
                     $(document).trigger("reload_ui");
                 })
                 .catch((e) => {

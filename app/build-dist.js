@@ -26,14 +26,14 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
     opts = opts.options;
     let debug = opts.debug ? console.debug : false;
     let dependencies = opts.deps;
-    
+
     function extend(a, b) {
         let join = {};
         if (!a)
             return b;
         if (!b)
             return a;
-        
+
         for (k in a) {
             if (a.hasOwnProperty(k))
                 join[k] = a[k];
@@ -65,7 +65,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
     // create the module path.
     function getModulePath(module, config) {
         let path = module;
-        
+
         if (config && config.paths && !config.order) {
             let order = [];
             for (let i in config.paths)
@@ -90,7 +90,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
             path = config.baseUrl + "/" + path;
         if (!/\.js$/.test(path))
             path = path + ".js";
-        
+
         return path;
     }
 
@@ -148,7 +148,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
     // processed by regexps.
     function analyseDependencies(module, config, js) {
         addDependency(module);
-        
+
         // Look for config
         let m = /\nrequirejs\.config\((.*?)\);/s.exec(js);
         if (m) {
@@ -162,7 +162,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
         // Look for require or define in a format we can analyse
         let re = /(?:(?:requirejs|define)\s*\(\s*(?:"[^"]*"\s*,\s*)?|let\s*deps\s*=\s*)\[\s*(.*?)\s*\]/gs;
         while ((m = re.exec(js)) !== null) {
-            
+
             let deps = m[1].split(/\s*,\s*/);
             for (let dep of deps) {
                 let m2 = /^(["'])(.+)\1$/.exec(dep);
@@ -245,7 +245,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
                     return codes;
                 }));
         }
-        
+
         return Promise.all(proms)
         .then((code) => {
             code.push("requirejs(['" + root + "']);");
@@ -266,7 +266,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
             ]);
         });
     }
-    
+
     function listDir(dir, ext) {
         ext = ext || "[^.]*";
         let re = new RegExp("\." + ext + "$");
@@ -300,12 +300,12 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
 
     function processJS() {
         return Promise.all([
-            
+
             // Analyse dependencies rooted at js/main.js
             getConfig("js/main")
             .then((cfg) => {
                 let deps = [ analyse("js/main", cfg) ];
-                
+
                 Promise.all([
                     // Analyse dependencies for dynamically-loaded
                     // dialog modules (they are becoming statically
@@ -319,9 +319,9 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
                                 deps.push(analyse(module, cfg));
                             }
                         }
-                        
+
                     }),
-                    
+
                     // Analyse dependencies for *Store and *Layer modules, except those
                     // that are not marked as /* eslint-env browser */
                     fs.readdir("js")
@@ -388,7 +388,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
         }
         for (let link of remove)
             link.remove();
-        
+
         Promise.all(proms)
         .then((all) => {
             let allCss = all.join('\n');
@@ -402,7 +402,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
             });
         });
     }
-          
+
     function processHTML(module) {
         let window, document;
         // Load and parse the root HTML. We know this is in index.html. We
@@ -425,7 +425,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
         .then(() => {
             if (module !== "index")
                 return Promise.resolve();
-            
+
             // Get HTML for all the dialogs, and embed in index.html.
             return listDir("dialogs", "html")
             .then((files) => {
@@ -474,7 +474,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
             mkpath("dist/css"),
             mkpath("dist/locale"),
         ])
-    
+
         .then(() => {
             return Promise.all([
                 processDir("images", /\.(svg|png|icon|gif)$/),
@@ -483,7 +483,7 @@ requirejs(["request", "node-getopt", "fs-extra", "uglify-es", "clean-css", "html
                 processHTML("index"),
             ]);
         })
-        
+
         .then(() => {
             // The strings have been updated during the processing
             if (debug) debug("Saving strings");

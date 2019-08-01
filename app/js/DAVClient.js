@@ -21,8 +21,8 @@ define("app/js/DAVClient", () => {
         let result = propertyName.match(/^{([^}]+)}(.*)$/);
         if (!result)
             return;
-        
 
+        
         return {
             name: result[2],
             namespace: result[1]
@@ -83,17 +83,17 @@ define("app/js/DAVClient", () => {
         let responseNode = responseIterator.iterateNext();
 
         while (responseNode) {
-            
+
             let response = {
                 href: null,
                 propStat: []
             };
-            
+
             response.href = doc.evaluate('string(d:href)', responseNode, resolver, XPathResult.ANY_TYPE, null).stringValue;
-            
+
             let propStatIterator = doc.evaluate('d:propstat', responseNode, resolver, XPathResult.ANY_TYPE, null);
             let propStatNode = propStatIterator.iterateNext();
-            
+
             while (propStatNode) {
                 let propStat = {
                     status: doc.evaluate('string(d:status)', propStatNode, resolver, XPathResult.ANY_TYPE, null).stringValue,
@@ -112,7 +112,7 @@ define("app/js/DAVClient", () => {
                 response.propStat.push(propStat);
                 propStatNode = propStatIterator.iterateNext();
 
-                
+
             }
 
             result.push(response);
@@ -133,7 +133,7 @@ define("app/js/DAVClient", () => {
     function _renderPropSet(properties, xmlNamespaces) {
         let body = '  <d:set>\n' +
             '   <d:prop>\n';
-            
+
         for (let ii in properties) {
             if (!properties.hasOwnProperty(ii)) {
                 continue;
@@ -210,21 +210,21 @@ define("app/js/DAVClient", () => {
                 if (!properties.hasOwnProperty(ii)) {
                     continue;
                 }
-                
+
                 let property = _parseClarkNotation(properties[ii]);
                 if (this.xmlNamespaces[property.namespace]) {
                     body += '    <' + this.xmlNamespaces[property.namespace] + ':' + property.name + ' />\n';
                 } else {
                     body += '    <x:' + property.name + ' xmlns:x="' + property.namespace + '" />\n';
                 }
-                
+
             }
             body += '  </d:prop>\n';
             body += '</d:propfind>';
 
             return this.request('PROPFIND', url, headers, body).then(
                 function (result) {
-                    
+
                     if (depth === '0') {
                         return {
                             status: result.status,
@@ -238,7 +238,7 @@ define("app/js/DAVClient", () => {
                             xhr: result.xhr
                         };
                     }
-                    
+
                 }
             );
         }

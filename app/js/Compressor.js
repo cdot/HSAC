@@ -4,7 +4,7 @@
 define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entries) => {
 
     class Compressor extends Entries {
-        
+
         /**
          * Entries for Compressor runtime events. This is a stack -
          * the only editing available is to delete the last
@@ -45,7 +45,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * 40, 0.34
          * 50, 0.2
          * It also states the pumping rate is 260lpm.
-         
+
          * We want a curve that will give the filter factor, based on the
          * temperature. Using a symmetric sigmoidal curve fit,
          *    
@@ -60,19 +60,19 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             const $form = $tab.children("form");
             const $submit = $tab.find("button[name='add_record']");
             const $rta = $form.find("input[name='runtime']");
-            
+
             const $delta = $form.find(".cr_delta");
             const $digits = {};
-            
+
             for (let d of [ 1000, 100, 10, 1, 0.1, 0.01 ]) {
                 $digits[d] = $form.find("select[name='runtime" + d + "']");
                 $digits[d].on("change", get_digits);
             }
-            
+
             $form.find("input[name='filters_changed']").on("change", function() {
                 $form.find(".cr_filters_changed").toggle($(this).is(":checked"));
             });
-            
+
             function get_digits() {
                 let v = 0;
                 for (let d of [ 1000, 100, 10, 1, 0.1, 0.01 ]) {
@@ -80,17 +80,17 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 }
                 set_runtime(v, true);
             }
-            
+
             function set_runtime(v, nodigs) {
                 $rta.val(v.toFixed(2));
                 let delta = (self.length() > 0)
                     ? v - self.get(self.length() - 1).runtime : 0;
-                
+
                 if (delta > 0)
                     $delta.show().text("This run: " + delta.toFixed(2) + " hours");
                 else
                     $delta.hide();
-                
+
                 if (!nodigs) {
                     for (let d of [ 1000, 100, 10, 1, 0.1, 0.01 ]) {
                         let dig = Math.floor(v / d);
@@ -99,7 +99,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     }
                 }
             }
-            
+
             function onChange() {
                 if ($form.length)
                     $submit.button(
@@ -248,7 +248,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                         min: cur.runtime + 0.009
                     });
                 }
-                
+
                 $form.find(":input").on("change", onChange);
                 onChange();
             })

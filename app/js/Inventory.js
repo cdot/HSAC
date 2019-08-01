@@ -8,7 +8,7 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
         "Location": true,
         "Count": true
     };
-    
+
     function getLoanDescriptor(sheet, entry) {
         var desc = [sheet.Class];
         for (var ci = 0; ci < sheet.heads.length; ci++) {
@@ -17,9 +17,9 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
         }
         return desc.join(",");
     }
-    
+
     class Inventory extends Entries {
-        
+
         /**
          * Inventory is read from inventory.json
          */

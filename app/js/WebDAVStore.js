@@ -12,7 +12,7 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
             super();
             this.debug = debug;
         }
-        
+
         setCredentials(user, pass) {
             this.user = user;
             this.pass = pass;

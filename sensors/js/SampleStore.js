@@ -6,13 +6,14 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
      * overlaps.
      */
     class SampleStore {
-        
+
         /**
          * @param url webdav URL,
          * @param user webdav username
          * @param pass webdav password
          */
         constructor(url, user, pass) {
+            this.mURL = url;
             this.mDAV = WebDAV.createClient(
                 url,
                 {
@@ -20,7 +21,7 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
                     password: pass
                 });
         }
-        
+
         /**
          * Promise to save a new sample
          * @param data sample to store
@@ -39,14 +40,14 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
                 let records;
                 if (res) {
                     let lines = res.toString().split("\n");
-                    records = lines.map(s => s.split(","));                    
+                    records = lines.map(s => s.split(","));
                 } else
                     records = [];
 
                 // Parse columns
                 for (let r of records)
                     r[1] = parseNumber(r[1]);
-                    
+
                 // Filter records by age
                 while (records[0][1] < cutoff)
                     records.shift();
@@ -62,7 +63,7 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
             })
             .catch((e) => {
                 // WebDAV errors don't kill the service
-                console.error("Failed to update", path);
+                console.error("Failed to update", path, "on", this.mURL, e);
                 return Promise.resolve();
             });
         }

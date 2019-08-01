@@ -11,7 +11,7 @@ define("app/js/Nitrox", () => {
     // Van der Waal's coefficients
     const VdVA_O2 = 1.36; // l^2 atm/mol^2
     const VdVB_O2 = 0.03183; // l/mol
-          
+
     /**
      * Ideal gas law states PV = nRT, but this doesn't work very well
      * for real gases. A closer approximation to reality uses
@@ -62,7 +62,7 @@ define("app/js/Nitrox", () => {
         var nReal = N * V / vReal; // Real number of moles
         return (nReal * R * T) / V; // Real pressure, bar
     }
-    
+
     class Nitrox {
         /**
          * Nitrox calculation tab
@@ -90,7 +90,7 @@ define("app/js/Nitrox", () => {
                 else
                     conditions[this.name] = $(this).val();
             });
-            
+
             // Apply reality check
             if (conditions.start_mix < ATMOSPHERIC_O2) conditions.start_mix = ATMOSPHERIC_O2;
             if (conditions.target_mix < ATMOSPHERIC_O2) conditions.target_mix = ATMOSPHERIC_O2;
@@ -105,7 +105,7 @@ define("app/js/Nitrox", () => {
                 this.debug("Target Pressure " + conditions.target_pressure + " bar");
                 this.debug("Target Mix " + conditions.target_mix + "%");
             }
-            
+
             let ppO2max = this.cfg.get("ppO2max");
             let MOD = Math.floor(((ppO2max / conditions.target_mix) * 10) - 10);
             let $report = $("#nitrox").children(".report");
@@ -170,26 +170,26 @@ define("app/js/Nitrox", () => {
 
             // Adjust for real gas approximation
             //let real_O2 = vanDerWaal(extra_O2, conditions.cylinder_size, conditions.temperature + K0C, VdVA_O2, VdVB_O2);
-            
+
             let boostTo = extra_O2 + conditions.start_pressure;
             if (this.debug) this.debug("boostTo:", boostTo);
-            
+
             if (boostTo < conditions.start_pressure) {
                 let bleedTo = conditions.target_pressure * (conditions.target_mix - ATMOSPHERIC_O2)
                 / (conditions.start_mix - ATMOSPHERIC_O2);
-                
+
                 if (this.debug) this.debug("bleed to", bleedTo, "bar");
                 return { bleedTo: bleedTo, differentBank: false };
             }
-            
+
             if (boostTo > conditions.O2_bank_pressure) {
                 let bleedTo = conditions.target_pressure * (conditions.target_mix - ATMOSPHERIC_O2)
                 / (conditions.O2_bank_pressure - ATMOSPHERIC_O2);
-                
+
                 if (this.debug) this.debug("Boost is over bank", boostTo, ">", conditions.O2_bank_pressure, "bleed to", bleedTo);
                 return { bleedTo: bleedTo, differentBank: true };
             }
-            
+
             if (conditions.start_pressure > conditions.O2_bank_pressure) {
                 if (this.debug) this.debug("bank pressure too low for this fill");
                 return { bleedTo: conditions.O2_bank_pressure, differentBank: true }
@@ -203,4 +203,4 @@ define("app/js/Nitrox", () => {
     }
     return Nitrox;
 });
-        
+

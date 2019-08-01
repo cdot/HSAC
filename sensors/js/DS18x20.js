@@ -1,11 +1,11 @@
 define("js/DS18x20", ['ds18b20-raspi', "js/Sensor"], function(DS18B20_raspi, Sensor) {
-    
+
     /**
      * Interface to DS18x20 device on one-wire bus connected to
      * GPIO on Raspberry PI
      */
     class DS18x20 extends Sensor {
-        
+
         /**
          * @param config { id: } id: one-wire sensor ID for DS18x20
          * Plus config for Sensor
