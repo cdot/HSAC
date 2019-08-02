@@ -21,6 +21,7 @@ define("js/Sensor", function(Fs) {
                 config.delay = 1000;
             this.mDelay = config.delay;
             this.mAgeLimit = (config.age_limit || 600) * 1000;
+            this.mTimer = null;
         }
 
         /**
@@ -50,7 +51,7 @@ define("js/Sensor", function(Fs) {
             let self = this;
             this.sample()
             .then(() => {
-                setTimeout(() => self.start(), self.mDelay);
+                self.mTimer = setTimeout(() => self.start(), self.mDelay);
             })
             .catch((e) => {
                 console.error("Sampling error: " + e);

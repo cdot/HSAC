@@ -44,7 +44,7 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
                 .catch((e) => {
                     console.error("Failed to read", path, "from", this.mURL);
                     this.mCaches[id] = [];
-                    return this.mCaches[id];
+                    return Promise.resolve(this.mCaches);
                 })
                 .then((res) => {
                     // Split into lines, and then into columns. Each row has
@@ -66,7 +66,7 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
                     } else
                         this.mCaches[id] = [];
 
-                    return this.mCaches[id];
+                    return Promise.resolve(this.mCaches[id]);
                 });
             }
 
@@ -87,6 +87,9 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
                     // WebDAV errors don't kill the service
                     console.error("Failed to update", path, "on", this.mURL, e.code);
                     return Promise.resolve();
+                })
+                .then(() => {
+                    //console.log("Added",this.mURL,path);
                 });
             });
         }
