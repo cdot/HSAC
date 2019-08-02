@@ -206,7 +206,9 @@ hours
             <span class="cr_delta"></span>
             <span style="display:none" class="cr_filters_changed"> FILTERS HAVE BEEN CHANGED</span>
           </form>
-          <button name="add_record">Touch here to record this run</button>
+          <span data-with-info="#infoCompressorActivity">
+            <button name="add_record">Touch here to record this run</button>
+          </span>
         </div>
 
         <div id="portable" class="crowded_tab">
@@ -279,7 +281,9 @@ hours
               <input data-with-info="#infoFilters" type="checkbox" id="portable_filters_changed" name="filters_changed">
             </div>
           </form>
-          <button name="add_record">Touch here to record this run</button>
+          <span data-with-info="#infoCompressorActivity">
+            <button name="add_record">Touch here to record this run</button>
+          </span>
         </div>
 
         <div id="loans" class="crowded_tab">
@@ -562,6 +566,8 @@ hours
     </div>
     <div class="hidden info" id="infoManualHours">
       If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
+    </div>
+    <div class="hidden info" id="infoCompressorActivity">
     </div>
 
     <!-- Loans help -->
