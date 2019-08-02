@@ -34,12 +34,12 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
          */
         addSample(data, age_limit, id) {
             let cutoff = Date.now() - age_limit;
+            let path = id + ".csv";
             let promise;
             if (this.mCaches[id])
                 promise = Promise.resolve(this.mCaches[id]);
             else {
                 // Need to initialise internal cache from webdav
-                let path = id + ".csv";
                 promise =  this.mDAV.getFileContents(path, { format:"text" })
                 .catch((e) => {
                     console.error("Failed to read", path, "from", this.mURL);
