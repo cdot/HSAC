@@ -81,10 +81,10 @@ WebDAV server as the cache server. It would be easy to write an
 interface to a different store provider, should you want to do so.
 
 ### Using a WebDAV server
-It's easy to set up a WebDAV server, even on a mobile device. We
-recommend lighttpd on platforms that support it. On mobile devices,
-HTTP Server powered by Apache by Tautvydas Andrikys is easy to set up
-and configure. Note that your WebDAV server must support CORS.
+It's easy to set up a WebDAV server, even on a mobile device. Most web server
+implementations include a WebDAV module (though note that your server must
+support CORS, and not all do). We use "HTTP Server powered by Apache" by
+Tautvydas Andrikys, which is easy to set up and configure on Android.
 
 For example, you might configure an Apache server on Linux as follows:
 ```
@@ -191,9 +191,18 @@ approach gives us fine-grained control over what data enters the public
 domain.
 
 ## Sensors
-The Sheds app is designed to capture environmental information to assist in filter life prediction. This can be done interactively, or can be done using digital sensors attached to a microcontroller. The app can refer to a file stored in WebDAV to obtain sensor data. This file is a CSV file with fields `Sensor ID,Date,Sample` and contains one line for each sample point. The file's URL and the requisite Sensor ID's are configured in the app settings dialog.
+The Sheds app is designed to capture environmental information to
+assist in filter life prediction. This can be done interactively, or
+can be done using digital sensors attached to a microcontroller. The
+app can refer to a file stored in WebDAV to obtain sensor data. This
+file is a CSV file with fields `Sensor ID,Date,Sample` and contains
+one line for each sample point. The file's URL and the requisite
+Sensor ID's are configured in the app settings dialog.
 
-In HSAC we use a Raspberry Pi Zero to capture sensor data from DHT11 and DS18B20 one-wire sensors. See the README in the `sensors` subdirectory for more.
+In HSAC we use a Raspberry Pi Zero to capture sensor data from DHT11
+and DS18B20 one-wire sensors and write it to the WebDAV server. The
+code is all provided - see the sensors [README](sensors/README.md) for
+more.
 
 ## About
 Sheds was written by Crawford Currie http://c-dot.co.uk and is licensed

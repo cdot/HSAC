@@ -22,8 +22,26 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
     class Sheds {
 
         constructor(params) {
-            if (params.debug)
-                this.debug = console.debug;
+            if (params.debug) {
+                if (params.console) {
+                    // Simulated console in #loading
+                    this.debug = function() {
+                        console.debug.apply(console, arguments);
+                        $("#loading").append(
+                            "<br />" + Array.from(arguments).join(" "));
+                    };
+                    this.consoleActive = true;
+                } else
+                    this.debug = console.debug;
+            }
+
+            // Possible override of cache_url, otherwise use whatever
+            // is cookied in the browser
+            if (params.cache_url) {
+                Cookies.set("cache_url", params.cache_url, {
+                    expires: 365
+                });
+            }
 
             // Configuration defaults
             this.config = new Config(
@@ -254,9 +272,9 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
 
             Promise.all(promises)
             .then(() => {
-                // Queue the next poll for 30s hence
+                // Queue the next poll for 15s hence
                 this.sensor_tick =
-                setTimeout(() => { self.read_sensors(); }, 30000);
+                setTimeout(() => { self.read_sensors(); }, 15000);
             });
         }
 
@@ -373,7 +391,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
 
             $(document).on("reload_ui", function () {
                 self.reload_ui().then(() => {
-                    $("#loading").hide();
+                    if (!self.consoleActive)
+                        $("#loading").hide();
                     $("#loaded").show();
                 });
             });
@@ -487,16 +506,16 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 // to feeback.
                 if (e.html)
                     $("#loading").html(e.html);
-                return Promise.reject(e);
+                return Promise.reject("Could not connect to " + url);
             });
 
         }
 
-        begin() {
+        begin(params) {
             this.initialise_ui();
 
-            let url = Cookies.get("cache_url")
             let promise;
+            let url = Cookies.get("cache_url");
             if (typeof url === "undefined" || url.length == 0)
                 promise = this.promise_to_reconnect();
             else
@@ -504,7 +523,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
 
             promise
             .catch((e) => {
-                console.error("Internal failure", e);
+                console.error("Internal failure", e, url);
             });
         }
     }
