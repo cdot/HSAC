@@ -31,13 +31,8 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor"], function(DS18B20_raspi, Sen
                     if (err) {
                         console.error(err);
                         reject(err);
-                    } else if (typeof temp !== "number") {
-                        // At least once this has been "boolean"!
-                        console.error("Unexpected result from ds18x20.get");
-                        resolve();
                     } else {
-                        this.addSample(this.mID, temp)
-                        .then(() => { resolve(); });
+                        resolve(this.addSample(this.mID, temp));
                     }
                 });
             });

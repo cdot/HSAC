@@ -27,6 +27,21 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
             this.mGpio = (config.gpio || 14);
             this.mTempID = config.temperature_id;
             this.mHumID = config.humidity_id;
+
+            let self = this;
+            Fs.stat("/dev/gpiomem")
+            .catch((err) => {
+                console.error("GPIO not found for DHT. Faking it!");
+
+                DHT.initialize({
+                    test: {
+                        fake: {
+                            temperature: 20,
+                            humidity: 60
+                        }
+                    }
+                });
+            });
         }
 
         /**
@@ -34,26 +49,12 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
          */
 	sample() {
             let self = this;
-            return Fs.stat("/dev/gpiomem")
-            .catch((err) => {
-                return Promise.reject("GPIO not found for DHT");
-            })
-            .then(() => {
-                return new Promise((resolve, reject) => {
-                    DHT.read(
-                        this.mDevice, this.mGpio,
-                        (err, temperature, humidity) => {
-                            if (err)
-                                reject(err);
-                            else
-                                resolve([
-                                    self.addSample(self.mTempID, temperature),
-                                    self.addSample(self.mHumID, humidity)
-                                ]);
-                        });
-                }).then((promises) => {
-                    return Promise.all(promises);
-                });
+            return DHT.promises.read(this.mDevice, this.mGpio)
+            .then((res) => {
+                return Promise.all([
+                    self.addSample(self.mTempID, res.temperature),
+                    self.addSample(self.mHumID, res.humidity)
+                ]);
             });
         }
     }

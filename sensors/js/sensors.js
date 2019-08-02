@@ -17,13 +17,34 @@ requirejs(["js/SampleStore", "fs-extra"], function(SampleStore, Fs) {
     const store = new SampleStore(config.url, config.user, config.pass);
 
     // Make sensors
+    let sensors = [];
     for (let cfg of config.sensors) {
         let clss = cfg["class"];
         //console.debug("Load", clss);
         requirejs(["js/" + clss], function(Sensor) {
             cfg.store = store;
-            let sensor = new Sensor(cfg);
-            sensor.start();
+            sensors.push(new Sensor(cfg));
         });
     }
+
+    if (!config.delay || config.delay <= 1000)
+        config.delay = 1000;
+
+    // Did have this as independent polling loops for each sensor, but
+    // it kept losing sensors :-(
+    function start() {
+        for (let sensor of sensors) {
+            sensor.sample()
+            .catch((e) => {
+                console.error(sensor.name, "sampling error:", e);
+            })
+            .then(() => {
+                console.log("Sampled", sensor.name);
+            });
+        }
+
+        setTimeout(start, config.delay);
+    }
+
+    start();
 });

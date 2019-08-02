@@ -10,16 +10,14 @@ define("js/Sensor", function(Fs) {
     class Sensor {
 
         /**
-         * @param config {record_as:, age_limit:, delay:, store: }
+         * @param config {record_as:, age_limit:, store: }
          * record_as: file to store samples to, age_limit: maximum sample
-         * age, in seconds, delay: between samples, in milliseconds, 
+         * age, in seconds,
          * store: SampleStore
          */
         constructor(config) {
+            this.name = config.name;
             this.mStore = config.store;
-            if (!config.delay || config.delay <= 1000)
-                config.delay = 1000;
-            this.mDelay = config.delay;
             this.mAgeLimit = (config.age_limit || 600) * 1000;
             this.mTimer = null;
         }
@@ -42,20 +40,6 @@ define("js/Sensor", function(Fs) {
          */
         sample() {
             return Promise.reject("subclass of Sensor does not implement sample()");
-        }
-
-        /**
-         * Start sampling
-         */
-        start() {
-            let self = this;
-            this.sample()
-            .then(() => {
-                self.mTimer = setTimeout(() => self.start(), self.mDelay);
-            })
-            .catch((e) => {
-                console.error("Sampling error: " + e);
-            });
         }
     }
 
