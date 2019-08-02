@@ -82,7 +82,7 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
                 return this.mDAV.putFileContents(path,  body)
                 .catch((e) => {
                     // WebDAV errors don't kill the service
-                    console.error("Failed to update", path, "on", this.mURL, e);
+                    console.error("Failed to update", path, "on", this.mURL, e.code);
                     return Promise.resolve();
                 });
             });
