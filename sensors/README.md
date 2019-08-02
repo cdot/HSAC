@@ -131,4 +131,14 @@ case "$1" in
     ;;
 esac
 ```
+You will then need to:
+```
+$ sudo update-rc.d sensors.sh defaults
+```
+The service should start on the next boot. To start / stop / restart the service from
+the command line:
+```
+$ sudo service sensors.sh start
+```
+
 Note that if none of the specified sensors can be read the service will exit.
