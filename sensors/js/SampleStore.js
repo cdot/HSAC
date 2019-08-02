@@ -52,12 +52,15 @@ define("js/SampleStore", [ "webdav" ], function(WebDAV) {
                     let records;
                     if (res) {
                         let lines = res.toString().split("\n");
-                        records = lines.map(s => s.split(","));
+                        lines = lines.map(s => s.split(","));
 
                         // Parse columns
-                        for (let r of records) {
-                            r[0] = parseInt(r[0]); // time
-                            r[1] = parseFloat(r[1]); // sample
+                        let records = [];
+                        for (let r of lines) {
+                            if (/^[0-9]+$/.test(r[0]))
+                                records.push([
+                                    parseInt(r[0]), // time
+                                    parseFloat(r[1]) ]); // sample
                         }
                         this.mCaches[id] = records;
                     } else
