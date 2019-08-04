@@ -7,54 +7,38 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
     class DHTxx extends Sensor {
 
         /**
-         * @param config {type, gpio, prefix} type 11 or 22,
-         * gpio pin, prefix for sample names e.g. "DHT_". Plus
-         * config for Sensor.
+         * @param config {type, gpio} type 11 or 22,
          */
         constructor(config) {
             super(config);
 
-            if (!config.type || config.type != 11 && config.type != 22)
-                throw "DHTxx bad type";
-            if (!config.temperature_id)
-                throw "DHTxx no temperature_id";
-            if (!config.humidity_id)
-                throw "DHTxx no humidity_id";
-            if (!config.gpio)
-                throw "DHTxx no gpio";
-
             this.mDevice = config.type;
-            this.mGpio = (config.gpio || 14);
-            this.mTempID = config.temperature_id;
-            this.mHumID = config.humidity_id;
+            this.mGpio = config.gpio;
+            this.mField = config.field;
+        }
 
-            let self = this;
-            Fs.stat("/dev/gpiomem")
-            .catch((err) => {
-                console.error("GPIO not found for DHT. Faking it!");
+        /**
+         * @Override
+         */
+        check() {
+            if (!this.mDevice || this.mDevice != 11 && this.mDevice != 22)
+                return Promise.reject(
+                    this.name + " has bad type" + this.mDevice);
 
-                DHT.initialize({
-                    test: {
-                        fake: {
-                            temperature: 20,
-                            humidity: 60
-                        }
-                    }
-                });
-            });
+            if (!this.mGpio)
+                return Promise.reject(this.name + " has no gpio");
+
+            // Make sure we have GPIO available
+            return Fs.stat("/dev/gpiomem");
         }
 
         /**
          * @Override
          */
 	sample() {
-            let self = this;
             return DHT.promises.read(this.mDevice, this.mGpio)
-            .then((res) => {
-                return Promise.all([
-                    self.addSample(self.mTempID, res.temperature),
-                    self.addSample(self.mHumID, res.humidity)
-                ]);
+            .then((sample) => {
+                return sample[this.mField];
             });
         }
     }

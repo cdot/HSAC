@@ -61,7 +61,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     static_filter_coeff_c: 11.50844,
                     static_filter_coeff_d: -0.4806983,
                     sensor_url: null,
-                    alarm_temp: 90,
+                    internal_temperature_alarm: 90,
                 },
                 this.debug
             );
@@ -162,9 +162,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             /**
              * Update a sampled input field
              */
-            function update_sampled(id, sample) {
-                // The data-samples attribute specifies the sample file to get
-                // sample data.
+            function update_sample(id, sample) {
                 let $el = $("input[data-samples='" + id + "']");
 
                 // data-sample-config further has:
@@ -175,52 +173,46 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 //          when the sample is too old or is unavailable
                 let spec = $el.data("sample-config");
 
-                if (sample) {
+                if (sample !== null) {
                     let thresh = Date.now() - spec.max_age;
                     if (sample.time < thresh) {
                         // Sample unavailable or too old
-                        if (self.debug) self.debug(
-                            "Sample for", id, "too old");
-                        $el.prop("readonly", null);
-                        $el.removeClass("greyed_out");
-                        $(spec.sampled).hide();
-                        $(spec.unsampled).show();
-                        return;
+                        sample = null;
                     }
                 }
-                // sample available and young enough
-                $el.prop("readonly", "readonly");
-                $el.addClass("greyed_out");
-                $el.val(sample.sample);
-                $(spec.sampled).show();
-                $(spec.unsampled).hide();
-                // Switch off validation message
+                if (!sample) {
+                    if (self.debug) self.debug(
+                        "Sample for", id, "unavailable or too old");
+                    $el.prop("readonly", null);
+                    $el.removeClass("greyed_out");
+                    $(spec.sampled).hide();
+                    $(spec.unsampled).show();
+                } else {
+                    // sample available and young enough
+                    $el.prop("readonly", "readonly");
+                    $el.addClass("greyed_out");
+                    $el.val(Math.round(sample.sample));
+                    $(spec.sampled).show();
+                    $(spec.unsampled).hide();
+                }
+                // Update validation message
                 $el.closest(".validated_form").valid();
             }
 
             function get_sample(sensor) {
                 return new Promise((resolve, reject) => {
                     $.ajax({
-                        url: url + "/" + sensor + ".csv",
+                        url: url + "/" + sensor,
                         data: {
                             t: Date.now() // defeat cache
                         },
                         dataType: "text"
                     })
-                    .done((list) => {
-                        // The CSV is structured as rows of time,sample
-                        // where time is epoch ms
-                        const rows = $.csv.toArrays(list);
-                        // Get the most recent sample for each unique ID
-                        let last = rows.length - 1;
-                        if (last < 0) {
-                            reject();
-                        } else {
-                            resolve({
-                                time: new Date(parseInt(rows[last][0])),
-                                sample: parseFloat(rows[last][1])
-                            });
-                        }
+                    .done((sample) => {
+                        resolve(JSON.parse(sample));
+                    })
+                    .fail(() => {
+                        resolve(null);
                     });
                 });
             }
@@ -240,14 +232,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 let name = $(this).data("samples");
                 promises.push(
                     get_sample(name)
-                    .then((sample) => {
-                        update_sampled(name, sample);
-                    })
-                    .catch((e) => {
-                        if (self.debug) self.debug(
-                            "No sample for", name, "or too old");
-                        update_sampled(name, null);
-                    }));
+                    .then((sample) => { update_sample(name, sample); })
+                    .catch((e) => { update_sample(name, null); }));
             });
 
             // Check alarm sensors
@@ -257,12 +243,13 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 promises.push(
                     get_sample(name)
                     .then((sample) => {
-                        $(".report_" + name).text(sample.sample);
+                        sample = sample ? sample.sample : 0;
+                        $(".report_" + name).text(sample.toFixed(1));
                         let alarm_temp = self.config.get(name + "_alarm");
-                        if (sample.sample >= alarm_temp) {
+                        if (sample >= alarm_temp) {
                             $el.show();
                             if (typeof Audio !== "undefined") {
-                                var snd = new Audio("app/sounds/siren.wav");
+                                var snd = new Audio("app/sounds/siren.mp3");
                                 snd.play();
                             }
                         } else
@@ -522,6 +509,12 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 promise = this.cache_connect(url);
 
             promise
+            .then(() => {
+                if (typeof Audio !== "undefined") {
+                    var snd = new Audio("app/sounds/forecast.mp3");
+                    snd.play();
+                }
+            })
             .catch((e) => {
                 console.error("Internal failure", e, url);
             });

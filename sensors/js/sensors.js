@@ -1,50 +1,76 @@
-let requirejs = require('requirejs');
-let ROOT = __dirname.replace(/\/[^\/]*$/, "");
-console.log("Starting in", ROOT);
-
-requirejs.config({
-    baseUrl: ROOT
-});
+/*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
+/* eslint-env node.js */
 
 /**
+ * Server giving access to sensors attached to Raspberry Pi
+ *
  * See sensors/README.md for information
  */
-requirejs(["js/SampleStore", "fs-extra"], function(SampleStore, Fs) {
-    // Load config
-    const config = JSON.parse(Fs.readFileSync(ROOT + "/config.json"));
+let requirejs = require('requirejs');
+requirejs.config({
+    baseUrl: __dirname.replace(/\/[^\/]*$/, "")
+});
 
-    // Make webdav interface
-    const store = new SampleStore(config.url, config.user, config.pass);
+requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Fallback"], function(Fs, Getopt, Express, CORS, Fallback) {
+    const DESCRIPTION =
+          "DESCRIPTION\nA Raspberry PI sensors ajax server.\n" +
+          "See sensors/README.md for details\n\nOPTIONS\n";
 
-    // Make sensors
-    let sensors = [];
-    for (let cfg of config.sensors) {
-        let clss = cfg["class"];
-        //console.debug("Load", clss);
-        requirejs(["js/" + clss], function(Sensor) {
-            cfg.store = store;
-            sensors.push(new Sensor(cfg));
-        });
-    }
+    let cliopt = Getopt.create([
+        ["h", "help", "Show this help"],
+        ["c", "config=ARG", "Configuration file (default ~/sensors.cfg)"],
+        ["p", "port=ARG", "What port to run the server on (default 3000)"],
+        ["d", "debug", "Run in debug mode, using simulations for missing hardware"]
+    ])
+        .bindHelp()
+        .setHelp(DESCRIPTION + "[[OPTIONS]]")
+        .parseSystem()
+        .options;
 
-    if (!config.delay || config.delay <= 1000)
-        config.delay = 1000;
+    if (typeof cliopt.config === "undefined")
+        cliopt.config = process.env["HOME"] + "/sensors.cfg";
 
-    // Did have this as independent polling loops for each sensor, but
-    // it kept losing sensors :-(
-    function start() {
-        for (let sensor of sensors) {
-            sensor.sample()
-            .catch((e) => {
-                console.error(sensor.name, "sampling error:", e);
-            })
-            .then(() => {
-                console.log("Sampled", sensor.name);
+    // Enable fallback to simulated sensors if server is started debug
+    let fallback = null;
+    if (typeof cliopt.debug !== null)
+        fallback = Fallback;
+
+    // Default port is 3000
+    let port = cliopt.port || 3000;
+    
+    Fs.readFile(cliopt.config)
+    .then((config) => {
+        return JSON.parse(config);
+    })
+    .catch((e) => {
+        console.error("Configuration error", e);
+        return Promise.reject(e.message);
+    })
+    .then((config) => {
+        let server = Express();
+
+        server.use(CORS());
+
+        // Error handling fallback
+        server.use(function (err, req, res, next) {
+            console.log("Handling error");
+            res.status(500).send(err)
+        })
+        
+        // Make sensors
+        let sensors = [];
+        for (let cfg of config) {
+            let clss = cfg["class"];
+            console.debug("Load", clss);
+            requirejs(["js/" + clss], function(SensorClass) {
+                console.debug("Loaded", clss);
+                new SensorClass(cfg).register(server, Fallback);
             });
         }
 
-        setTimeout(start, config.delay);
-    }
-
-    start();
+        server.listen(cliopt.port);
+    })
+    .catch((e) => {
+        console.error("Error", e);
+    })
 });

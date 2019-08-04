@@ -1,12 +1,14 @@
 # Sensors
 
-The application in this directory is designed to be run as a service
+The application in this directory runs an ultra-light web server
 on a Raspberry Pi with DHT11 and DS18B20 sensors attached to GPIO.
 
-The service polls the sensors according to a predefined schedule and
-appends the samples to a file on a WebDAV server.
+On receipt of an AJAX request the server reads a sensor and reports the
+value read.
 
 The pinout for the sensors is as shown in `RPi pinout.svg`
+
+# Hardware Configuration
 
 The Pi is designed to be run headless (without an attached monitor). It can
 be initially configured via USB and SSH by following:
@@ -36,70 +38,55 @@ ls /sys/bus/w1/devices/w1_bus_master1
 ```
 Expect to see devices such as 28-0316027f81ff.
 
-# Configuring the service
-The sampling program is run as follows:
+# Server Configuration
+The server is run as follows:
 ```
 $ cd sensors/js
-$ node sensors.js
+$ node sensors.js -c <configuration file>
 ```
-The program reads its configuration from `config.json`. This file must
-contain the following configuration information:
-* sensors - list of sensor configurations
-* url - the base URL for the WebDAV folder where samples will be stored
-* user - the username for WebDAV
-* pass - the password for WebDAV
-
-Each sensor configuration has at least:
-* age_limit - the maximum age for samples, in seconds. Samples older
-  than this will be discarded from the sample file.
-* delay - how long to wait between samples, in milliseconds
+The configuration file is a list of sensors. Each sensor configuration has
+at least:
+* class - the name of a class that implements an interface to the sensor
+* name - the name of the sensor. This will be used to create an AJAX
+entry point.
 
 DHTxx sensors also have:
 * type - the type of the DHT sensor, either 11 or 22
 * gpio - the GPIO pin for DHT11 data
-* temperature_id: the id to use to record temperature readings
-* humidity_id: the id to use to record temperature readings
+* field - the field (either temperature or humidity) of the sensor result
+  required
 
 DS18x20 sensors have:
 * sensor_id - the ID of the DS18B20 sensor
-* sample_id - the ID to use to record samples
 
 ```
-an example `config.json` is:
+an example configuration file:
 ```
-{
- "sensors": [
+[
   {
+   "name": "internal_temperature",
+   "class": "DS18x20",
+   "sensor_id": "28-0316027f81ff"
+  },
+  {
+   name: "intake_temperature",
    "class": "DHTxx",
    "type": 11,
    "gpio": 14,
-   "temperature_id": "intake_temperature",
-   "humidity_id": "intake_humidity",
-   "age_limit": 86400,
-   "delay": 60000
+   "field": "temperature"
   },
   {
-   "class": "DS18x20",
-   "sensor_id": "28-0316027f81ff",
-   "sample_id": "internal_temperature",
-   "age_limit": 86400,
-   "delay": 30000
+   name: "intake_humidity",
+   "class": "DHTxx",
+   "type": 11,
+   "gpio": 14,
+   field: "humidity"
   }
- ],
- "url": "http://192.168.1.22/DAV",
- "path": "sensors.csv",
- "user": "test",
- "pass": "test",
- }
+]
 ```
-This will record DHT11 samples read from GPIO 14 to "intake_temperature.csv" and "intake_humidity.csv", and seamples read from 28-0316027f81ff to "internal_temperature.csv". The DHT11 will be polled every 60 seconds, while the DS18x20 will be polled every 30 seconds. Samples will be kept a maximum of 24 hours. Sample files are in the format:
-```
-Date,Sample
-```
-where Date is in epoch milliseconds, and Sample is the sample value.
 
-## Running the application
-The sensors service needs to be started on boot, by `/etc/init.d/sensors.sh`
+## Running the Server
+The server needs to be started on boot, by `/etc/init.d/sensors.sh`
 - you will need to create this file. Assuming the code is checked out to
 `/home/pi/HSAC`:
 
@@ -119,7 +106,7 @@ The sensors service needs to be started on boot, by `/etc/init.d/sensors.sh`
 #
 case "$1" in
   start)
-    node /home/pi/HSAC/sensors/js/sensors.js > /var/log/sensors.log 2>&1 &
+    node /home/pi/HSAC/sensors/js/sensors.js -c /home/pi/HSAC/sensors.cfg > /var/log/sensors.log 2>&1 &
     ;;
   stop)
     pid=`ps -Af | grep "sensors/js/sensors.js" | grep -v grep | sed -e 's/^[^0-9]*//;s/\s.*//'
@@ -140,5 +127,5 @@ the command line:
 ```
 $ sudo service sensors.sh start
 ```
-
-Note that if none of the specified sensors can be read the service will exit.
+Sensors must be attached and available when the server is started, or they will
+not be detected by the service. The server can be restarted at any time.
