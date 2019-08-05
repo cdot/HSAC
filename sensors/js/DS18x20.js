@@ -35,7 +35,7 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor"], function(DS18B20_raspi, Sen
             return new Promise((resolve, reject) => {
                 DS18B20_raspi.readSimpleC((err, temp) => {
                     if (err) { reject(err); return; }
-                    resolve({temperature: temp});
+                    resolve(temp);
                 });
             });
         }

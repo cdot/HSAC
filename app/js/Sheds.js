@@ -258,7 +258,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             });
 
             Promise.all(promises)
-            .then(() => {
+            .finally(() => {
                 // Queue the next poll for 15s hence
                 this.sensor_tick =
                 setTimeout(() => { self.read_sensors(); }, 15000);
