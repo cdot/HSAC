@@ -510,10 +510,12 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
 
             promise
             .then(() => {
-                if (typeof Audio !== "undefined") {
-                    var snd = new Audio("app/sounds/forecast.wav");
-                    snd.play();
-                }
+                // Can't do this without an interaction first
+                // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play 
+                /* if (typeof Audio !== "undefined") {
+                    let snd = new Audio("app/sounds/forecast.wav");
+                    return snd.play();
+                } */
             })
             .catch((e) => {
                 console.error("Internal failure", e, url);
