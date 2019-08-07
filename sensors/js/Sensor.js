@@ -11,34 +11,35 @@ define("js/Sensor", function(Fs) {
          */
         constructor(config) {
             this.name = config.name;
+            this.log = config.log;
+            this.simulation = config.simulation;
         }
 
         /**
-         * Register the sensor with the given express server
+         * Register the sensor entry point with the given express server
          * @param server an express server to add handlers to
-         * @param fallback class object to use for sampling if the
-         * hardware for this sensor isn't available
          */
-        register(server, fallback) {
+        register(server) {
             let self = this;
             return this.check()
             .then(() => {
                 server.get("/" + this.name, (req, res) => {
                     self.sample()
-                    .then((val) => {
-                        res.send({
-                            sample: val,
-                            time: Date.now()
-                        });
+                    .then((sample) => {
+                        res.send(sample);
                     });
                 });
+                this.log("/" + this.name, "registered");
             })
             .catch((e) => {
                 if (e.message) e = e.message;
-                console.log(this.name, "sensor could not be registered", e);
-                if (fallback) {
-                    return new fallback({name: this.name}).register(server);
-                }
+                console.error(this.name, "sensor could not be registered", e);
+                if (this.simulation) {
+                    this.log("Using simulation for", this.name);
+                    return new (this.simulation)({name: this.name}).register(server);
+                } else
+                    throw new Error(this.name + " could not be registered: " + e);
+
                 server.get("/" + this.name, (req, res, next) => {
                     next(self.name + " was not registered");
                 });

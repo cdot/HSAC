@@ -20,7 +20,8 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Fallback"], functio
         ["h", "help", "Show this help"],
         ["c", "config=ARG", "Configuration file (default ~/sensors.cfg)"],
         ["p", "port=ARG", "What port to run the server on (default 3000)"],
-        ["d", "debug", "Run in debug mode, using simulations for missing hardware"]
+        ["s", "simulate", "Use a simulation for any missing hardware"],
+        ["v", "verbose", "Verbose debugging messages"]
     ])
         .bindHelp()
         .setHelp(DESCRIPTION + "[[OPTIONS]]")
@@ -30,14 +31,13 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Fallback"], functio
     if (typeof cliopt.config === "undefined")
         cliopt.config = process.env["HOME"] + "/sensors.cfg";
 
-    // Enable fallback to simulated sensors if server is started debug
-    let fallback = null;
-    if (typeof cliopt.debug !== null)
-        fallback = Fallback;
+    let log = (cliopt.verbose) ? console.log : (() => {});
+
+    let simulation = (cliopt.simulate) ? Fallback : null;
 
     // Default port is 3000
     let port = cliopt.port || 3000;
-    
+
     Fs.readFile(cliopt.config)
     .then((config) => {
         return JSON.parse(config);
@@ -51,24 +51,30 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Fallback"], functio
 
         server.use(CORS());
 
-        // Error handling fallback
+        // Error handling
         server.use(function (err, req, res, next) {
-            console.log("Handling error");
             res.status(500).send(err)
         })
-        
+
         // Make sensors
-        let sensors = [];
+        let promises = [];
         for (let cfg of config) {
+            cfg.log = log;
+            cfg.simulation = simulation;
             let clss = cfg["class"];
-            console.debug("Load", clss);
-            requirejs(["js/" + clss], function(SensorClass) {
-                console.debug("Loaded", clss);
-                new SensorClass(cfg).register(server, Fallback);
-            });
+            promises.push(new Promise((resolve) => {
+                log("Requiring ", clss);
+                requirejs(["js/" + clss], function(SensorClass) {
+                    resolve(new SensorClass(cfg).register(server));
+                });
+            }));
         }
 
-        server.listen(cliopt.port);
+        Promise.all(promises)
+        .then(() => {
+            server.listen(cliopt.port);
+            console.log("Server started on port", port);
+        });
     })
     .catch((e) => {
         console.error("Error", e);
