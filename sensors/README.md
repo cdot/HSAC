@@ -111,7 +111,7 @@ $ sudo nano /etc/init.d/sensors.sh
 #
 case "$1" in
   start)
-    node /home/pi/HSAC/sensors/js/sensors.js -c /home/pi/HSAC/sensors.cfg > /var/log/sensors.log 2>&1 &
+    node /home/pi/HSAC/sensors/js/sensors.js -p 8000 -c /home/pi/HSAC/sensors.cfg > /var/log/sensors.log 2>&1 &
     ;;
   stop)
     pid=`ps -Af | grep "sensors/js/sensors.js" | grep -v grep | sed -e 's/^[^0-9]*//;s/\s.*//'
@@ -139,3 +139,8 @@ not be detected by the service. The server can be restarted at any time using
 ```
 $ sudo service sensors.sh restart
 ```
+When the service is running you can use HTTP requests to query the sensors e.g.
+```
+$ curl http://192.168.1.24:8000/internal_temperature
+```
+The Sheds app uses these queries to update the UI.
