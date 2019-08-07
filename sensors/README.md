@@ -10,17 +10,12 @@ The pinout for the sensors is as shown in `RPi pinout.svg`
 
 # Hardware Configuration
 
-The Pi is designed to be run headless (without an attached monitor). It can
-be initially configured via USB and SSH by following:
-
-https://www.thepolyglotdeveloper.com/2016/06/connect-raspberry-pi-zero-usb-cable-ssh/
-
 ## DHT11 sensor
 
 This sensor is used to measure the temperature and humidity of the
 intake air drawn into the compressor.
 
-Accessing this sensor is handled by the `node-dht-sensor` npm package.
+Accessing this sensor is handled by the `node-dht-sensor` npm package. We use GPIO 14 for this sensor.
 
 ## DS18b20 sensor
 
@@ -39,10 +34,19 @@ ls /sys/bus/w1/devices/w1_bus_master1
 Expect to see devices such as 28-0316027f81ff.
 
 # Server Configuration
+You will need to install node.js and npm:
+```
+$ sudo apt-get install nodejs npm
+```
+Install the server software from github. We recommend unpacking in `/home/pi`
+```
+$ git clone https://github.com/cdot/HSAC.git
+$ cd HSAC/sensors
+$ npm install
+```
 The server is run as follows:
 ```
-$ cd sensors/js
-$ node sensors.js -c <configuration file>
+$ node ~/HSAC/sensors/js/sensors.js -c <configuration file>
 ```
 The configuration file is a list of sensors. Each sensor configuration has
 at least:
@@ -59,7 +63,6 @@ DHTxx sensors also have:
 DS18x20 sensors have:
 * sensor_id - the ID of the DS18B20 sensor
 
-```
 an example configuration file:
 ```
 [
@@ -69,18 +72,18 @@ an example configuration file:
    "sensor_id": "28-0316027f81ff"
   },
   {
-   name: "intake_temperature",
+   "name": "intake_temperature",
    "class": "DHTxx",
    "type": 11,
    "gpio": 14,
    "field": "temperature"
   },
   {
-   name: "intake_humidity",
+   "name": "intake_humidity",
    "class": "DHTxx",
    "type": 11,
    "gpio": 14,
-   field: "humidity"
+   "field": "humidity"
   }
 ]
 ```
@@ -91,6 +94,7 @@ The server needs to be started on boot, by `/etc/init.d/sensors.sh`
 `/home/pi/HSAC`:
 
 ```
+$ sudo cat <<HERE > /etc/init.d/sensors.sh
 #!/bin/sh
 # sensors.sh
 ### BEGIN INIT INFO
@@ -116,10 +120,13 @@ case "$1" in
 	  >> /var/log/sensors.log
     fi
     ;;
+  restart)
+    $0 stop
+    $0 start
+    ;;
 esac
-```
-You will then need to:
-```
+HERE
+$ sudo chmod 755 /etc/init.d/sensors.sh
 $ sudo update-rc.d sensors.sh defaults
 ```
 The service should start on the next boot. To start / stop / restart the service from

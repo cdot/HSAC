@@ -244,7 +244,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     get_sample(name)
                     .then((sample) => {
                         sample = sample ? sample.sample : 0;
-                        $(".report_" + name).text(sample.toFixed(1));
+                        $(".report_" + name).text(Math.round(sample));
                         let alarm_temp = self.config.get(name + "_alarm");
                         if (sample >= alarm_temp) {
                             $el.show();
@@ -511,7 +511,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             promise
             .then(() => {
                 if (typeof Audio !== "undefined") {
-                    var snd = new Audio("app/sounds/forecast.mp3");
+                    var snd = new Audio("app/sounds/forecast.wav");
                     snd.play();
                 }
             })
