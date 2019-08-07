@@ -31,24 +31,23 @@ After a reboot you can see what sensors are connected using
 ```
 ls /sys/bus/w1/devices/w1_bus_master1
 ```
-Expect to see devices such as 28-0316027f81ff.
+Expect to see devices such as `28-0316027f81ff`
 
 # Server Configuration
-You will need to install node.js and npm:
+You will need to install node.js and npm.
+
+Install the server software from github.
 ```
-$ sudo apt-get install nodejs npm
-```
-Install the server software from github. We recommend unpacking in `/home/pi`
-```
+$ cd ~
 $ git clone https://github.com/cdot/HSAC.git
 $ cd HSAC/sensors
 $ npm install
 ```
-The server is run as follows:
+The server is then run as follows:
 ```
 $ node ~/HSAC/sensors/js/sensors.js -c <configuration file>
 ```
-The configuration file is a list of sensors. Each sensor configuration has
+The configuration file is a list of sensors. Each sensor has
 at least:
 * class - the name of a class that implements an interface to the sensor
 * name - the name of the sensor. This will be used to create an AJAX
@@ -87,6 +86,8 @@ an example configuration file:
   }
 ]
 ```
+The server has a number of command-line options that can be explored
+using the `--help` option.
 
 ## Running the Server
 The server needs to be started on boot, by `/etc/init.d/sensors.sh`
@@ -94,7 +95,7 @@ The server needs to be started on boot, by `/etc/init.d/sensors.sh`
 `/home/pi/HSAC`:
 
 ```
-$ sudo cat <<HERE > /etc/init.d/sensors.sh
+$ sudo nano /etc/init.d/sensors.sh
 #!/bin/sh
 # sensors.sh
 ### BEGIN INIT INFO
@@ -125,14 +126,16 @@ case "$1" in
     $0 start
     ;;
 esac
-HERE
 $ sudo chmod 755 /etc/init.d/sensors.sh
 $ sudo update-rc.d sensors.sh defaults
 ```
-The service should start on the next boot. To start / stop / restart the service from
+The service should start on the next boot. To start the service from
 the command line:
 ```
 $ sudo service sensors.sh start
 ```
 Sensors must be attached and available when the server is started, or they will
-not be detected by the service. The server can be restarted at any time.
+not be detected by the service. The server can be restarted at any time using
+```
+$ sudo service sensors.sh restart
+```
