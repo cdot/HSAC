@@ -240,7 +240,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 const cur = this.get(this.length() - 1);
                 set_runtime(cur.runtime);
                 $tab.find(".cr_operator").text(cur.operator);
-                $tab.find(".cr_time").text(Entries.formatDate(cur.date));
+                $tab.find(".cr_time").text(Entries.formatDateTime(cur.date));
                 $tab.find(".cr_flr").text(new Number(this.remaining_filter_life()).toFixed(2));
                 $tab.find(".cr_runtime").text(cur.runtime);
                 if ($rta.length && $rta.attr("type") !== "hidden") {

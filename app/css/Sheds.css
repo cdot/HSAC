@@ -213,11 +213,6 @@ table td,th {
     font-size: 18pt;
 }
 
-.greyed_out {
-    background-color: lightgrey;
-    color: darkgrey;
-}
-
 .digital {
     font-size: 24pt !important;
     font-family: "Courier New", Courier, monospace !important

@@ -61,6 +61,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     static_filter_coeff_c: 11.50844,
                     static_filter_coeff_d: -0.4806983,
                     sensor_url: null,
+                    poll_frequency: 15000,
                     internal_temperature_alarm: 90,
                 },
                 this.debug
@@ -173,24 +174,24 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 //          when the sample is too old or is unavailable
                 let spec = $el.data("sample-config");
 
-                if (sample !== null) {
+                if (!sample) {
+                    if (self.debug) self.debug("Sample for", id, "unavailable");
+                } else {
                     let thresh = Date.now() - spec.max_age;
                     if (sample.time < thresh) {
                         // Sample unavailable or too old
+                        if (self.debug) self.debug("Sample for", id, "too old");
                         sample = null;
                     }
                 }
+
                 if (!sample) {
-                    if (self.debug) self.debug(
-                        "Sample for", id, "unavailable or too old");
                     $el.prop("readonly", null);
-                    $el.removeClass("greyed_out");
                     $(spec.sampled).hide();
                     $(spec.unsampled).show();
                 } else {
                     // sample available and young enough
                     $el.prop("readonly", "readonly");
-                    $el.addClass("greyed_out");
                     $el.val(Math.round(sample.sample));
                     $(spec.sampled).show();
                     $(spec.unsampled).hide();
@@ -244,16 +245,20 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     get_sample(name)
                     .then((sample) => {
                         sample = sample ? sample.sample : 0;
-                        $(".report_" + name).text(Math.round(sample));
+                        let $report = $(".report_" + name);
+                        $report.html(Math.round(sample) + "&deg;C");
                         let alarm_temp = self.config.get(name + "_alarm");
                         if (sample >= alarm_temp) {
+                            $report.addClass("error");
                             $el.show();
                             if (typeof Audio !== "undefined") {
                                 var snd = new Audio("app/sounds/siren.mp3");
                                 snd.play();
                             }
-                        } else
+                        } else {
+                            $report.removeClass("error");
                             $el.hide();
+                        }
                     }));
             });
 
@@ -261,7 +266,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             .finally(() => {
                 // Queue the next poll for 15s hence
                 this.sensor_tick =
-                setTimeout(() => { self.read_sensors(); }, 15000);
+                setTimeout(() => { self.read_sensors(); },
+                           parseInt(self.config.get("poll_frequency")));
             });
         }
 

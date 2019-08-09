@@ -115,6 +115,11 @@ define("app/js/Entries", ["jquery-csv"], () => {
             return date.toISOString().replace(/T.*/, "");
         }
 
+        /** Make a simple date/time string */
+        static formatDateTime(date) {
+            return date.toISOString().replace(/T(\d\d:\d\d).*/, " $1")
+        }
+
         load() {
             if (this.loaded)
                 return Promise.resolve(this);

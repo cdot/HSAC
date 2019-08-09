@@ -59,14 +59,13 @@
         </ul>
 
         <div id="static" class="crowded_tab">
-          <div class="hidden alarm" data-samples="internal_temperature">
+          <div class="hidden alarm error" data-samples="internal_temperature">
             COMPRESSOR INTERNAL TEMPERATURE IS TOO HIGH!
-            <span class="report_internal_temperature"></span>&deg;C
           </div>
-          <div style="float:right"><span class="report_internal_temperature"></span>&deg;C</div>
+          <div style="float:right" class="report_internal_temperature"></div>
           <form id="static_form" class="validated_form">
             <div>
-              Last run by <span class="cr_operator">?</span> on
+              Last run by <span class="cr_operator">?</span>
               <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">hours <span class='fas fa-cog'></span></span><br />
               <span data-with-info="#infoFilterEfficiency">Filter estimate is <span class="cr_flr">?</span> hours left</span>
             </div>
@@ -437,7 +436,13 @@ hours
                   </td>
                 </tr>
                 <tr>
-                  <td>Compressor alarm temperature:</td>
+                  <td>Sensor poll frequency (ms):</td>
+                  <td class="widest">
+                    <input style="width:100%" type="number" class="integer" name="poll_frequency">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Compressor alarm temperature (&deg;C):</td>
                   <td class="widest">
                     <input style="width:100%" type="text" name="internal_temperature_alarm">
                   </td>
