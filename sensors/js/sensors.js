@@ -11,15 +11,16 @@ requirejs.config({
     baseUrl: __dirname.replace(/\/[^\/]*$/, "")
 });
 
-requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Fallback"], function(Fs, Getopt, Express, CORS, Fallback) {
+requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback"], function(Fs, Getopt, Express, CORS, Time, Fallback) {
     const DESCRIPTION =
           "DESCRIPTION\nA Raspberry PI sensors ajax server.\n" +
           "See sensors/README.md for details\n\nOPTIONS\n";
+    const DEFAULT_PORT = 8000;
 
     let cliopt = Getopt.create([
         ["h", "help", "Show this help"],
         ["c", "config=ARG", "Configuration file (default ~/sensors.cfg)"],
-        ["p", "port=ARG", "What port to run the server on (default 3000)"],
+        ["p", "port=ARG", "What port to run the server on (default " + DEFAULT_PORT + ")"],
         ["s", "simulate", "Use a simulation for any missing hardware"],
         ["v", "verbose", "Verbose debugging messages"]
     ])
@@ -35,8 +36,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Fallback"], functio
 
     let simulation = (cliopt.simulate) ? Fallback : null;
 
-    // Default port is 3000
-    let port = cliopt.port || 3000;
+    let port = cliopt.port || DEFAULT_PORT;
 
     Fs.readFile(cliopt.config)
     .then((config) => {
@@ -60,20 +60,68 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Fallback"], functio
         let promises = [];
         for (let cfg of config) {
             cfg.log = log;
-            cfg.simulation = simulation;
             let clss = cfg["class"];
-            promises.push(new Promise((resolve) => {
-                log("Requiring ", clss);
-                requirejs(["js/" + clss], function(SensorClass) {
-                    resolve(new SensorClass(cfg).register(server));
+
+            let promise = new Promise((resolve, reject) => {
+                requirejs(["js/" + clss], (SensorClass) => {
+                    let sensor = new SensorClass(cfg);
+                    sensor
+                    .connect()
+                    .then(() => { resolve(sensor); })
+                    .catch((e) => {
+                        cfg.error = "Could not connect: " + e;
+                        return reject(cfg);
+                    });
+                }, (e) => {
+                    cfg.error = "Could not require: " + e;
+                    reject(cfg);
                 });
-            }));
+            });
+            
+            // If simulation is requested, make a simulated sensor if the
+            // construction or connect failed
+            if (simulation) {
+                promise = promise
+                .catch((cfg) => {
+                    log(cfg.name + ":", cfg.error);
+                    console.log("Using simulation for", cfg.name);
+                    return Promise.resolve(new simulation(cfg));
+                });
+            }
+
+            // Add routes
+            promises.push(
+                promise
+                .then((sensor) => {
+                    server.get("/" + sensor.name, (req, res) => {
+                        if (typeof req.query.t !== "undefined")
+                            Time.sync(req.query.t);
+                        sensor.sample()
+                        .then((sample) => {
+                            res.send(sample);
+                        });
+                    });
+                    return Promise.resolve("registered /" + sensor.name);
+                })
+                .catch((cfg) => {
+                    console.error(cfg.name, "could not be registered");
+                    server.get("/" + cfg.name, (req, res, next) => {
+                        next(cfg.name + " was not registered");
+                    });
+                    return Promise.resolve("failed /" + cfg.name);
+                }));
         }
 
         Promise.all(promises)
-        .then(() => {
-            server.listen(cliopt.port);
-            console.log("Server started on port", port);
+        .then((ps) => {
+            for (let tf of ps) {
+                if (/^registered/.test(tf)) {
+                    server.listen(cliopt.port);
+                    console.log("Server started on port", port);
+                    return;
+                }
+            }
+            console.error("No sensors, so no server");
         });
     })
     .catch((e) => {

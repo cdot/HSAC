@@ -1,4 +1,6 @@
-define("js/Fallback", ["js/Sensor"], function(Sensor) {
+/*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
+/* eslint-env node.js */
+define("js/Fallback", ["js/Sensor", "js/Time"], function(Sensor, Time) {
     const MINT = -1;
     const MAXT = 91;
     const MINH = 0;
@@ -6,7 +8,7 @@ define("js/Fallback", ["js/Sensor"], function(Sensor) {
 
     class Fallback extends Sensor {
         constructor(config) {
-            console.log("Creating simlated", config.name);
+            console.log("Creating simulated", config.name);
             super(config);
             this.mTemp = (MAXT + MINT) / 2;
             this.mStepT = 1;
@@ -17,10 +19,8 @@ define("js/Fallback", ["js/Sensor"], function(Sensor) {
         sample() {
             this.mTemp = MINT + Math.random() * (MAXT - MINT);
             this.mHum = MINH + Math.random() * (MAXH - MINH);
-            if (/humidity/.test(this.name))
-                return Promise.resolve(this.mHum);
-            else
-                return Promise.resolve(this.mTemp);
+            let res = (/humidity/.test(this.name)) ? this.mHum : this.mTemp;
+            return Promise.resolve({ sample: res, time: Time.now() });
         }
     }
 

@@ -1,11 +1,15 @@
-define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, Fs, Sensor) {
+/*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
+/* eslint-env node.js */
+define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], function(DHT, Fs, Sensor, Time) {
 
     const BACK_OFF = 2500; // 2.5s in ms
 
     class DHTPin {
         constructor() {
-            this.mLastSample = { temperature: 0, humidity: 0, time: 0 };
+            this.mLastSample = { temperature: 0, humidity: 0,
+                                 time: 0, error: "Uninitialised" };
             this.mIsSampling = false;
+            this.mUnusable = false;
         }
 
         /**
@@ -14,7 +18,13 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
          * read to return, then the last sample is returned.
          */
         sample(type, gpio) {
-            if (this.mIsSampling || Date.now() - this.mLastSample.time < BACK_OFF) {
+            if (this.mUnusable) {
+                return Promise.reject("Unusable");
+            }
+
+            if (this.mIsSampling
+                || !this.mLastSample.error // Force resampling if there was an error
+                && Time.now() - this.mLastSample.time < BACK_OFF) {
                 return Promise.resolve(this.mLastSample);
             }
 
@@ -32,19 +42,20 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
                     clearTimeout(self.mTimeout); // clear it ASAP
                     self.mTimeout = null;
                     if (e) {
-                        reject("DHT error: " + e);
+                        this.mUnusable = true;
+                        reject("DHT error " + e);
                         return;
                     }
-                    let sample = { time: Date.now(), temperature: t, humidity: h };
+                    let sample = { time: Time.now(), temperature: t, humidity: h };
                     self.mLastSample = sample;
                     resolve(sample);
                 });
             })
             .catch((e) => {
-                console.error("DHT:", e);
+                this.mLastSample.error = e;
                 return Promise.resolve(this.mLastSample);
             })
-            .finally(() => {
+            .finally((f) => {
                 if (this.mTimeout)
                     clearTimeout(this.mTimeout);
                 this.mTimeout = null;
@@ -69,17 +80,13 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
 
             this.mDevice = config.type;
             this.mGpio = config.gpio;
-
-            if (!DHTPins[config.gpio])
-                DHTPins[config.gpio] = new DHTPin();
-
             this.mField = config.field;
         }
 
         /**
          * @Override
          */
-        check() {
+        connect() {
             if (!this.mDevice || this.mDevice != 11 && this.mDevice != 22)
                 return Promise.reject(
                     this.name + " has bad type" + this.mDevice);
@@ -87,8 +94,21 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor"], function(DHT, F
             if (!this.mGpio)
                 return Promise.reject(this.name + " has no gpio");
 
-            // Make sure we have GPIO available
-            return Fs.stat("/dev/gpiomem");
+            if (!DHTPins[this.mGpio])
+                DHTPins[this.mGpio] = new DHTPin();
+
+            // Make sure we have GPIO available, and we can read a sample
+            return Fs.stat("/dev/gpiomem")
+            .catch((e) => {
+                return Promise.reject(e.message);
+            })
+            .then((s) => {
+                return DHTPins[this.mGpio].sample()
+                .then((s) => {
+                    if (s.error)
+                        return Promise.reject("sample failed: " + s.error)
+                });
+            });
         }
 
         /**
