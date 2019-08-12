@@ -234,7 +234,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             .then(() => {
                 if (self.debug) self.debug("Loading " + this.length() + " " + this.id +
                               " compressor records");
-                $("#infoCompressorActivity").html(this.activityHTML());
+                $("#infoCompressorActivity_" + self.id).html(this.activityHTML());
                 if (this.length() === 0)
                     return;
                 const cur = this.get(this.length() - 1);
@@ -347,6 +347,9 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
 
         activityHTML() {
             let heads = this.getHeads();
+
+            if (heads.length === 0)
+                return "No activity";
             
             let table = "<table><thead><tr><th>"
                 + heads.join("</th><th>") + "</tr></thead><tbody>";
