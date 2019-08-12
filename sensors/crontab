@@ -1,0 +1,1 @@
+0,10,20,30,40,50 * * * * cd /home/pi/sensors/js && /root/.nvm/versions/node/v10.16.2/bin/node update_date.js`

@@ -36,8 +36,6 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback
 
     let simulation = (cliopt.simulate) ? Fallback : null;
 
-    let port = cliopt.port || DEFAULT_PORT;
-
     Fs.readFile(cliopt.config)
     .then((config) => {
         return JSON.parse(config);
@@ -58,13 +56,14 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback
 
         // Make sensors
         let promises = [];
-        for (let cfg of config) {
+        for (let cfg of config.sensors) {
             cfg.log = log;
             let clss = cfg["class"];
 
             let promise = new Promise((resolve, reject) => {
                 requirejs(["js/" + clss], (SensorClass) => {
                     let sensor = new SensorClass(cfg);
+                    log("Connecting", cfg.name);
                     sensor
                     .connect()
                     .then(() => { resolve(sensor); })
@@ -77,7 +76,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback
                     reject(cfg);
                 });
             });
-            
+
             // If simulation is requested, make a simulated sensor if the
             // construction or connect failed
             if (simulation) {
@@ -101,12 +100,13 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback
                             res.send(sample);
                         });
                     });
+                    log("Registered /" + sensor.name);
                     return Promise.resolve("registered /" + sensor.name);
                 })
                 .catch((cfg) => {
-                    console.error(cfg.name, "could not be registered");
+                    console.error(cfg.name, "could not be registered", cfg);
                     server.get("/" + cfg.name, (req, res, next) => {
-                        next(cfg.name + " was not registered");
+                        next();//cfg.name + " was not registered");
                     });
                     return Promise.resolve("failed /" + cfg.name);
                 }));
@@ -114,9 +114,12 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback
 
         Promise.all(promises)
         .then((ps) => {
+            log(ps);
+            // Make sure at least one sensor is registered
             for (let tf of ps) {
                 if (/^registered/.test(tf)) {
-                    server.listen(cliopt.port);
+                    let port = cliopt.port || config.port || DEFAULT_PORT;
+                    server.listen(port);
                     console.log("Server started on port", port);
                     return;
                 }

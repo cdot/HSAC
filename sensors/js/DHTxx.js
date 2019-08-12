@@ -2,13 +2,15 @@
 /* eslint-env node.js */
 define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], function(DHT, Fs, Sensor, Time) {
 
-    const BACK_OFF = 2500; // 2.5s in ms
+    const BACK_OFF = 5000; // 5s in ms
 
     class DHTPin {
-        constructor() {
+        constructor(type, gpio) {
+            this.mType = type;
+            this.mGpio = gpio;
             this.mLastSample = { temperature: 0, humidity: 0,
                                  time: 0, error: "Uninitialised" };
-            this.mIsSampling = false;
+            this.mSamplingPromise = null;
             this.mUnusable = false;
         }
 
@@ -17,32 +19,32 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
          * during the backoff period, or while we are waiting for the last
          * read to return, then the last sample is returned.
          */
-        sample(type, gpio) {
+        sample() {
             if (this.mUnusable) {
                 return Promise.reject("Unusable");
             }
 
-            if (this.mIsSampling
-                || !this.mLastSample.error // Force resampling if there was an error
+            if (this.mSamplingPromise)
+                return this.mSamplingPromise;
+
+            if (typeof this.mLastSample.error === "undefined" // Force resampling if there was an error
                 && Time.now() - this.mLastSample.time < BACK_OFF) {
                 return Promise.resolve(this.mLastSample);
             }
 
-            // TODO: do we have to time out this read?
-            this.mIsSampling = true; // don't try to sample again yet
             let self = this;
-            return new Promise((resolve, reject) => {
+            this.mSamplingPromise = new Promise((resolve, reject) => {
                 self.mTimeout = setTimeout(() => {
                     self.mIsSampling = false;
                     self.mTimeout = null;
                     reject("Timed out");
                 }, BACK_OFF);
-
-                DHT.read(type, gpio, function(e, t, h) {
+                DHT.read(this.mType, this.mGpio, function(e, t, h) {
                     clearTimeout(self.mTimeout); // clear it ASAP
                     self.mTimeout = null;
                     if (e) {
                         this.mUnusable = true;
+                        console.error("DHT error", e);
                         reject("DHT error " + e);
                         return;
                     }
@@ -59,8 +61,9 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
                 if (this.mTimeout)
                     clearTimeout(this.mTimeout);
                 this.mTimeout = null;
-                this.mIsSampling = false;
+                this.mSamplingPromise = null;
             });
+            return this.mSamplingPromise;
         }
     }
 
@@ -95,18 +98,21 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
                 return Promise.reject(this.name + " has no gpio");
 
             if (!DHTPins[this.mGpio])
-                DHTPins[this.mGpio] = new DHTPin();
+                DHTPins[this.mGpio] = new DHTPin(this.mDevice, this.mGpio);
 
             // Make sure we have GPIO available, and we can read a sample
             return Fs.stat("/dev/gpiomem")
             .catch((e) => {
+                console.error(this.mField, "DHT connect failed: ", e.message);
                 return Promise.reject(e.message);
             })
             .then((s) => {
                 return DHTPins[this.mGpio].sample()
                 .then((s) => {
-                    if (s.error)
+                    if (s.error) {
+                        console.error(this.mField, "DHT connect sample failed: ", e.message);
                         return Promise.reject("sample failed: " + s.error)
+                    }
                 });
             });
         }
@@ -116,7 +122,7 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
          */
 	sample() {
             return DHTPins[this.mGpio]
-            .sample(this.mDevice, this.mGpio)
+            .sample()
             .then((sam) => {
                 return { sample: sam[this.mField], time: sam.time };
             });
