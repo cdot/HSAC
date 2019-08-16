@@ -19,47 +19,88 @@
      * data-with-info-position on the element.
      */
     $.fn.with_info = function (params) {
-        if (this.length === 0)
-            return;
-
         if (typeof params !== "object")
             params = {
                 text: params
             };
 
-        var $thing = $(this);
-        var s = params.text || $thing.data("with-info");
-        var position = params.position || $thing.data("with-info-position") ||
-            params.position || "after";
+        function get_markdown(url) {
+            if ($("#" + url).length > 0) {
+                return promise.resolve($("#" + url).innerHTML);
+            }
 
-        if (typeof s === "undefined" || s.charAt(0) === '#' && $(s).length === 0)
-            throw "Missing " + s;
-
-        var $clickable;
-
-        if (position === "hidden")
-            $clickable = $thing;
-        else if (position === "before") {
-            $clickable = $("<span class='fas fa-info-circle with-info-before'></span>");
-            $thing.before($clickable);
-        } else {
-            $clickable = $("<span class='fas fa-info-circle with-info-after'></span>");
-            $thing.after($clickable);
-        }
-
-        $clickable.data("info", s);
-        $clickable.on("click", function () {
-            var info = $(this).data("info");
-            if (info.charAt(0) === '#')
-                info = $(info).html();
-            if (typeof params.bodyIcon === "undefined")
-                info = "<div class='fas fa-info-circle with-info-icon'></div>" + info;
-            else
-                info = params.bodyIcon + info;
-            $.alert({
-                title: "",
-                content: info
+            return new Promise((resolve) => {
+                $.ajax({
+                    url: url,
+                    data: {
+                        t: Date.now() // defeat cache
+                    },
+                    dataType: "text"
+                })
+                .done((md) => {
+                    requirejs(["markdown-it"], function(Markdown) {
+                        let html = new Markdown({ html: true }).render(md);
+                        $("body").append("<div class='info hidden' id='" + url + "'>"
+                                         + html + "</div>");
+                        resolve(html);
+                    });
+                });
             });
-        });
+        }
+        
+        for (let i = 0; i < this.length; i++) {
+            let $thing = $(this[i]);
+            let s = params.text || $thing.data("with-info");
+            let position = params.position || $thing.data("with-info-position") ||
+                params.position || "after";
+
+            if (typeof s === "undefined" || s.charAt(0) === '#' && $(s).length === 0)
+                throw "Missing " + s;
+
+            let $clickable;
+
+            if (position === "hidden")
+                $clickable = $thing;
+            else if (position === "before") {
+                $clickable = $("<span class='fas fa-info-circle with-info-before'></span>");
+                $thing.before($clickable);
+            } else {
+                $clickable = $("<span class='fas fa-info-circle with-info-after'></span>");
+                $thing.after($clickable);
+            }
+
+            $clickable.data("info", s);
+            $clickable.on("click", function () {
+                let source = $(this).data("info");
+                let get_info = Promise.resolve();
+                
+                if (/\.md$/.test(source))
+                    // Construct HTML from external markdown
+                    get_info = get_markdown(source);
+                else if (source.charAt(0) === '#')
+                    // HTML is embedded
+                    get_info = Promise.resolve($(source).html());
+                else
+                    // HTML is in attribute
+                    get_info = Promise.resolve(source);
+                
+                get_info.then((html) => {
+                    if (typeof params.bodyIcon === "undefined")
+                        html = "<div class='fas fa-info-circle with-info-icon'></div>" + html;
+                    else
+                        html = params.bodyIcon + html;
+
+                    // Alert using jquery-confirm
+                    $.alert({
+                        title: "",
+                        content: html,
+                        onOpen: function() {
+                            this.$content.find("[data-with-info]").with_info();
+                        }
+                    });
+                });
+            });
+        }
     }
 })(jQuery);
+

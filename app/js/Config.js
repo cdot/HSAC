@@ -42,13 +42,25 @@ define("app/js/Config", () => {
         }
 
         get(k, deflt) {
-            if (typeof this.store_data[k] === "undefined")
-                return deflt;
-            return this.store_data[k];
+            let data = this.store_data;
+            for (let bit of k.split(":")) {
+                data = data[bit];
+                if (typeof data === "undefined")
+                    return deflt;
+            }
+            return data;
         }
 
         set(k, v) {
-            this.store_data[k] = v;
+            let bits = k.split(":");
+            let coll = this.store_data;
+            while (bits.length > 1) {
+                let k = bits.shift();
+                if (typeof data[k] === "undefined")
+                    data[k] = {};
+                data = data[k];
+            }
+            data[bits[0]] = v;
             return this.save();
         }
 

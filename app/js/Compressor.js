@@ -262,13 +262,14 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
         remaining_filter_life() {
             let self = this;
             const details = false;
-            let avelife = this.cfg.get(this.id + "_filter_lifetime");
+            let cfg_pre = "compressor:" + this.id + ":filter_";
+            let avelife = this.cfg.get(cfg_pre + "lifetime");
             if (this.length() === 0)
                 return avelife;
-            let fca = this.cfg.get(this.id + "_filter_coeff_a");
-            let fcb = this.cfg.get(this.id + "_filter_coeff_b");
-            let fcc = this.cfg.get(this.id + "_filter_coeff_c");
-            let fcd = this.cfg.get(this.id + "_filter_coeff_d");
+            let fca = this.cfg.get(cfg_pre + "coeff_a");
+            let fcb = this.cfg.get(cfg_pre + "coeff_b");
+            let fcc = this.cfg.get(cfg_pre + "coeff_c");
+            let fcd = this.cfg.get(cfg_pre + "coeff_d");
             let flr = avelife;
             let runtime = 0;
             if (details && self.debug)
@@ -366,6 +367,40 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             }
             
             return table + "</tbody></table>";
+        }
+
+        /**
+         * Determine if the compressor should be operated under given
+         * conditions of temperature and humidity. See README.md for details.
+         */
+        validate(temperature, humidity) {
+            // See https://www.conservationphysics.org/atmcalc/atmoclc2.pdf
+            temperature = parseFloat(temperature);
+            humidity=parseFloat(humidity);
+            // Saturation vapour (partial) pressure
+            let sat = 610.78 * Math.exp(17.2694 * temperature / (temperature + 238.3)); // pascals
+
+            // Concentration at saturation
+            let conc1 = 2.166 * sat / (temperature + 273.16); // g/m^3
+
+            // Adjust for relative humidity
+            let conc2 = conc1 * humidity / 100;
+
+            // Subtract the acceptable upper limit for nitrox (0.02g/m^3)
+            if (conc2 <= 0.02)
+                return true; // very dry already
+            let conc3 = conc2 - 0.02;
+
+            let pumping_rate = this.cfg.get("compressor:" + this.id + ":pumping_rate"); // l/min
+            let purge_freq = this.cfg.get("compressor:" + this.id + ":purge_freq"); // mins
+            let air_per_purge = pumping_rate * purge_freq / 1000; // m^3
+
+            // Volume of condensate expected to be generated during 1 purge period
+            let ml = conc3 * air_per_purge; // g ~ ml
+
+            let threshold = this.cfg.get("compressor:" + this.id + ":safe_limit"); // ml
+            //console.debug(temperature, humidity, sat, conc1, conc2, ml, "<", threshold,"?");
+            return ml <= threshold;
         }
     }
     return Compressor;

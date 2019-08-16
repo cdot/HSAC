@@ -201,7 +201,7 @@ table td,th {
     padding: .2em 1em;
 }
 
-#static {
+#fixed {
     font-size: 18pt;
 }
 
@@ -253,4 +253,9 @@ input[name="temperature"], input[name="humidity"] {
 .alarm {
     color: white;
     background-color: red;
+}
+
+[data-markdown] {
+    color: blue;
+    text_decoration: underline;
 }

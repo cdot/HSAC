@@ -11,7 +11,7 @@ requirejs.config({
     baseUrl: __dirname.replace(/\/[^\/]*$/, "")
 });
 
-requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback"], function(Fs, Getopt, Express, CORS, Time, Fallback) {
+requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/SimulatedSensor"], function(Fs, Getopt, Express, CORS, Time, SimulatedSensor) {
     const DESCRIPTION =
           "DESCRIPTION\nA Raspberry PI sensors ajax server.\n" +
           "See sensors/README.md for details\n\nOPTIONS\n";
@@ -34,7 +34,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Fallback
 
     let log = (cliopt.verbose) ? console.log : (() => {});
 
-    let simulation = (cliopt.simulate) ? Fallback : null;
+    let simulation = (cliopt.simulate) ? SimulatedSensor : null;
 
     Fs.readFile(cliopt.config)
     .then((config) => {

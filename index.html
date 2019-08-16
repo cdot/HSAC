@@ -51,19 +51,19 @@
           <span id="settings" class="fas fa-sliders-h"></span>
         </div>
         <ul style="margin-right:1.2em">
-          <li><a href="#static">Static Compressor</a></li>
+          <li><a href="#fixed">Fixed Compressor</a></li>
           <li><a href="#portable">Portable Compressor</a></li>
           <li><a href="#loans">Loans</a></li>
           <li><a href="#inventory">Inventory</a></li>
           <li><a href="#nitrox">Nitrox</a></li>
         </ul>
 
-        <div id="static" class="crowded_tab">
+        <div id="fixed" class="crowded_tab">
           <div class="hidden alarm error" data-samples="internal_temperature">
             COMPRESSOR INTERNAL TEMPERATURE IS TOO HIGH!
           </div>
           <div style="float:right" class="report_internal_temperature"></div>
-          <form id="static_form" class="validated_form">
+          <form id="fixed_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span>
               <span class="cr_time">?</span>, runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">hours <span class='fas fa-cog'></span></span><br />
@@ -92,9 +92,9 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="temperature" type="number" value="18" id="static_temp" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" data-samples="intake_temperature" data-sample-config='{"max_age":300000,"sampled":"#static_temp_from_sensor","unsampled":"#static_intake_temp_slider"}'>&deg;C
-                  <span style="display:none" id="static_temp_from_sensor">(detected)</span>
-                  <div class="temperature slider" id="static_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#static_temp"}'>
+                  <input name="temperature" type="number" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" compressor="fixed" data-samples="intake_temperature" data-sample-config='{"max_age":300000,"sampled":"#fixed_temp_from_sensor","unsampled":"#fixed_intake_temp_slider"}'>&deg;C
+                  <span style="display:none" id="fixed_temp_from_sensor">(detected)</span>
+                  <div class="temperature slider" id="fixed_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#fixed_temp"}'>
                     <div class="min">4&deg;C</div><div class="max">40&deg;C</div>
                   </div>
                 </td>
@@ -106,9 +106,9 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="humidity" type="number" value="50" id="static_hum" min="0" max="80" data-msg-max="Must be ≤80%" data-samples="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#static_hum_from_sensor","unsampled":"#static_intake_hum_slider"}'>%
-                  <span style="display:none" id="static_hum_from_sensor">(detected)</span>
-                  <div class="humidity slider" id="static_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#static_hum"}'>
+                  <input name="humidity" type="number" value="50" id="fixed_hum" compressor="fixed" data-samples="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider"}'>%
+                  <span style="display:none" id="fixed_hum_from_sensor">(detected)</span>
+                  <div class="humidity slider" id="fixed_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
                     <div class="min">0%</div><div class="max">80%</div>
                   </div>
                 </td>
@@ -199,13 +199,13 @@ hours
               </tr>
             </table>
             <div style="float:right">
-              <label for="static_filters_changed">Filters changed</label>
-              <input data-with-info="#infoFilters" type="checkbox" id="static_filters_changed" name="filters_changed">
+              <label for="fixed_filters_changed">Filters changed</label>
+              <input data-with-info="#infoFilters" type="checkbox" id="fixed_filters_changed" name="filters_changed">
             </div>
             <span class="cr_delta"></span>
             <span style="display:none" class="cr_filters_changed"> FILTERS HAVE BEEN CHANGED</span>
           </form>
-          <span data-with-info="#infoCompressorActivity_static">
+          <span data-with-info="#infoCompressorActivity_fixed">
             <button name="add_record">Touch here to record this run</button>
           </span>
         </div>
@@ -412,21 +412,43 @@ hours
           </tr>
           <tr>
             <th class="input_label">
-              <span data-info="#infoCompressor">
+              <span data-info="Compressor.md">
                 Static Compressor
               </span>
             </th>
             <td class="widest">
-              Predicted Lifetime:
-              <input type="number" class="integer" step="any" required name="static_filter_lifetime"> hours
               <table>
+                <tr>
+                  <td>Predicted Filter Lifetime, hours @ 20&deg;C:</td>
+                  <td>
+                    <input type="number" class="integer" step="any" required name="compressor:fixed:filter_lifetime">
+                  </td>
+                </tr>
                 <tr>
                   <td>Coefficients</td>
                   <td class="widest">
-                    A <input type="number" class="number" step="any" required name="static_filter_coeff_a">
-                    B <input type="number" class="number" step="any" required name="static_filter_coeff_b"><br/>
-                    C <input type="number" class="number" step="any" required name="static_filter_coeff_c">
-                    D <input type="number" class="number" step="any" required name="static_filter_coeff_d">
+                    A <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_a">
+                    B <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_b"><br/>
+                    C <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_c">
+                    D <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_d">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Pumping rate (lm<sup>-1</sup>):</td>
+                  <td class="widest">
+                    <input style="width:100%" type="text" name="compressor:fixed:pumping_rate">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Purge frequency (mins):</td>
+                  <td class="widest">
+                    <input style="width:100%" type="text" name="compressor:fixed:purge_freq">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Max condensate (ml):</td>
+                  <td class="widest">
+                    <input style="width:100%" type="text" name="compressor:fixed:safe_limit">
                   </td>
                 </tr>
                 <tr>
@@ -442,7 +464,7 @@ hours
                   </td>
                 </tr>
                 <tr>
-                  <td>Compressor alarm temperature (&deg;C):</td>
+                  <td>Alarm temperature (&deg;C):</td>
                   <td class="widest">
                     <input style="width:100%" type="text" name="internal_temperature_alarm">
                   </td>
@@ -452,21 +474,25 @@ hours
           </tr>
           <tr>
             <th class="input_label">
-              <span data-info="#infoCompressor">
+              <span data-info="Compressor.md">
                 Portable Compressor
               </span>
             </th>
             <td class="widest">
-              Predicted Lifetime:
-              <input type="number" class="integer" step="any" required name="portable_filter_lifetime"> hours
               <table>
+                <tr>
+                  <td>Predicted Filter Lifetime, hours @ 20&deg;C:</td>
+                  <td class="widest">
+                    <input type="number" class="integer" step="any" required name="compressor:portable:filter_lifetime">
+                  </td>
+                </tr>
                 <tr>
                   <td>Coefficients:</td>
                   <td class="widest">
-                    A <input type="number" class="number" step="any" required name="portable_filter_coeff_a">
-                    B <input type="number" class="number" step="any" required name="portable_filter_coeff_b"><br/>
-                    C <input type="number" class="number" step="any" required name="portable_filter_coeff_c">
-                    D <input type="number" class="number" step="any" required name="portable_filter_coeff_d">
+                    A <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_a">
+                    B <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_b"><br/>
+                    C <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_c">
+                    D <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_d">
                   </td>
                 </tr>
               </table>
@@ -474,7 +500,7 @@ hours
           </tr>
           <tr>
             <th>
-              <span data-info="#infoDB">Databases</span>
+              <span data-info="Databases.md">Databases</span>
             </th>
             <td>
               <table>
@@ -572,7 +598,7 @@ hours
     <div class="hidden info" id="infoManualHours">
       If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
     </div>
-    <div class="hidden info" id="infoCompressorActivity_static">
+    <div class="hidden info" id="infoCompressorActivity_fixed">
       No activity
     </div>
     <div class="hidden info" id="infoCompressorActivity_portable">
@@ -640,23 +666,5 @@ hours
     <div class="hidden info" id="infoMaxPPO2">
       Maximum ppO<sub>2</sub> used when calculating MOD
     </div>  
-    <div class="hidden info" id="infoCompressor">
-      Filter lifetime predictions are made based on the temperature of the
-      intake air at runtime. The predicted lifetime is the lifetime of a
-      filter that is run at the optimum temperature (usually 20&deg;C).
-      The coefficients are for the filter temperature degradation curve. The
-      sensor IDs are the unique identifiers for the different environmental
-      sensors. See <a href="https://github.com/cdot/HSAC#compressor" target="_blank">https://github.com/cdot/HSAC<a> for more.
-    </div>
-    <div class="hidden info" id="infoDB">
-      Two databases are used:
-      <ul>
-        <li>A read-only online database, accessed through the URL of a CSV file that contains the root index</li>
-        <li>A read-write cache server
-      </ul>
-      Click "Update" to update the cache server from the online database. See
-      <a href="https://github.com/cdot/HSAC#read-only-database" target="_blank">
-        https://github.com/cdot/HSAC<a> for more
-    </div>
   </body>
 </html>

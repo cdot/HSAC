@@ -41,7 +41,8 @@ requirejs.config({
         "jquery-csv" : "app/libs/jquery.csv" + min,
         "touch-punch" : "app/libs/jquery.ui.touch-punch" + min,
         "jquery-confirm" : "app/libs/jquery-confirm.min", // only min available
-        "tablesorter" : "app/libs/jquery.tablesorter.combined" + min
+        "tablesorter" : "app/libs/jquery.tablesorter.combined" + min,
+        "markdown-it" : "app/libs/markdown-it" + min
     }
 });
 

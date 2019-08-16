@@ -50,16 +50,27 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     ppO2max: 1.4,
                     loan_return: 10,
                     o2_price: 0.01,
-                    portable_filter_lifetime: 15,
-                    portable_filter_coeff_a: 1.84879,
-                    portable_filter_coeff_b: 1.124939,
-                    portable_filter_coeff_c: 14.60044,
-                    portable_filter_coeff_d: -0.3252651,
-                    static_filter_lifetime: 40,
-                    static_filter_coeff_a: 3.798205,
-                    static_filter_coeff_b: 1.149582,
-                    static_filter_coeff_c: 11.50844,
-                    static_filter_coeff_d: -0.4806983,
+                    
+                    compressor: {
+                        portable: {
+                            filter_lifetime: 15,
+                            filter_coeff_a: 1.84879,
+                            filter_coeff_b: 1.124939,
+                            filter_coeff_c: 14.60044,
+                            filter_coeff_d: -0.3252651
+                        },
+                        fixed: {
+                            filter_lifetime: 40,
+                            filter_coeff_a: 3.798205,
+                            filter_coeff_b: 1.149582,
+                            filter_coeff_c: 11.50844,
+                            filter_coeff_d: -0.4806983,
+                            pumping_rate: 300,
+                            purge_freq: 5,
+                            safe_limit: 25
+                        }
+                    },
+                    
                     sensor_url: null,
                     poll_frequency: 15000,
                     internal_temperature_alarm: 90,
@@ -71,16 +82,19 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 config: this.config
             });
 
-            this.static_compressor = new Compressor({
-                id: "static",
-                roles: this.roles,
-                config: this.config
-            });
-            this.portable_compressor = new Compressor({
-                id: "portable",
-                roles: this.roles,
-                config: this.config
-            });
+            this.compressors = {
+                fixed: new Compressor({
+                    id: "fixed",
+                    roles: this.roles,
+                    config: this.config
+                }),
+                portable: new Compressor({
+                    id: "portable",
+                    roles: this.roles,
+                    config: this.config
+                })
+            };
+            
             this.loans = new Loans({
                 roles: this.roles,
                 config: this.config
@@ -99,8 +113,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             if (this.debug) this.debug("Reloading UI");
             return Promise
             .all([
-                this.static_compressor.reload_ui(),
-                this.portable_compressor.reload_ui(),
+                this.compressors.fixed.reload_ui(),
+                this.compressors.portable.reload_ui(),
                 this.loans.reload_ui(),
                 this.inventory.reload_ui(loans)
             ])
@@ -196,6 +210,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     $(spec.sampled).show();
                     $(spec.unsampled).hide();
                 }
+
                 // Update validation message
                 $el.closest(".validated_form").valid();
             }
@@ -288,6 +303,19 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 });
             });
 
+            // Add a validator that looks at the temperature and humidity
+            // to determine if the values are within range for operating
+            // this compressor
+            jQuery.validator.addMethod(
+                "compressor",
+                (v, el, compressor) => {
+                    let $form = $(el).closest("form");
+                    return self.compressors[compressor].validate(
+                        $form.find("input[name='temperature']").val(),
+                        $form.find("input[name='humidity']").val());
+                },
+                "Compressor must not be operated");
+
             $("input").on("keypress", function (e) {
                 if (e.charCode == 13 && /Android/.test(navigator.userAgent)) {
                     e.preventDefault();
@@ -363,10 +391,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             });
 
             // Information buttons
-            $("[data-with-info]").each(function () {
-                $(this).with_info();
-            });
-
+            $("[data-with-info]").with_info();
+  
             $(".slider").each(function() {
                 let $self = $(this);
                 let data = $self.data("slider");
