@@ -32,34 +32,12 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             this.session_time = 0;
         }
 
-        /**
-         * The manual predicts filter life to be 50 hours at 20C and provides
-         * a table of factors from which a lifetime can be
-         * calculated:
-         * T (C), Factor
-         * 0, 3.8
-         * 5, 2.6
-         * 10, 1.85
-         * 20, 1
-         * 30, 0.57
-         * 40, 0.34
-         * 50, 0.2
-         * It also states the pumping rate is 260lpm.
-
-         * We want a curve that will give the filter factor, based on the
-         * temperature. Using a symmetric sigmoidal curve fit,
-         *    
-         *    y = d + (a - d) / (1 + (x / c) ^ b)
-         *    
-         * https://mycurvefit.com gives us an excellent fit.
-         */
-
         reload_ui() {
             const self = this;
             const $tab = $("#" + this.id);
             const $form = $tab.children("form");
             const $submit = $tab.find("button[name='add_record']");
-            const $rta = $form.find("input[name='runtime']");
+            const $runtime = $form.find("input[name='runtime']");
 
             const $delta = $form.find(".cr_delta");
             const $digits = {};
@@ -82,7 +60,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             }
 
             function set_runtime(v, nodigs) {
-                $rta.val(v.toFixed(2));
+                $runtime.val(v.toFixed(2));
                 let delta = (self.length() > 0)
                     ? v - self.get(self.length() - 1).runtime : 0;
 
@@ -120,10 +98,10 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     buttons: {
                         "Remove last run": () => {
                             self.pop().then((r) => {
-                                if ($rta.length && $rta.attr("type") !== "hidden") {
-                                    $rta.rules("remove", "min");
-                                    $rta.rules("add", {
-                                        min: (r ? r.runtime : 0) + 0.01
+                                if ($runtime.length && $runtime.attr("type") !== "hidden") {
+                                    $runtime.rules("remove", "min");
+                                    $runtime.rules("add", {
+                                        min: (r ? r.runtime : 0) + 0.009
                                     });
                                 }
                                 onChange();
@@ -181,7 +159,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 tick();
                 $(this).button("disable");
                 $session_pause.button("enable");
-                $rta.prop("readonly", "readonly");
+                $runtime.prop("readonly", "readonly");
             });
 
             $session_pause.click(function () {
@@ -191,7 +169,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 tock();
                 $(this).button("disable");
                 $session_play.button("enable");
-                $rta.prop("readonly", null);
+                $runtime.prop("readonly", null);
             });
 
             $submit
@@ -217,14 +195,16 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 self.add(values).then((r) => {
                     this.session_time = 0;
                     $session_time.trigger("ticktock");
-                    if ($rta.length && $rta.attr("type") !== "hidden") {
+                set_runtime(r.runtime);
+                    if ($runtime.length && $runtime.attr("type") !== "hidden") {
                         // Reset the runtime lower constraint to be more
                         // than the just-recorded runtime
-                        $rta.rules("remove", "min");
-                        $rta.rules("add", {
-                            min: (r ? r.runtime : 0) + 0.01
+                        $runtime.rules("remove", "min");
+                        $runtime.rules("add", {
+                            min: (r ? r.runtime : 0) + 0.009
                         });
                     }
+                    // Clear down the operator
                     $form.find("[name='operator']").val('');
                     onChange();
                 });
@@ -243,9 +223,9 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 $tab.find(".cr_time").text(Entries.formatDateTime(cur.date));
                 $tab.find(".cr_flr").text(new Number(this.remaining_filter_life()).toFixed(2));
                 $tab.find(".cr_runtime").text(cur.runtime);
-                if ($rta.length && $rta.attr("type") !== "hidden") {
-                    $rta.rules("remove", "min");
-                    $rta.rules("add", {
+                if ($runtime.length && $runtime.attr("type") !== "hidden") {
+                    $runtime.rules("remove", "min");
+                    $runtime.rules("add", {
                         min: cur.runtime + 0.009
                     });
                 }
@@ -325,7 +305,8 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 }
                 return this.save().then(() => {
                     if (typeof Audio !== "undefined") {
-                        var snd = new Audio("app/sounds/save.mp3");
+                        let pick = Math.floor(Math.random() * 25);
+                        let snd = new Audio("app/sounds/" + pick + ".mp3");
                         snd.play();
                     }
                     this.reload_ui().then(() => {
