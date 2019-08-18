@@ -60,11 +60,15 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
         // Set up test compressor config, using coefficients calculated
         // for test_points in mycurvefit.com
         {
-            test_filter_lifetime: 50,
-            test_filter_coeff_a: 3.798205,
-            test_filter_coeff_b: 1.149582,
-            test_filter_coeff_c: 11.50844,
-            test_filter_coeff_d: -0.4806983
+            test: {
+                filter: {
+                    lifetime: 50,
+                    a: 3.798205,
+                    b: 1.149582,
+                    c: 11.50844,
+                    d: -0.4806983
+                }
+            }
         }
         //, console.debug
     );

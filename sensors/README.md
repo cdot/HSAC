@@ -1,12 +1,12 @@
 # Sensors
 
-The application in this directory runs an ultra-light web server
-on a Raspberry Pi with DHT11 and DS18B20 sensors attached to GPIO.
+An ultra-light web server designed to be run on a Raspberry Pi with
+DHT11 and DS18B20 sensors attached to GPIO.
 
 On receipt of an AJAX request the server reads a sensor and reports the
 value read.
 
-The pinout for the sensors is as shown in `RPi pinout.svg`
+The pinout for the sensors is as shown in [RPi pinout.svg](RPi pinout.svg)
 
 # Hardware Configuration
 
@@ -60,7 +60,7 @@ DHTxx sensors also have:
   required
 
 DS18x20 sensors have:
-* sensor_id - the ID of the DS18B20 sensor
+* sensor_id - the ID of the DS18B20 sensor on the 1-wire network
 
 an example configuration file:
 ```
@@ -143,4 +143,10 @@ When the service is running you can use HTTP requests to query the sensors e.g.
 ```
 $ curl http://192.168.1.24:8000/internal_temperature
 ```
-The Sheds app uses these queries to update the UI.
+The Sheds browser app uses these queries to update the UI.
+
+To simplify testing, the sensors application can be run even when no sensors are available by passing the `--simulate` option on the command line.
+```
+$ node /home/pi/HSAC/sensors/js/sensors.js -p 8000 -c /home/pi/HSAC/sensors.cfg --simulate
+```
+The sensor simulation provides random data for the sensors shown in the example above.

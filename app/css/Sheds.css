@@ -259,3 +259,20 @@ input[name="temperature"], input[name="humidity"] {
     color: blue;
     text_decoration: underline;
 }
+
+/* Markdown */
+.fraction {
+    display: inline-block;
+    vertical-align: middle; 
+    margin: 0 0.2em 0.4ex;
+    text-align: center;
+}
+.fraction > span {
+    display: block;
+    padding-top: 0.15em;
+}
+.fraction span.fdn {border-top: thin solid black;}
+.equation {
+    font-style: italic;
+    background-color: pink;
+}

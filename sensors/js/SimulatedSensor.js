@@ -6,12 +6,14 @@ define("js/SimulatedSensor", ["js/Sensor", "js/Time"], function(Sensor, Time) {
         constructor(config) {
             console.log("Creating simulated", config.name);
             super(config);
-            if (config.name === "internal_temperature") {
-                this.min = 20; this.max = 91;
-            } else if (config.name === "intake_temperature") {
-                this.min = -5, this.max = 41;
+            if (config.class === "DHTxx") {
+                if (config.field === "temperature") {
+                    this.min = -5, this.max = 41;
+                } else {
+                    this.min = 0, this.max = 100;
+                }
             } else {
-                this.min = 0, this.max = 100;
+                this.min = 20; this.max = 91;
             }
         }
 

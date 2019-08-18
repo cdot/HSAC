@@ -262,14 +262,14 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
         remaining_filter_life() {
             let self = this;
             const details = false;
-            let cfg_pre = "compressor:" + this.id + ":filter_";
+            let cfg_pre = "compressor:" + this.id + ":filter:";
             let avelife = this.cfg.get(cfg_pre + "lifetime");
             if (this.length() === 0)
                 return avelife;
-            let fca = this.cfg.get(cfg_pre + "coeff_a");
-            let fcb = this.cfg.get(cfg_pre + "coeff_b");
-            let fcc = this.cfg.get(cfg_pre + "coeff_c");
-            let fcd = this.cfg.get(cfg_pre + "coeff_d");
+            let fca = this.cfg.get(cfg_pre + "a");
+            let fcb = this.cfg.get(cfg_pre + "b");
+            let fcc = this.cfg.get(cfg_pre + "c");
+            let fcd = this.cfg.get(cfg_pre + "d");
             let flr = avelife;
             let runtime = 0;
             if (details && self.debug)
@@ -325,7 +325,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 }
                 return this.save().then(() => {
                     if (typeof Audio !== "undefined") {
-                        var snd = new Audio("app/sounds/save.wav");
+                        var snd = new Audio("app/sounds/save.mp3");
                         snd.play();
                     }
                     this.reload_ui().then(() => {

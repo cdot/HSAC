@@ -53,26 +53,29 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     
                     compressor: {
                         portable: {
-                            filter_lifetime: 15,
-                            filter_coeff_a: 1.84879,
-                            filter_coeff_b: 1.124939,
-                            filter_coeff_c: 14.60044,
-                            filter_coeff_d: -0.3252651
+                            filter: {
+                                lifetime: 15,
+                                a: 1.84879,
+                                b: 1.124939,
+                                c: 14.60044,
+                                d: -0.3252651
+                            }
                         },
                         fixed: {
-                            filter_lifetime: 40,
-                            filter_coeff_a: 3.798205,
-                            filter_coeff_b: 1.149582,
-                            filter_coeff_c: 11.50844,
-                            filter_coeff_d: -0.4806983,
+                            filter: {
+                                lifetime: 40,
+                                a: 3.798205,
+                                b: 1.149582,
+                                c: 11.50844,
+                                d: -0.4806983
+                            },
                             pumping_rate: 300,
                             purge_freq: 5,
                             safe_limit: 25
                         }
                     },
-                    
                     sensor_url: null,
-                    poll_frequency: 15000,
+                    poll_frequency: 0,
                     internal_temperature_alarm: 90,
                 },
                 this.debug
@@ -175,17 +178,41 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             let self = this;
             
             /**
-             * Update a sampled input field
+             * Use an AJAX request to retrieve the latest sample
+             * for a sensor
+             */
+            function get_sample(sensor) {
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: url + "/" + sensor,
+                        data: {
+                            t: Date.now() // defeat cache
+                        },
+                        dataType: "text"
+                    })
+                    .done((sample) => {
+                        resolve(JSON.parse(sample));
+                    })
+                    .fail(() => {
+                        resolve(null);
+                    });
+                });
+            }
+
+            /**
+             * Update a sampled input field. These fields are identified
+             * by data-samples="id" where id is the identifier for the sensor
+             * to be sampled.
+             * data-sample-config further has:
+             *     max_age: maximum age for valid samples.
+             *     sampled: element id for the element to be shown
+             *              when a sample is found and deemed valid.
+             *     unsampled: element id for the element to be shown
+             *                when the sample is too old or no sample
+             *                can be retrieved.
              */
             function update_sample(id, sample) {
                 let $el = $("input[data-samples='" + id + "']");
-
-                // data-sample-config further has:
-                // max_age: maximum age for valid samples
-                // sampled: element id for the element to be shown
-                //          when a sample is found and deemed valid
-                // unsampled: element id for the element to be shown
-                //          when the sample is too old or is unavailable
                 let spec = $el.data("sample-config");
 
                 if (!sample) {
@@ -215,24 +242,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 $el.closest(".validated_form").valid();
             }
 
-            function get_sample(sensor) {
-                return new Promise((resolve, reject) => {
-                    $.ajax({
-                        url: url + "/" + sensor,
-                        data: {
-                            t: Date.now() // defeat cache
-                        },
-                        dataType: "text"
-                    })
-                    .done((sample) => {
-                        resolve(JSON.parse(sample));
-                    })
-                    .fail(() => {
-                        resolve(null);
-                    });
-                });
-            }
-            
+            // Clear any existing timeout
             if (this.sensor_tick)
                 clearTimeout(this.sensor_tick);
             this.sensor_tick = null;
@@ -243,7 +253,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             }
 
             let promises = [];
-            
+
+            // Promise to update data samples
             $("input[data-samples]").each(function() {
                 let name = $(this).data("samples");
                 promises.push(
@@ -252,7 +263,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     .catch((e) => { update_sample(name, null); }));
             });
 
-            // Check alarm sensors
+            // Promise to check alarm sensors
             $(".alarm[data-samples]").each(function() {
                 let $el = $(this);
                 let name = $el.data("samples");
@@ -279,10 +290,13 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
 
             Promise.all(promises)
             .finally(() => {
-                // Queue the next poll for 15s hence
-                this.sensor_tick =
-                setTimeout(() => { self.read_sensors(); },
-                           parseInt(self.config.get("poll_frequency")));
+                let timeout = parseInt(self.config.get("poll_frequency"));
+                // If poll freq is 0, don't poll
+                if (timeout > 0) {
+                    // Queue the next poll
+                    this.sensor_tick =
+                    setTimeout(() => { self.read_sensors(); }, timeout);
+                }
             });
         }
 

@@ -2,7 +2,7 @@
 
 Custom application for managing a dive club's resources. The application was
 written specifically for use by Hartford Sub-Aqua Club, and reflects the way
-we organise and manage our resources.
+we organise and manage our resources. HSAC members can get [information on our specific configuration](https://docs.google.com/document/d/13a0xBhF8_AJsvffOMFLHleUT0XIu8TSBcTyFuffQ9EQ)
 
 The application comprises three parts:
 1. A browser application
@@ -27,13 +27,9 @@ Help information is readily available throughout the application through the
 
 ### Compressor
 Compressor support includes tracking and predicting filter life, and monitoring
-compressor performance using digital sensors.
+compressor performance using electronic sensors.
 
 See [Compressor](Compressor.md) for more detailed information.
-
-The Sheds application supports recording the temperature and humidity with
-the runtime, either using electronic sensors or manual data entry. See
-<a href="#Sensors">Sensors</a> for more.
 
 ### Loans
 Outgoing loans are recorded by selection from the inventory. Loan
@@ -54,20 +50,6 @@ computations for Nitrox).
 ## Databases
 
 See [Databases](Databases.md) for details of the database organisation and configuration.
-
-## Sensors
-The Sheds app is designed to capture environmental information to
-assist in filter life prediction. This can be done interactively, or
-can be done using digital sensors attached to a microcontroller. The
-app can refer to a file stored in WebDAV to obtain sensor data. This
-file is a CSV file with fields `Sensor ID,Date,Sample` and contains
-one line for each sample point. The file's URL and the requisite
-Sensor ID's are configured in the app settings dialog.
-
-In HSAC we use a Raspberry Pi Zero to capture sensor data from DHT11
-and DS18B20 one-wire sensors and write it to the WebDAV server. The
-code is all provided - see the sensors [README](sensors/README.md) for
-more.
 
 ## About
 Sheds was written by Crawford Currie http://c-dot.co.uk and is licensed

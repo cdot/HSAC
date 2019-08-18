@@ -53,7 +53,7 @@ define("app/js/Config", () => {
 
         set(k, v) {
             let bits = k.split(":");
-            let coll = this.store_data;
+            let data = this.store_data;
             while (bits.length > 1) {
                 let k = bits.shift();
                 if (typeof data[k] === "undefined")

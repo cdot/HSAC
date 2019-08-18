@@ -421,16 +421,16 @@ hours
                 <tr>
                   <td>Predicted Filter Lifetime, hours @ 20&deg;C:</td>
                   <td>
-                    <input type="number" class="integer" step="any" required name="compressor:fixed:filter_lifetime">
+                    <input type="number" class="integer" step="any" required name="compressor:fixed:filter:lifetime">
                   </td>
                 </tr>
                 <tr>
                   <td>Coefficients</td>
                   <td class="widest">
-                    A <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_a">
-                    B <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_b"><br/>
-                    C <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_c">
-                    D <input type="number" class="number" step="any" required name="compressor:fixed:filter_coeff_d">
+                    A <input type="number" class="number" step="any" required name="compressor:fixed:filter:a">
+                    B <input type="number" class="number" step="any" required name="compressor:fixed:filter:b"><br/>
+                    C <input type="number" class="number" step="any" required name="compressor:fixed:filter:c">
+                    D <input type="number" class="number" step="any" required name="compressor:fixed:filter:d">
                   </td>
                 </tr>
                 <tr>
@@ -452,7 +452,11 @@ hours
                   </td>
                 </tr>
                 <tr>
-                  <td>Sensor server URL:</td>
+                  <td>
+                    <span data-with-info="Root URL for sensor data">
+                      Sensor URL:
+                    </span>
+                  </td>
                   <td class="widest">
                     <input style="width:100%" type="text" url name="sensor_url">
                   </td>
@@ -466,7 +470,7 @@ hours
                 <tr>
                   <td>Alarm temperature (&deg;C):</td>
                   <td class="widest">
-                    <input style="width:100%" type="text" name="internal_temperature_alarm">
+                    <input style="width:100%" type="number" name="internal_temperature_alarm">
                   </td>
                 </tr>
               </table>
@@ -483,16 +487,16 @@ hours
                 <tr>
                   <td>Predicted Filter Lifetime, hours @ 20&deg;C:</td>
                   <td class="widest">
-                    <input type="number" class="integer" step="any" required name="compressor:portable:filter_lifetime">
+                    <input type="number" class="integer" step="any" required name="compressor:portable:filter:lifetime">
                   </td>
                 </tr>
                 <tr>
                   <td>Coefficients:</td>
                   <td class="widest">
-                    A <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_a">
-                    B <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_b"><br/>
-                    C <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_c">
-                    D <input type="number" class="number" step="any" required name="compressor:portable:filter_coeff_d">
+                    A <input type="number" class="number" step="any" required name="compressor:portable:filter:a">
+                    B <input type="number" class="number" step="any" required name="compressor:portable:filter:b"><br/>
+                    C <input type="number" class="number" step="any" required name="compressor:portable:filter:c">
+                    D <input type="number" class="number" step="any" required name="compressor:portable:filter:d">
                   </td>
                 </tr>
               </table>
@@ -505,11 +509,15 @@ hours
             <td>
               <table>
                 <tr>
-                  <td>Online DB (Google Drive) index URL:</td>
+                  <td>
+                    Remote DB index URL:
+                  </td>
                   <td class="widest"><input style="width:100%" type="text" url name="db_index_url"></td>
                 </tr>
                 <tr>
-                  <td>Local cache (WebDAV) URL:</td>
+                  <td>
+                    Local cache URL:
+                  </td>
                   <td class="widest">
                     <input class="widest" type="text" url name="cache_url">
                   </td>
@@ -573,16 +581,21 @@ hours
     <div class="hidden info" id="infoOperator">
       Only trained operators may use this compressor. Please
       select your name from the list. If you are not there and
-      want to be trained, contact hsac.training@gmail.com
+      want to be trained, contact the Training Officer. If you have recently
+      been trained, your name may not have been added yet. In this case, please
+      use the name of the instructor who taught you.
     </div>
     <div class="hidden info" id="infoTemperature">
-      If the electronic thermometer is functioning, the temperature will be
-      sensed automatically. Otherwise the temperature must be taken from the
-      thermometer on the compressor air intake at the <strong>end</strong>
+      If the electronic sensor is functioning, the temperature will be
+      detected automatically. Otherwise the temperature must be taken from the
+      thermometer at the <strong>end</strong>
       of the filling session and entered manually by dragging the slider.
     </div>
     <div class="hidden info" id="infoHumidity">
-      Drage the slider to set the relative humidity (must be between 0% and 80%)
+      If the electronic sensor is functioning, the humidity will be
+      detected automatically. Otherwise the humidity must be taken from the
+      hygrometer at the <strong>end</strong>
+      of the filling session and entered manually by dragging the slider.
     </div>
     <div class="hidden info" id="infoFilters">
       Select this <strong>only</strong> if the filters have just
