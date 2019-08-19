@@ -92,9 +92,12 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             $tab.find(".cr_last_run")
             .off("click")
             .on("click", function () {
+                let content = $("#infoLastRun").html().replace("$1", () => {
+                    return self.activityHTML(5);
+                });
                 $.confirm({
                     title: $("#infoLastRun").data("title"),
-                    content: $("#infoLastRun").html(),
+                    content: content,
                     buttons: {
                         "Remove last run": () => {
                             self.pop().then((r) => {
@@ -214,7 +217,6 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             .then(() => {
                 if (self.debug) self.debug("Loading " + this.length() + " " + this.id +
                               " compressor records");
-                $("#infoCompressorActivity_" + self.id).html(this.activityHTML());
                 if (this.length() === 0)
                     return;
                 const cur = this.get(this.length() - 1);
@@ -327,16 +329,18 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             });
         }
 
-        activityHTML() {
-            let heads = this.getHeads();
-
-            if (heads.length === 0)
+        activityHTML(num_records) {
+            let ents = this.getEntries();
+            if (ents.length === 0)
                 return "No activity";
-            
+                
+            let heads = this.getHeads().filter((h) => h !== "filters_changed");
+
             let table = "<table><thead><tr><th>"
                 + heads.join("</th><th>") + "</tr></thead><tbody>";
 
-            for (let e of this.getEntries()) {
+            for (let i = ents.length - num_records; i < ents.length; i++) {
+                let e = ents[i];
                 table += "<tr>";
                 for (let h of heads) {
                     let d = e[h];

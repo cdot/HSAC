@@ -205,9 +205,7 @@ hours
             <span class="cr_delta"></span>
             <span style="display:none" class="cr_filters_changed"> FILTERS HAVE BEEN CHANGED</span>
           </form>
-          <span data-with-info="#infoCompressorActivity_fixed">
-            <button name="add_record">Touch here to record this run</button>
-          </span>
+          <button name="add_record">Touch here to record this run</button>
         </div>
 
         <div id="portable" class="crowded_tab">
@@ -280,9 +278,7 @@ hours
               <input data-with-info="#infoFilters" type="checkbox" id="portable_filters_changed" name="filters_changed">
             </div>
           </form>
-          <span data-with-info="#infoCompressorActivity_portable">
-            <button name="add_record">Touch here to record this run</button>
-          </span>
+          <button name="add_record">Touch here to record this run</button>
         </div>
 
         <div id="loans" class="crowded_tab">
@@ -563,10 +559,11 @@ hours
 
     <!-- Compressor help -->
     <div class="hidden info" id="infoLastRun" data-title="<span class='fas fa-cog'></span> Last Run">
-      If you made a mistake, you can remove this record from the compressor
-      history.
+      $1
+      If you made a mistake, you can remove the last run from the history.
       <div class="warning">Please be careful, this can't be undone!</div>
     </div>
+
     <div class="hidden info" id="infoFilterEfficiency">
       <p>Filter lifetime is predicted based on the intake air temperature
         and runtime from the compressor records, and does <em>not</em>
@@ -610,12 +607,6 @@ hours
     </div>
     <div class="hidden info" id="infoManualHours">
       If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
-    </div>
-    <div class="hidden info" id="infoCompressorActivity_fixed">
-      No activity
-    </div>
-    <div class="hidden info" id="infoCompressorActivity_portable">
-      No activity
     </div>
 
     <!-- Loans help -->
