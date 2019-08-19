@@ -107,7 +107,8 @@ define("app/js/Nitrox", () => {
             }
 
             let ppO2max = this.cfg.get("ppO2max");
-            let MOD = Math.floor(((ppO2max / conditions.target_mix) * 10) - 10);
+            console.log(ppO2max, conditions.target_mix,(ppO2max / conditions.target_mix - 1) * 10);
+            let MOD = Math.floor((100 * ppO2max / conditions.target_mix - 1) * 10);
             let $report = $("#nitrox").children(".report");
             $report.html("Filling a " + conditions.cylinder_size + "L cylinder " +
                          "containing " + conditions.start_pressure + " bar of " +
@@ -164,9 +165,12 @@ define("app/js/Nitrox", () => {
             }
 
             // See Gary Kessler's EAN_gas_mix_v3.1.xls for details
-            let O2_in_target_mix = conditions.target_pressure * (conditions.target_mix - ATMOSPHERIC_O2);
-            let O2_in_start_mix = conditions.start_pressure * (conditions.start_mix - ATMOSPHERIC_O2);
-            let extra_O2 = (O2_in_target_mix - O2_in_start_mix) / (100 - ATMOSPHERIC_O2);
+            let O2_in_target_mix = conditions.target_pressure
+                * (conditions.target_mix - ATMOSPHERIC_O2);
+            let O2_in_start_mix = conditions.start_pressure
+                * (conditions.start_mix - ATMOSPHERIC_O2);
+            let extra_O2 = (O2_in_target_mix - O2_in_start_mix)
+                / (100 - ATMOSPHERIC_O2);
 
             // Adjust for real gas approximation
             //let real_O2 = vanDerWaal(extra_O2, conditions.cylinder_size, conditions.temperature + K0C, VdVA_O2, VdVB_O2);
@@ -175,24 +179,30 @@ define("app/js/Nitrox", () => {
             if (this.debug) this.debug("boostTo:", boostTo);
 
             if (boostTo < conditions.start_pressure) {
-                let bleedTo = conditions.target_pressure * (conditions.target_mix - ATMOSPHERIC_O2)
-                / (conditions.start_mix - ATMOSPHERIC_O2);
+                let bleedTo = conditions.target_pressure
+                    * (conditions.target_mix - ATMOSPHERIC_O2)
+                    / (conditions.start_mix - ATMOSPHERIC_O2);
 
                 if (this.debug) this.debug("bleed to", bleedTo, "bar");
                 return { bleedTo: bleedTo, differentBank: false };
             }
 
             if (boostTo > conditions.O2_bank_pressure) {
-                let bleedTo = conditions.target_pressure * (conditions.target_mix - ATMOSPHERIC_O2)
-                / (conditions.O2_bank_pressure - ATMOSPHERIC_O2);
+                let bleedTo = conditions.target_pressure
+                    * (conditions.target_mix - ATMOSPHERIC_O2)
+                    / (conditions.O2_bank_pressure - ATMOSPHERIC_O2);
 
-                if (this.debug) this.debug("Boost is over bank", boostTo, ">", conditions.O2_bank_pressure, "bleed to", bleedTo);
+                if (this.debug) this.debug(
+                    "Boost is over bank", boostTo, ">",
+                    conditions.O2_bank_pressure, "bleed to", bleedTo);
                 return { bleedTo: bleedTo, differentBank: true };
             }
 
             if (conditions.start_pressure > conditions.O2_bank_pressure) {
-                if (this.debug) this.debug("bank pressure too low for this fill");
-                return { bleedTo: conditions.O2_bank_pressure, differentBank: true }
+                if (this.debug)
+                    this.debug("bank pressure too low for this fill");
+                return { bleedTo: conditions.O2_bank_pressure,
+                         differentBank: true }
             }
 
             let use = extra_O2 * conditions.cylinder_size;
