@@ -346,28 +346,25 @@ hours
               <input id="nox_t" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required type="number" class="integer" min="4" max="40" value="20"> &deg;C
             </p -->
             <p>
-              <label for="nox_cs">Dive Cylinder size</label>
-              <input id="nox_cs" name="cylinder_size" data-msg="Must be between 1 and 30 litres" required type="number" class="integer" min="1" max="30" value="12"> L,
-              <label for="nox_sp">Current Pressure</label>
-              <input id="nox_sp" name="start_pressure" required type="number" class="integer" min="1" max="232" value="50"> bar,
-              <label for="nox_sm">Current Mix</label>
+              Fill a
+              <input id="nox_cs" name="cylinder_size" data-msg="Must be between 1 and 30 litres" required type="number" class="integer" min="1" max="30" value="12"> litre cylinder containing
+              <input id="nox_sp" name="start_pressure" required type="number" class="integer" min="1" max="232" value="50"> bar of
               <input id="nox_sm" name="start_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer" min="21" max="100" value="21">%
-            </p>
-            <p>
-              <label for="nox_tp">Target Pressure</label>
-              <input id="nox_tp" name="target_pressure" data-msg="Must be between 0 and 250 bar" required type="number" class="integer" min="1" max="250" value="232"> bar,
-              <label for="nox_tm">Target Mix</label>
+              to 
+              <input id="nox_tp" name="target_pressure" data-msg="Must be between 0 and 250 bar" required type="number" class="integer" min="1" max="300" value="232"> bar with 
               <input id="nox_tm" name="target_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer" min="21" max="100" value="32">%
-            </p>
             <p>
-              <label for="nox_o2s" data-with-info="#infoBankSize">Pure O<sub>2</sub> cylinder size</label>
-              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" value="47.2"> L,
-              <label for="nox_o2p">Pressure</label>
+              Fill from a
+              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" value="47.2"> litre O<sub>2</sub> bank cylinder, which is currently at 
               <input id="nox_o2p" name="O2_bank_pressure" data-msg="Must be between 1 and 300" required type="number" class="integer" min="1" max="300" value="200"> bar
             </p>
+            <label for="nox_ppO2max" data-info="#infoMaxPPO2">
+              A maximum ppO<sub>2</sub> of
+            </label>
+            <input id="nox_pp02max" type="number" class="number" step="any" required name="ppO2max" value="1.4"> bar gives a MOD of <span id="nox_MOD"></span> metres
           </form>
-          <div class="report">
-          </div>
+          <p class="report">
+          </p>
         </div>
       </div>
     </div>
@@ -393,16 +390,6 @@ hours
             </th>
             <td class="widest">
               <input type="number" class="number" step="any" required name="o2_price">
-            </td>
-          </tr>
-          <tr>
-            <th class="input_label">
-              <span data-info="#infoMaxPPO2">
-                Max ppO<sub>2</sub>
-              </span>
-            </th>
-            <td class="widest">
-              <input type="number" class="number" step="any" required name="ppO2max"> bar
             </td>
           </tr>
           <tr>
@@ -653,7 +640,7 @@ hours
       This is the size (in litres) of the O<sub>2</sub> cylinder you want to
       use. A 'J' cylinder is 47.2L, while a 'W' is 45.7L. Check the
       shoulder of the cylinder you are using if you are unsure. Always
-      use the leftmost cylinder that has sufficient pressure for the
+      use the lowest pressure cylinder that has enough for the
       fill you want
     </div>
 

@@ -90,6 +90,16 @@ define("app/js/Nitrox", () => {
 
         submit() {
             let conditions = {};
+
+            // temperature: deg C (only needed for real gas approximation)
+            // cylinder_size: litres
+            // start_mix: percent
+            // start_pressure: bar
+            // target_mix: percent
+            // target_pressure: bar
+            // O2_bank_size: litres
+            // O2_bank_pressure: bar
+            // ppO2max: max ppO2
             $("#nitrox").find("form :input").each(function () {
                 if (this.type === "number")
                     conditions[this.name] = parseFloat($(this).val());
@@ -97,62 +107,13 @@ define("app/js/Nitrox", () => {
                     conditions[this.name] = $(this).val();
             });
 
-            // Apply reality check
-            if (conditions.start_mix < 20.9) conditions.start_mix = 20.9;
-            if (conditions.target_mix < 20.9) conditions.target_mix = 20.9;
-            if (conditions.start_pressure <= 0) conditions.start_pressure = 1;
-            if (conditions.target_pressure <= 0) conditions.target_pressure = 1;
-
-            if (this.debug) {
-                this.debug("Temperature", conditions.temperature, "°C");
-                this.debug("Cylinder ", conditions.cylinder_size, "l");
-                this.debug("Current Pressure", conditions.start_pressure, "bar");
-                this.debug("Current Mix", conditions.start_mix, "%");
-                this.debug("Target Pressure", conditions.target_pressure, "bar");
-                this.debug("Target Mix ", conditions.target_mix, "%");
-            }
-
-            let ppO2max = this.cfg.get("ppO2max");
-            let MOD = Math.floor((100 * ppO2max
+            let MOD = Math.floor((100 * conditions.ppO2max
                                   / conditions.target_mix - 1) * 10);
+            $("#nox_MOD").text(MOD);
+
             let $report = $("#nitrox").children(".report");
-            $report.html(
-                "Filling a " + conditions.cylinder_size + "L cylinder "
-                + "containing " + conditions.start_pressure + " bar of "
-                + conditions.start_mix + "% with " + conditions.target_pressure
-                + " bar of " + conditions.target_mix + "% (MOD "
-                + MOD + "m, ppO<sub>2</sub> " + ppO2max + " bar)<br>");
-
-            this.blend(conditions, $report);
-        }
-
-        /**
-         * We know that the total pressure of a gas mix is the sum of
-         * the pressures of the component gases. For some desired
-         * pressure P of a mix M, we know that :
-         * P * M = PO2 + PAIR * 20.9% where PO2 and PAIR are
-         * the pressure of oxygen and air, respectively.
-         *
-         * We know the desired target pressure and mix, 
-         * temperature: deg C
-         * cylinder_size: litres
-         * start_mix: percent
-         * start_pressure: bar
-         * target_mix: percent
-         * target_pressure: bar
-         * O2_bank_size: litres
-         * O2_bank_pressure: bar
-         */
-        blend(conditions, $report) {
-
-/*            if (conditions.start_pressure > conditions.O2_bank_pressure) {
-                let bleedTo = conditions.O2_bank_pressure;
-                if (this.debug) this.debug(
-                    "Too much initial pressure", conditions.start_pressure, ">", bleedTo);
-                return { bleedTo: bleedTo, differentBank: true };
-            }
-*/
-
+            $report.empty();
+           
             let Pd = conditions.target_pressure;
             let Md = conditions.target_mix / 100;
             let Ps = conditions.start_pressure;
@@ -184,7 +145,8 @@ define("app/js/Nitrox", () => {
             // Pf = vanDerWaal(Pf, conditions.cylinder_size,
             //        conditions.temperature + K0C, VdVA_O2, VdVB_O2);
 
-            if (this.debug) this.debug("O2 required:", Pf);
+            if (this.debug)
+                this.debug("O2 required:", Pf);
 
             if (Pf < 0) {
                 // Calculate maximum starting pressure for given fill
@@ -229,13 +191,14 @@ define("app/js/Nitrox", () => {
             if (Pce <= Pbe) {
                 // Fill is possible
                 let Pt = Pd - Ps - Pf;
-                if (this.debug) this.debug("top up with", Pt, "bar of air");
+                if (this.debug)
+                    this.debug("top up with", Pt, "bar of air");
 
                 $report.append(
                     "Boost cylinder with O<sub>2</sub> to " +
-                    Math.round(Pce) +
+                    Math.ceil(Pce) +
                     " bar before topping up to " + conditions.target_pressure +
-                    " bar with air.<br>");
+                    " bar with air<br>");
                 $report.append(
                     "This will use " +
                     Math.round(litres) +
