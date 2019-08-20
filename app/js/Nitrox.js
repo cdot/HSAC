@@ -246,7 +246,7 @@ define("app/js/Nitrox", () => {
                 return;
             }
 
-            $report.append("That mix isn't possible.</br>");
+            $report.append("<div class='warning'>That mix isn't possible</div>");
             
             // Fill isn't possible. We need to either bleed the
             // cylinder down to a level where it is possible, or
@@ -327,7 +327,7 @@ define("app/js/Nitrox", () => {
                 $report.append(
                     conditions.target_mix
                     + "% can be achieved if you bleed the cylinder down to "
-                    + Math.floor(best_Ps) + "bar first");
+                    + Math.floor(best_Ps) + " bar first");
         }
     }
     return Nitrox;
