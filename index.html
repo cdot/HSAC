@@ -341,10 +341,10 @@ hours
         <div id="nitrox" class="tab">
           Nitrox calculator. Only to be used by trained nitrox blenders.
           <form>
-            <p>
+            <!-- p>
               <label for="nox_t"> Ambient Temperature</label>
               <input id="nox_t" name="temperature" data-msg="Must be between 4&deg;C and 40&deg;C" required type="number" class="integer" min="4" max="40" value="20"> &deg;C
-            </p>
+            </p -->
             <p>
               <label for="nox_cs">Dive Cylinder size</label>
               <input id="nox_cs" name="cylinder_size" data-msg="Must be between 1 and 30 litres" required type="number" class="integer" min="1" max="30" value="12"> L,
@@ -355,7 +355,7 @@ hours
             </p>
             <p>
               <label for="nox_tp">Target Pressure</label>
-              <input id="nox_tp" name="target_pressure" data-msg="Must be between 0 and 232 bar" required type="number" class="integer" min="1" max="232" value="232"> bar,
+              <input id="nox_tp" name="target_pressure" data-msg="Must be between 0 and 250 bar" required type="number" class="integer" min="1" max="250" value="232"> bar,
               <label for="nox_tm">Target Mix</label>
               <input id="nox_tm" name="target_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer" min="21" max="100" value="32">%
             </p>
@@ -365,7 +365,6 @@ hours
               <label for="nox_o2p">Pressure</label>
               <input id="nox_o2p" name="O2_bank_pressure" data-msg="Must be between 1 and 300" required type="number" class="integer" min="1" max="300" value="200"> bar
             </p>
-            <input type="submit" value="Calculate">
           </form>
           <div class="report">
           </div>

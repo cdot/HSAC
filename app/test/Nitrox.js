@@ -80,7 +80,7 @@ requirejs(["app/js/Nitrox", "app/test/TestRunner", "jquery"], function(Nitrox, T
                 debug: console.debug
             });
             let result = n.blend(test);
-            console.log(result);
+            //console.log(result);
             for (let j in test.expected) {
                 assert.isNotNull(result[j]);
                 assert.closeTo(result[j], test.expected[j], 1, j);

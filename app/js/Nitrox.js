@@ -3,8 +3,7 @@
 
 define("app/js/Nitrox", () => {
 
-    const ATMOSPHERIC_O2 = 100 * 0.209;
-        // Universal gas constant
+    // Universal gas constant
     const R = 0.0820578; // l-atm/mol-K
     const atmO2 = 0.209;
     const K0C = 273.15; // 0C in Kelvin
@@ -18,7 +17,7 @@ define("app/js/Nitrox", () => {
      * Van der Waals equation of state to derive better numbers for
      * P, V, and n. See
      * https://en.wikipedia.org/wiki/Van_der_Waals_equation
-     * This function calculates this for a gas
+     * This function calculates this for a gas.
      * @param P partial pressure of this gas in final system (ideal bar)
      * @param V total volume, litres
      * @param a correction for intermolecular forces
@@ -75,10 +74,17 @@ define("app/js/Nitrox", () => {
             $(() => {
                 $("#nitrox").children("form").on("submit", (e) => {
                     e.preventDefault();
-                    if (!$(e.target).valid())
+                });
+                
+                $("#nitrox").find("input").on("change", function (e) {
+                    let $form = $(this).closest("form");
+                    if (!$form.valid()) {
+                        $("#nitrox").children(".report").text("");
                         return;
+                    }
                     self.submit();
                 });
+                self.submit();
             });
         }
 
@@ -92,56 +98,38 @@ define("app/js/Nitrox", () => {
             });
 
             // Apply reality check
-            if (conditions.start_mix < ATMOSPHERIC_O2) conditions.start_mix = ATMOSPHERIC_O2;
-            if (conditions.target_mix < ATMOSPHERIC_O2) conditions.target_mix = ATMOSPHERIC_O2;
+            if (conditions.start_mix < 20.9) conditions.start_mix = 20.9;
+            if (conditions.target_mix < 20.9) conditions.target_mix = 20.9;
             if (conditions.start_pressure <= 0) conditions.start_pressure = 1;
             if (conditions.target_pressure <= 0) conditions.target_pressure = 1;
 
             if (this.debug) {
-                this.debug("Temperature " + conditions.temperature + "°C");
-                this.debug("Cylinder " + conditions.cylinder_size + " l");
-                this.debug("Current Pressure " + conditions.start_pressure + " bar");
-                this.debug("Current Mix " + conditions.start_mix + "%");
-                this.debug("Target Pressure " + conditions.target_pressure + " bar");
-                this.debug("Target Mix " + conditions.target_mix + "%");
+                this.debug("Temperature", conditions.temperature, "°C");
+                this.debug("Cylinder ", conditions.cylinder_size, "l");
+                this.debug("Current Pressure", conditions.start_pressure, "bar");
+                this.debug("Current Mix", conditions.start_mix, "%");
+                this.debug("Target Pressure", conditions.target_pressure, "bar");
+                this.debug("Target Mix ", conditions.target_mix, "%");
             }
 
             let ppO2max = this.cfg.get("ppO2max");
-            console.log(ppO2max, conditions.target_mix,(ppO2max / conditions.target_mix - 1) * 10);
-            let MOD = Math.floor((100 * ppO2max / conditions.target_mix - 1) * 10);
+            let MOD = Math.floor((100 * ppO2max
+                                  / conditions.target_mix - 1) * 10);
             let $report = $("#nitrox").children(".report");
-            $report.html("Filling a " + conditions.cylinder_size + "L cylinder " +
-                         "containing " + conditions.start_pressure + " bar of " +
-                         conditions.start_mix + "% with " + conditions.target_pressure +
-                         " bar of " + conditions.target_mix + "% (MOD " +
-                         MOD + "m, ppO<sub>2</sub> " + ppO2max + " bar)<br>");
-            let result = this.blend(conditions);
-            if (typeof result.bleedTo !== "undefined") {
-                $report.html(
-                    "There is too much gas already in the cylinder for " +
-                    "this fill. To use this bank you will have to bleed " +
-                    "the cylinder down below " +
-                    Math.floor(result.bleedTo) +
-                    " bar");
-            } else {
-                $report.append(
-                    "Boost cylinder with O<sub>2</sub> to " +
-                    Math.floor(result.boostTo) +
-                    " bar before topping up to " + conditions.target_pressure +
-                    " bar with air.<br>");
-                $report.append(
-                    "This will use " +
-                    Math.round(result.use) +
-                    " litres of O<sub>2</sub> at a cost of <strong>&pound;" +
-                    (result.use * parseFloat(this.cfg.get("o2_price"))).toFixed(2) +
-                    "</strong><br>");
-            }
+            $report.html(
+                "Filling a " + conditions.cylinder_size + "L cylinder "
+                + "containing " + conditions.start_pressure + " bar of "
+                + conditions.start_mix + "% with " + conditions.target_pressure
+                + " bar of " + conditions.target_mix + "% (MOD "
+                + MOD + "m, ppO<sub>2</sub> " + ppO2max + " bar)<br>");
+
+            this.blend(conditions, $report);
         }
 
         /**
-         * We know that the total pressure of a gas mix is the sum of the pressures
-         * of the component gases. For some desired pressure P of a mix M,
-         * we know that :
+         * We know that the total pressure of a gas mix is the sum of
+         * the pressures of the component gases. For some desired
+         * pressure P of a mix M, we know that :
          * P * M = PO2 + PAIR * 20.9% where PO2 and PAIR are
          * the pressure of oxygen and air, respectively.
          *
@@ -155,61 +143,192 @@ define("app/js/Nitrox", () => {
          * O2_bank_size: litres
          * O2_bank_pressure: bar
          */
-        blend(conditions) {
+        blend(conditions, $report) {
 
-            if (conditions.start_pressure > conditions.O2_bank_pressure) {
+/*            if (conditions.start_pressure > conditions.O2_bank_pressure) {
                 let bleedTo = conditions.O2_bank_pressure;
                 if (this.debug) this.debug(
                     "Too much initial pressure", conditions.start_pressure, ">", bleedTo);
                 return { bleedTo: bleedTo, differentBank: true };
             }
+*/
 
-            // See Gary Kessler's EAN_gas_mix_v3.1.xls for details
-            let O2_in_target_mix = conditions.target_pressure
-                * (conditions.target_mix - ATMOSPHERIC_O2);
-            let O2_in_start_mix = conditions.start_pressure
-                * (conditions.start_mix - ATMOSPHERIC_O2);
-            let extra_O2 = (O2_in_target_mix - O2_in_start_mix)
-                / (100 - ATMOSPHERIC_O2);
+            let Pd = conditions.target_pressure;
+            let Md = conditions.target_mix / 100;
+            let Ps = conditions.start_pressure;
+            let Ms = conditions.start_mix / 100;
+            let Pbs = conditions.O2_bank_pressure;
+            let Sb = conditions.O2_bank_size;
+            let Sc = conditions.cylinder_size;
 
+            if (this.debug)
+                this.debug("Pd %f Md %f Ps %f Ms %f Sb %f Sc %f",
+                           Pd,    Md,   Ps,   Ms,   Sb,   Sc);
+
+            // See https://scuba.garykessler.net/library/BlendingPaper.pdf
+            // We know that
+            // Pd * Md = Ps * Ms + Pf * Mf + Pt * Mt
+            // Given that Pt = Pd - Ps - Pf, rewrite as
+            // Pd * Md = Ps * Ms + Pf * Mf + (Pd - Ps - Pf) * Mt
+            // Pd * Md = Ps * Ms + Pf * Mf + Pd * Mt - Ps * Mt - Pf * Mt
+            // Pd * Md = Ps * Ms + Pf * Mf + Pd * Mt - Ps * Mt - Pf * Mt
+            // Pf * Mf - Pf * Mt = Pd * Md - Pd * Mt - Ps * Ms + Ps * Mt
+            // Pf * (Mf - Mt) = Pd * (Md - Mt) - Ps * (Ms - Mt)
+            // Pf = (Pd * (Md - Mt) - Ps * (Ms - Mt)) / (Mf - Mt)
+            // Given Mf = 1, Mt = 0.209
+            let Pf = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791;
+            if (this.debug)
+                this.debug("Pf",Pf);
+          
             // Adjust for real gas approximation
-            //let real_O2 = vanDerWaal(extra_O2, conditions.cylinder_size, conditions.temperature + K0C, VdVA_O2, VdVB_O2);
+            // Pf = vanDerWaal(Pf, conditions.cylinder_size,
+            //        conditions.temperature + K0C, VdVA_O2, VdVB_O2);
 
-            let boostTo = extra_O2 + conditions.start_pressure;
-            if (this.debug) this.debug("boostTo:", boostTo);
+            if (this.debug) this.debug("O2 required:", Pf);
 
-            if (boostTo < conditions.start_pressure) {
-                let bleedTo = conditions.target_pressure
-                    * (conditions.target_mix - ATMOSPHERIC_O2)
-                    / (conditions.start_mix - ATMOSPHERIC_O2);
+            if (Pf < 0) {
+                // Calculate maximum starting pressure for given fill
+                // Pf = 0 = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791
+                // 0 = Pd * (Md - 0.209) / 0.791 - Ps * (Ms - 0.209) / 0.791
+                // Pd * (Md - 0.209) / 0.791 = Ps * (Ms - 0.209) / 0.791
+                // Pd * (Md - 0.209) = Ps * (Ms - 0.209)
+                let bleedTo = Pd * (Md - 0.209) / (Ms - 0.209);
 
-                if (this.debug) this.debug("bleed to", bleedTo, "bar");
-                return { bleedTo: bleedTo, differentBank: false };
-            }
-
-            if (boostTo > conditions.O2_bank_pressure) {
-                let bleedTo = conditions.target_pressure
-                    * (conditions.target_mix - ATMOSPHERIC_O2)
-                    / (conditions.O2_bank_pressure - ATMOSPHERIC_O2);
-
-                if (this.debug) this.debug(
-                    "Boost is over bank", boostTo, ">",
-                    conditions.O2_bank_pressure, "bleed to", bleedTo);
-                return { bleedTo: bleedTo, differentBank: true };
-            }
-
-            if (conditions.start_pressure > conditions.O2_bank_pressure) {
                 if (this.debug)
-                    this.debug("bank pressure too low for this fill");
-                return { bleedTo: conditions.O2_bank_pressure,
-                         differentBank: true }
+                    this.debug("Mix already too rich; bleed to", bleedTo, "bar");
+                $report.html(
+                    "There is too much gas already in the cylinder for " +
+                    "this fill. To use this bank you will have to bleed " +
+                    "the cylinder down below " +
+                    Math.floor(bleedTo) +
+                    " bar");
+                return;
             }
 
-            let use = extra_O2 * conditions.cylinder_size;
-            if (this.debug) this.debug("fill will use", use, "litres of O2");
+            let Pce = Ps + Pf;
+            if (this.debug)
+                this.debug("New cylinder pressure", Pce);
 
-            return { boostTo: boostTo, use: use };
-        };
+            // Can we do this fill with the current bank?
+            // Work out litres of O2 required
+            let litres = Pf * Sc;
+            if (this.debug)
+                this.debug("%f litres of O2 required", litres);
+
+            // Work out pressure loss from the bank
+            let pressure_loss = litres / Sb;
+            if (this.debug)
+                this.debug("%f bar required from bank", pressure_loss);
+
+            // Pbe = Pressure in bank after Pf added to cylinder
+            let Pbe = Pbs - pressure_loss;
+            if (this.debug)
+                this.debug("Pbe", Pbe);
+
+            // Is the final cylinder pressure <= the final bank pressure?
+            if (Pce <= Pbe) {
+                // Fill is possible
+                let Pt = Pd - Ps - Pf;
+                if (this.debug) this.debug("top up with", Pt, "bar of air");
+
+                $report.append(
+                    "Boost cylinder with O<sub>2</sub> to " +
+                    Math.round(Pce) +
+                    " bar before topping up to " + conditions.target_pressure +
+                    " bar with air.<br>");
+                $report.append(
+                    "This will use " +
+                    Math.round(litres) +
+                    " litres of O<sub>2</sub> at a cost of <strong>&pound;" +
+                    (litres * parseFloat(this.cfg.get("o2_price"))).toFixed(2) +
+                    "</strong><br>");
+
+                return;
+            }
+
+            $report.append("That mix isn't possible.</br>");
+            
+            // Fill isn't possible. We need to either bleed the
+            // cylinder down to a level where it is possible, or
+            // adjust the mix (or use a fuller bank)
+            if (this.debug)
+                this.debug("Not enough pressure in bank, %f>%f", Pce, Pbe);
+             
+            // First see what the best fill we *can* deliver with
+            // this bank is, given the current Ps
+            if (Ps > Pbs) {
+                $report.append(
+                    "To use this bank you will have to bleed the cylinder down to below "
+                    + Pbs + " bar first<br />");
+                return;
+            }
+            
+            // Pressure equilibrium is reached when Ps + Pf = Pbe
+
+            // The litres lost from the bank (and therefore gained
+            // by the cylinder)
+            // Bll = (Pbs - Pbe) * Sb;
+            
+            // So the pressure gained by the cylinder
+            // Pf = Bll / Sc = (Pbs - Pbe) * Sb / Sc
+            
+            // Since Pbe = Ps + Pf at equilibrium,
+            // Pf = (Pbs - Ps - Pf) * Sb / Sc
+            // Pf * Sc / Sb = Pbs - Ps - Pf
+            // Pf * Sc / Sb + Pf = Pbs - Ps
+            // Pf * (Sc / Sb + 1) = Pbs - Ps
+            // Pf = (Pbs - Ps) / (Sc / Sb + 1)
+            let best_Pf = (Pbs - Ps) / (Sc / Sb + 1);
+            Pbe = Ps + best_Pf;
+            if (this.debug)
+                this.debug("Best Pf %f Pbe %f", best_Pf, Pbe);
+
+            litres = best_Pf * conditions.cylinder_size;
+            pressure_loss = litres / conditions.O2_bank_size;
+            if (this.debug)
+                this.debug("Lose %f bar to %f", pressure_loss, Pbe);
+
+            // Now we know from above that 
+            // Pf = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791
+            // Rearrange for Md
+            let best_Md = 0.209 + (best_Pf * 0.791 + Ps * (Ms - 0.209)) / Pd;
+            if (this.debug)
+                this.debug("Best possible mix is %f%", best_Md * 100);
+            
+            if (best_Md < Md) {
+                $report.append(
+                    "The best that can be achieved with this bank is "
+                    + Math.floor(best_Md * 100) + "%<br />");
+            }
+
+            if (Ps <= 1)
+                return; // can't bleed an empty cylinder
+
+            // Can we reduce Ps to achieve the same Md?
+            // Now we know from above that 
+            // Pf = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791
+            // and that equilibrium requires that
+            // Pf = (Pbs - Ps) / (Sc / Sb + 1)
+            // so
+            // (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791 =
+            //     (Pbs - Ps) / (Sc / Sb + 1)
+            // Pd * (Md - 0.209) - Ps * (Ms - 0.209) = 
+            //     0.791 * Pbs / (Sc / Sb + 1) - 0.791 * Ps / (Sc / Sb + 1)
+            // Pd * (Md - 0.209) - 0.791 * Pbs / (Sc / Sb + 1) = 
+            //      Ps * (Ms - 0.209) - 0.791 * Ps / (Sc / Sb + 1)
+            // Pd * (Md - 0.209) - 0.791 * Pbs / (Sc / Sb + 1) = 
+            //      Ps * ((Ms - 0.209) - 0.791 / (Sc / Sb + 1))
+            // Ps = (Pd * (Md - 0.209) - 0.791 * Pbs / (Sc / Sb + 1)) / 
+            //      ((Ms - 0.209) - 0.791 / (Sc / Sb + 1))
+            let best_Ps =
+                (Pd * (Md - 0.209) - Pbs * 0.791 / (Sc / Sb + 1)) /
+                (     (Ms - 0.209) -       0.791 / (Sc / Sb + 1));
+            if (best_Ps >= 1)
+                $report.append(
+                    conditions.target_mix
+                    + "% can be achieved if you bleed the cylinder down to "
+                    + Math.floor(best_Ps) + "bar first");
+        }
     }
     return Nitrox;
 });
