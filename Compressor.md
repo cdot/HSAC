@@ -86,9 +86,9 @@ but the filter life is maximised. We do this by setting a threshold for the
 amount of condensate that can be generated in a single purge cycle.
 
 The threshold is a function of:
-1. The *Maximum condensate* volume (in ml) which is acceptable between purges
-2. The *Pumping rate* of the compressor (in litres per minute)
-3. The *Purging frequency*, in minutes
+1. The **Maximum condensate** volume (in ml) which is acceptable between purges
+2. The **Pumping rate** of the compressor (in litres per minute)
+3. The **Purging frequency**, in minutes
 4. The temperature and humidity (and atmospheric pressure, though the effect
 of this is negligible)
 
@@ -98,3 +98,8 @@ or manually entered. Experience has shown us that our compressor can tolerate a
 build up of up to 35ml of condensate before a purge becomes necessary. Purging
 every 7 minutes means we can still fill safely at up to 90% humidity
 below 20&deg;C
+
+## Sensors
+
+The compressor sensors are accessed via AJAX requests to the
+**Sensors root URL** specified in the configuration dialog.
