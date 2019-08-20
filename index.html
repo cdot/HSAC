@@ -348,20 +348,20 @@ hours
             <p>
               Fill a
               <input id="nox_cs" name="cylinder_size" data-msg="Must be between 1 and 30 litres" required type="number" class="integer" min="1" max="30" value="12"> litre cylinder containing
-              <input id="nox_sp" name="start_pressure" required type="number" class="integer" min="1" max="232" value="50"> bar of
+              <input id="nox_sp" name="start_pressure" required type="number" class="integer" min="1" max="300" value="50"> bar of
               <input id="nox_sm" name="start_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer" min="21" max="100" value="21">%
               to 
               <input id="nox_tp" name="target_pressure" data-msg="Must be between 0 and 250 bar" required type="number" class="integer" min="1" max="300" value="232"> bar with 
               <input id="nox_tm" name="target_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer" min="21" max="100" value="32">%
             <p>
               Fill from a
-              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point" value="47.2"> litre O<sub>2</sub> bank cylinder, which is currently at 
+              <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point length3" step="0.1"value="45.7"> <span data-with-info="#infoBankSize">litre</span> O<sub>2</sub> bank cylinder, which is currently at 
               <input id="nox_o2p" name="O2_bank_pressure" data-msg="Must be between 1 and 300" required type="number" class="integer" min="1" max="300" value="200"> bar
             </p>
             <label for="nox_ppO2max" data-info="#infoMaxPPO2">
               A maximum ppO<sub>2</sub> of
             </label>
-            <input id="nox_pp02max" type="number" class="number" step="any" required name="ppO2max" value="1.4"> bar gives a MOD of <span id="nox_MOD"></span> metres
+            <input id="nox_pp02max" type="number" class="floating-point length3" step="0.1" required name="ppO2max" min="0" max="2" value="1.4"> bar gives a MOD of <b><span id="nox_MOD"></span>m</b>
           </form>
           <p class="report">
           </p>
@@ -436,7 +436,7 @@ hours
                 <tr>
                   <td>
                     <span>
-                      Sensor root URL:
+                      Sensors root URL:
                     </span>
                   </td>
                   <td class="widest">
@@ -637,7 +637,7 @@ hours
 
     <!-- Nitrox help -->
     <div class="hidden info" id="infoBankSize">
-      This is the size (in litres) of the O<sub>2</sub> cylinder you want to
+      This is the size of the O<sub>2</sub> cylinder you intend to
       use. A 'J' cylinder is 47.2L, while a 'W' is 45.7L. Check the
       shoulder of the cylinder you are using if you are unsure. Always
       use the lowest pressure cylinder that has enough for the

@@ -145,9 +145,18 @@ define("app/js/Nitrox", () => {
             // Pf = vanDerWaal(Pf, conditions.cylinder_size,
             //        conditions.temperature + K0C, VdVA_O2, VdVB_O2);
 
+            let Pt = Pd - Ps - Pf;
             if (this.debug)
-                this.debug("O2 required:", Pf);
+                this.debug("%f bar O2 + %f bar air required", Pf, Pt);
 
+            if (Pt < 0) {
+                $report.html(
+                    "There is too much gas already in the cylinder for "
+                    + "this fill. Please bleed the cylinder down to <b>"
+                    + Math.floor(Ps + Pt) + " bar</b>");
+                return;
+            }
+            
             if (Pf < 0) {
                 // Calculate maximum starting pressure for given fill
                 // Pf = 0 = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791
@@ -159,11 +168,10 @@ define("app/js/Nitrox", () => {
                 if (this.debug)
                     this.debug("Mix already too rich; bleed to", bleedTo, "bar");
                 $report.html(
-                    "There is too much gas already in the cylinder for " +
-                    "this fill. To use this bank you will have to bleed " +
-                    "the cylinder down below " +
-                    Math.floor(bleedTo) +
-                    " bar");
+                    "There is too much gas already in the cylinder for "
+                    + "this fill. To use this bank you will have to bleed "
+                    + "the cylinder down to <b>"
+                    + Math.floor(bleedTo) + " bar</b>");
                 return;
             }
 
@@ -195,16 +203,18 @@ define("app/js/Nitrox", () => {
                     this.debug("top up with", Pt, "bar of air");
 
                 $report.append(
-                    "Boost cylinder with O<sub>2</sub> to " +
-                    Math.ceil(Pce) +
-                    " bar before topping up to " + conditions.target_pressure +
-                    " bar with air<br>");
+                    "Boost cylinder with O<sub>2</sub> to <b>" +
+                    Math.ceil(Pce) + " bar</b>");
+                if (Pt > 1)
+                    $report.append(" before topping up to <b>"
+                                   + Pd + " bar</b> with air");
+       
                 $report.append(
-                    "This will use " +
-                    Math.round(litres) +
+                    "<p>This will use " +
+                    litres.toFixed(2) +
                     " litres of O<sub>2</sub> at a cost of <strong>&pound;" +
                     (litres * parseFloat(this.cfg.get("o2_price"))).toFixed(2) +
-                    "</strong><br>");
+                    "</strong></p>");
 
                 return;
             }
@@ -260,8 +270,8 @@ define("app/js/Nitrox", () => {
             
             if (best_Md < Md) {
                 $report.append(
-                    "The best that can be achieved with this bank is "
-                    + Math.floor(best_Md * 100) + "%<br />");
+                    "The best that can be achieved with this bank is <b>"
+                    + Math.floor(best_Md * 100) + "%</b><br />");
             }
 
             if (Ps <= 1)
@@ -288,9 +298,9 @@ define("app/js/Nitrox", () => {
                 (     (Ms - 0.209) -       0.791 / (Sc / Sb + 1));
             if (best_Ps >= 1)
                 $report.append(
-                    conditions.target_mix
-                    + "% can be achieved if you bleed the cylinder down to "
-                    + Math.floor(best_Ps) + " bar first");
+                    "<b>" + conditions.target_mix
+                    + "%</b> can be achieved if you bleed the cylinder down to <b>"
+                    + Math.floor(best_Ps) + " bar</b> first");
         }
     }
     return Nitrox;

@@ -213,6 +213,14 @@ table td,th {
     font-size: 18pt;
 }
 
+.report {
+    color: olive;
+}
+
+.length3 {
+    width: 3em;
+}
+
 .digital {
     font-size: 24pt !important;
     font-family: "Courier New", Courier, monospace !important
