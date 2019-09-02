@@ -20,6 +20,7 @@
     "fs-extra": "^8.1.0",
     "node-dht-sensor": "^0.3.0",
     "node-getopt": "^0.3.2",
+    "raspi-gpio": "^6.2.1",
     "request": "^2.88.0",
     "requirejs": "^2.3.6"
   }

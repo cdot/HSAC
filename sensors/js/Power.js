@@ -38,7 +38,7 @@ define("js/Power", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
             // that is taken as meaning something is still going on.
             if (this.state === 1) {
                 if ((this.lastEdge + this.timeout) < now) {
-                    console.debug('1->0');
+                    //console.debug('1->0');
                     this.state = 0;
                 } else {
                     // something is still going on
@@ -48,31 +48,33 @@ define("js/Power", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
                 }
             }
 
-            setTimeout(() => { self.handleTick(); }, this.timeout)
+            setTimeout(() => { this.handleTick(); }, this.timeout)
         }
 
         connect() {
-            
+
             if (!this.gpio)
                 return Promise.reject(this.name + " has no gpio");
 
             let self = this;
             return new Promise((resolve, reject) => {
                 raspi.init(() => {
-                    let pin = new GPIO.DigitalInput({
+                    let pin = new gpio.DigitalInput({
                         pin: "P1-" + self.gpio,
-                        pullResistor: GPIO.PULL_DOWN
+                        pullResistor: gpio.PULL_DOWN
                     });
 
                     pin.on("change", (value) => {
+                        //console.debug("Edge", value);
                         self.lastEdge = Time.now();
-                        if (self.state === 0 && value === GPIO.HIGH) {
-                            console.debug('0->1');
+                        if (self.state === 0 && value === gpio.HIGH) {
+                            //console.debug('0->1');
                             self.state = 1;
                             self.lastUpdate = self.lastEdge;
                         }
                     });
 
+                    self.handleTick();
                     resolve();
                 });
             });
@@ -83,6 +85,7 @@ define("js/Power", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
          * since the last sample() call)
          */
         sample() {
+            //console.debug("Sample", this.onTime);
             let sample = this.onTime;
             this.onTime = 0;
             return Promise.resolve({
