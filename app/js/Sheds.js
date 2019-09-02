@@ -71,12 +71,12 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                             },
                             pumping_rate: 300,
                             purge_freq: 5,
-                            safe_limit: 25
+                            safe_limit: 25,
+                            sensor_url: null,
+                            poll_frequency: 0,
+                            internal_temperature_alarm: 90
                         }
-                    },
-                    sensor_url: null,
-                    poll_frequency: 0,
-                    internal_temperature_alarm: 90,
+                    }
                 },
                 this.debug
             );
@@ -122,7 +122,6 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 this.inventory.reload_ui(loans)
             ])
             .then((res) => {
-                this.read_sensors();
                 $("#main_tabs").tabs("option", "disabled", []);
                 return this.roles.reload_ui();
             });
@@ -171,139 +170,6 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             });
         }
 
-        /**
-         * Update the sensor readings from the remote sensor URL
-         */
-        read_sensors() {
-            let self = this;
-            
-            const url = this.config.get("sensor_url");
-
-            /**
-             * Use an AJAX request to retrieve the latest sample
-             * for a sensor
-             */
-            function get_sample(sensor) {
-                return new Promise((resolve, reject) => {
-                    $.ajax({
-                        url: url + "/" + sensor,
-                        data: {
-                            t: Date.now() // defeat cache
-                        },
-                        dataType: "text"
-                    })
-                    .done((sample) => {
-                        resolve(JSON.parse(sample));
-                    })
-                    .fail(() => {
-                        resolve(null);
-                    });
-                });
-            }
-
-            /**
-             * Update a sampled input field. These fields are identified
-             * by data-samples="id" where id is the identifier for the sensor
-             * to be sampled.
-             * data-sample-config further has:
-             *     max_age: maximum age for valid samples.
-             *     sampled: element id for the element to be shown
-             *              when a sample is found and deemed valid.
-             *     unsampled: element id for the element to be shown
-             *                when the sample is too old or no sample
-             *                can be retrieved.
-             */
-            function update_sample(id, sample) {
-                let $el = $("input[data-samples='" + id + "']");
-                let spec = $el.data("sample-config");
-
-                if (!sample) {
-                    if (self.debug) self.debug("Sample for", id, "unavailable");
-                } else {
-                    let thresh = Date.now() - spec.max_age;
-                    if (sample.time < thresh) {
-                        // Sample unavailable or too old
-                        if (self.debug) self.debug("Sample for", id, "too old");
-                        sample = null;
-                    }
-                }
-
-                if (!sample) {
-                    $el.prop("readonly", null);
-                    $(spec.sampled).hide();
-                    $(spec.unsampled).show();
-                } else {
-                    // sample available and young enough
-                    $el.prop("readonly", "readonly");
-                    $el.val(Math.round(sample.sample));
-                    $(spec.sampled).show();
-                    $(spec.unsampled).hide();
-                }
-
-                // Update validation message
-                $el.closest(".validated_form").valid();
-            }
-
-            // Clear any existing timeout
-            if (this.sensor_tick)
-                clearTimeout(this.sensor_tick);
-
-            this.sensor_tick = null;
-
-            if (typeof url !== "string" || url.length === 0) {
-                if (this.debug) this.debug("No sensor URL set");
-                return;
-            }
-
-            let promises = [];
-
-            // Promise to update data samples
-            $("input[data-samples]").each(function() {
-                let name = $(this).data("samples");
-                promises.push(
-                    get_sample(name)
-                    .then((sample) => { update_sample(name, sample); })
-                    .catch((e) => { update_sample(name, null); }));
-            });
-
-            // Promise to check alarm sensors
-            $(".alarm[data-samples]").each(function() {
-                let $el = $(this);
-                let name = $el.data("samples");
-                promises.push(
-                    get_sample(name)
-                    .then((sample) => {
-                        sample = sample ? sample.sample : 0;
-                        let $report = $(".report_" + name);
-                        $report.html(Math.round(sample) + "&deg;C");
-                        let alarm_temp = self.config.get(name + "_alarm");
-                        if (sample >= alarm_temp) {
-                            $report.addClass("error");
-                            $el.show();
-                            if (typeof Audio !== "undefined") {
-                                var snd = new Audio("app/sounds/siren.mp3");
-                                snd.play();
-                            }
-                        } else {
-                            $report.removeClass("error");
-                            $el.hide();
-                        }
-                    }));
-            });
-
-            // Start the temperature, humidity, and alarm sensors
-            Promise.all(promises)
-            .finally(() => {
-                let timeout = parseInt(self.config.get("poll_frequency"));
-                // If poll freq is 0, don't poll
-                if (timeout > 0) {
-                    // Queue the next poll
-                    this.sensor_tick =
-                    setTimeout(() => { self.read_sensors(); }, timeout);
-                }
-            });
-        }
-
         initialise_ui() {
             let self = this;
             // Generics
@@ -328,7 +194,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 "compressor",
                 (v, el, compressor) => {
                     let $form = $(el).closest("form");
-                    return self.compressors[compressor].validate(
+                    return self.compressors[compressor].operable(
                         $form.find("input[name='temperature']").val(),
                         $form.find("input[name='humidity']").val());
                 },

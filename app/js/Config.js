@@ -79,9 +79,14 @@ define("app/js/Config", () => {
                         .on("change", function () {
                             const item = this.name;
                             let v = $(this).val();
-                            try {
-                                v = parseFloat(v);
-                            } catch (e) {};
+                            if (/^[0-9.]*$/.test(v)) {
+                                let sv = v;
+                                try {
+                                    v = parseFloat(sv);
+                                } catch (e) {
+                                    v = sv;
+                                };
+                            }
                             const ok = $form.valid();
                             if (opts.validity)
                                 opts.validity.call(jc, ok);

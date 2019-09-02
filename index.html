@@ -59,10 +59,10 @@
         </ul>
 
         <div id="fixed" class="crowded_tab">
-          <div class="hidden alarm error" data-samples="internal_temperature">
+          <div class="hidden alarm error" data-compressor="fixed" data-sensor="internal_temperature">
             COMPRESSOR INTERNAL TEMPERATURE IS TOO HIGH!
           </div>
-          <div style="float:right" class="report_internal_temperature"></div>
+          <div style="float:right" class="report:internal_temperature"></div>
           <form id="fixed_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span>
@@ -92,7 +92,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="temperature" type="number" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" compressor="fixed" data-samples="intake_temperature" data-sample-config='{"max_age":300000,"sampled":"#fixed_temp_from_sensor","unsampled":"#fixed_intake_temp_slider"}'>&deg;C
+                  <input name="temperature" type="number" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" compressor="fixed" data-compressor="fixed" data-sensor="intake_temperature" data-sample-config='{"max_age":300000,"sampled":"#fixed_temp_from_sensor","unsampled":"#fixed_intake_temp_slider"}'>&deg;C
                   <span style="display:none" id="fixed_temp_from_sensor">(detected)</span>
                   <div class="temperature slider" id="fixed_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#fixed_temp"}'>
                     <div class="min">4&deg;C</div><div class="max">40&deg;C</div>
@@ -106,7 +106,7 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="humidity" type="number" value="50" id="fixed_hum" compressor="fixed" data-samples="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider"}'>%
+                  <input name="humidity" type="number" value="50" id="fixed_hum" compressor="fixed" data-compressor="fixed" data-sensor="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider"}'>%
                   <span style="display:none" id="fixed_hum_from_sensor">(detected)</span>
                   <div class="humidity slider" id="fixed_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
                     <div class="min">0%</div><div class="max">80%</div>
@@ -440,19 +440,19 @@ hours
                     </span>
                   </td>
                   <td class="widest">
-                    <input style="width:100%" type="text" url name="sensor_url">
+                    <input style="width:100%" type="text" url name="compressor:fixed:sensor_url">
                   </td>
                 </tr>
                 <tr>
                   <td>Sensor poll frequency (ms):</td>
                   <td class="widest">
-                    <input style="width:100%" type="number" class="integer" name="poll_frequency">
+                    <input style="width:100%" type="number" class="integer" name="compressor:fixed:poll_frequency">
                   </td>
                 </tr>
                 <tr>
                   <td>Alarm temperature (&deg;C):</td>
                   <td class="widest">
-                    <input style="width:100%" type="number" name="internal_temperature_alarm">
+                    <input style="width:100%" type="number" name="compressor:fixed:internal_temperature_alarm">
                   </td>
                 </tr>
               </table>
