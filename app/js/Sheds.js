@@ -177,6 +177,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
         read_sensors() {
             let self = this;
             
+            const url = this.config.get("sensor_url");
+
             /**
              * Use an AJAX request to retrieve the latest sample
              * for a sensor
@@ -245,8 +247,9 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             // Clear any existing timeout
             if (this.sensor_tick)
                 clearTimeout(this.sensor_tick);
+
             this.sensor_tick = null;
-            const url = this.config.get("sensor_url");
+
             if (typeof url !== "string" || url.length === 0) {
                 if (this.debug) this.debug("No sensor URL set");
                 return;
@@ -288,6 +291,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     }));
             });
 
+            // Start the temperature, humidity, and alarm sensors
             Promise.all(promises)
             .finally(() => {
                 let timeout = parseInt(self.config.get("poll_frequency"));

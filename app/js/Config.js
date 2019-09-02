@@ -78,7 +78,10 @@ define("app/js/Config", () => {
                         this.$content.find("input")
                         .on("change", function () {
                             const item = this.name;
-                            const v = $(this).val();
+                            let v = $(this).val();
+                            try {
+                                v = parseFloat(v);
+                            } catch (e) {};
                             const ok = $form.valid();
                             if (opts.validity)
                                 opts.validity.call(jc, ok);

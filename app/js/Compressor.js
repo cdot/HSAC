@@ -30,66 +30,106 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             this.cfg = params.config;
             this.debug = this.cfg.debug;
             this.session_time = 0;
+            this.runtime = 0;
+            this.$tab = $("#" + this.id);
+            this.$form = this.$tab.children("form");
+            this.$runtime = this.$form.find("input[name='runtime']");
+
+            let self = this;
+            this.$form.find("select.digital")
+            .on("change", () => { this.readDigits(); });
+        }
+
+        setRuntime(v) {
+            this.runtime = v;
+
+            this.$runtime.val(v.toFixed(2));
+
+            let delta = (this.length() > 0)
+                ? v - this.get(this.length() - 1).runtime : 0;
+
+            const $delta = this.$form.find(".cr_delta");
+            if (delta > 0)
+                $delta.show().text("This run: " + delta.toFixed(2) + " hours");
+            else
+                $delta.hide();
+        }
+
+        setRuntimeAndDigits(v) {
+            this.setRuntime(v);
+            this.$form.find("select.digital").each(function() {
+                let dig = Math.floor(v / $(this).data("units"));
+                $(this).val(dig % 10);
+            });
+        }
+
+        readDigits() {
+            let v = 0;
+            this.$form.find("select.digital").each(function() {
+                v += $(this).val() * $(this).data("units");
+            });
+            self.setRuntime(v);
+        }
+
+        /**
+         * Set the rule for the minimum runtime
+         */
+        setMinRuntime(r) {
+            if (this.$runtime.length === 0)
+                return;
+            if (this.$runtime.attr("type") === "hidden")
+                return;
+
+            this.$runtime.rules("remove", "min");
+            this.$runtime.rules("add", {
+                min: r + 0.009
+            });
+        }
+
+        samplePower() {
+            const url = this.cfg.get("sensor_url");
+
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: url + "/power",
+                    data: {
+                        t: Date.now() // defeat cache
+                    },
+                    dataType: "text"
+                })
+                .done((sample) => {
+                    resolve(JSON.parse(sample));
+                })
+                .fail(() => {
+                    resolve({sample: 0});
+                });
+            });
         }
 
         reload_ui() {
             const self = this;
-            const $tab = $("#" + this.id);
-            const $form = $tab.children("form");
-            const $submit = $tab.find("button[name='add_record']");
-            const $runtime = $form.find("input[name='runtime']");
+            const $submit = this.$tab.find("button[name='add_record']");
 
-            const $delta = $form.find(".cr_delta");
-            const $digits = {};
-
-            for (let d of [ 1000, 100, 10, 1, 0.1, 0.01 ]) {
-                $digits[d] = $form.find("select[name='runtime" + d + "']");
-                $digits[d].on("change", get_digits);
-            }
-
-            $form.find("input[name='filters_changed']").on("change", function() {
-                $form.find(".cr_filters_changed").toggle($(this).is(":checked"));
+            this.$form
+            .find("input[name='filters_changed']")
+            .on("change", function() {
+                self.$form
+                .find(".cr_filters_changed")
+                .toggle($(this).is(":checked"));
             });
 
-            function get_digits() {
-                let v = 0;
-                for (let d of [ 1000, 100, 10, 1, 0.1, 0.01 ]) {
-                    v += $digits[d].val() * d;
-                }
-                set_runtime(v, true);
-            }
-
-            function set_runtime(v, nodigs) {
-                $runtime.val(v.toFixed(2));
-                let delta = (self.length() > 0)
-                    ? v - self.get(self.length() - 1).runtime : 0;
-
-                if (delta > 0)
-                    $delta.show().text("This run: " + delta.toFixed(2) + " hours");
-                else
-                    $delta.hide();
-
-                if (!nodigs) {
-                    for (let d of [ 1000, 100, 10, 1, 0.1, 0.01 ]) {
-                        let dig = Math.floor(v / d);
-                        $digits[d].val(dig);
-                        v -= dig * d;
-                    }
-                }
-            }
-
             function onChange() {
-                if ($form.length)
+                if (self.$form.length)
                     $submit.button(
-                        "option", "disabled", !$form.valid());
+                        "option", "disabled", !self.$form.valid());
             }
 
-            $form.on("submit", function (e) {
+            this.$form.on("submit", function (e) {
                 e.preventDefault();
                 return false;
             });
 
-            $tab.find(".cr_last_run")
+            this.$tab.find(".cr_last_run")
             .off("click")
             .on("click", function () {
                 let content = $("#infoLastRun").html().replace("$1", () => {
@@ -100,13 +140,9 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     content: content,
                     buttons: {
                         "Remove last run": () => {
-                            self.pop().then((r) => {
-                                if ($runtime.length && $runtime.attr("type") !== "hidden") {
-                                    $runtime.rules("remove", "min");
-                                    $runtime.rules("add", {
-                                        min: (r ? r.runtime : 0) + 0.009
-                                    });
-                                }
+                            self.removeLastEntry().then((r) => {
+                                self.setRuntimeAndDigits(r.runtime);
+                                self.setMinRuntime(r.runtime);
                                 onChange();
                             });
                         },
@@ -115,9 +151,9 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 });
             });
 
-            const $session_play = $tab.find("button.session_play");
-            const $session_pause = $tab.find("button.session_pause");
-            const $session_time = $tab.find(".session_time");
+            const $session_play = this.$tab.find("button.session_play");
+            const $session_pause = this.$tab.find("button.session_pause");
+            const $session_time = this.$tab.find(".session_time");
             let timer;
             this.session_time = 0; // ms
             let session_step_start;
@@ -140,7 +176,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     rta = self.get(self.length() - 1).runtime;
                 // Convert to hours
                 rta += self.session_time / 3600000;
-                set_runtime(rta);
+                self.setRuntimeAndDigits(rta);
                 $(this).closest(".validated_form").valid();
             });
 
@@ -162,7 +198,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 tick();
                 $(this).button("disable");
                 $session_pause.button("enable");
-                $runtime.prop("readonly", "readonly");
+                self.$runtime.prop("readonly", "readonly");
             });
 
             $session_pause.click(function () {
@@ -172,67 +208,83 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 tock();
                 $(this).button("disable");
                 $session_play.button("enable");
-                $runtime.prop("readonly", null);
+                self.$runtime.prop("readonly", null);
             });
 
             $submit
             .off("click")
             .on("click", function () {
-                if (!$form.valid())
+                if (!self.$form.valid())
                     return;
 
                 // Stop the counter
                 $session_pause.trigger("click");
 
                 const values = {};
-                $form.find(":input").each(function () {
+                self.$form.find(":input").each(function () {
                     if (this.name in self.keys)
                         values[this.name] = self.deserialise(this.name, $(this).val());
                 });
-                $form.find(":input[type='checkbox']").each(function () {
+                self.$form.find(":input[type='checkbox']").each(function () {
                     if (this.name in self.keys)
                         values[this.name] = $(this).is(":checked");
                 });
 
                 if (self.debug) self.debug("Adding compressor record", values);
-                self.add(values).then((r) => {
+                self.add(values).then(() => {
                     this.session_time = 0;
                     $session_time.trigger("ticktock");
-                set_runtime(r.runtime);
-                    if ($runtime.length && $runtime.attr("type") !== "hidden") {
-                        // Reset the runtime lower constraint to be more
-                        // than the just-recorded runtime
-                        $runtime.rules("remove", "min");
-                        $runtime.rules("add", {
-                            min: (r ? r.runtime : 0) + 0.009
-                        });
-                    }
+                    self.setRuntimeAndDigits(values.runtime);
+                    self.setMinRuntime(values.runtime);
                     // Clear down the operator
-                    $form.find("[name='operator']").val('');
+                    self.$form.find("[name='operator']").val('');
                     onChange();
                 });
             });
 
+            /**
+             * Restart the power sampling loop
+             */
+            if (this.powerInterval) {
+                clearInterval(this.powerInterval);
+                this.powerInterval = null;
+            }
+
+            // The counter works in 100ths of an hour, so
+            // every unit on the second decimal is 36 seconds.
+            // By sampling every 5s that should give us more
+            // than enough sensitivity.
+            console.log("Start power sampling");
+            this.powerInterval = setInterval(() => {
+                console.log("Sample power");
+                this.samplePower()
+                .then((sample) => {
+                    console.log("Sample", sample.sample / (60 * 60 * 1000));
+                    this.setRuntimeAndDigits(
+                        self.runtime + sample.sample / (60 * 60 * 1000));
+                })
+                .catch((e) => {});
+            }, 5000);
+            
             return this.load()
             .then(() => {
-                if (self.debug) self.debug("Loading " + this.length() + " " + this.id +
-                              " compressor records");
+                if (self.debug)
+                    self.debug("Loading " + this.length() + " " + this.id +
+                               " compressor records");
                 if (this.length() === 0)
                     return;
                 const cur = this.get(this.length() - 1);
-                set_runtime(cur.runtime);
-                $tab.find(".cr_operator").text(cur.operator);
-                $tab.find(".cr_time").text(Entries.formatDateTime(cur.date));
-                $tab.find(".cr_flr").text(new Number(this.remaining_filter_life()).toFixed(2));
-                $tab.find(".cr_runtime").text(cur.runtime);
-                if ($runtime.length && $runtime.attr("type") !== "hidden") {
-                    $runtime.rules("remove", "min");
-                    $runtime.rules("add", {
-                        min: cur.runtime + 0.009
-                    });
-                }
 
-                $form.find(":input").on("change", onChange);
+                self.setRuntimeAndDigits(cur.runtime);
+                self.setMinRuntime(cur.runtime);
+
+                // Set the compressor record
+                self.$tab.find(".cr_operator").text(cur.operator);
+                self.$tab.find(".cr_time").text(Entries.formatDateTime(cur.date));
+                self.$tab.find(".cr_flr").text(new Number(this.remaining_filter_life()).toFixed(2));
+                self.$tab.find(".cr_runtime").text(cur.runtime);
+
+                self.$form.find(":input").on("change", onChange);
                 onChange();
             })
             .catch((e) => {
@@ -318,7 +370,10 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             });
         }
 
-        pop() {
+        /**
+         * Pop the last entry and return the new last entry
+         */
+        removeLastEntry() {
             return this.load().then(() => {
                 this.entries.pop();
                 return this.save().then(() => {
