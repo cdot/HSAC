@@ -212,7 +212,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 let hours = Math.floor(delta);
                 delta = (delta - hours) * 60; // minutes
                 let mins = Math.floor(delta);
-                let secs = ((delta - hours) * 60).toFixed(2); // seconds
+                let secs = ((delta - mins) * 60).toFixed(2); // seconds
                 
                 $delta.show().text(
                     "This run: " + hours + ":" + mins + ":" + secs);

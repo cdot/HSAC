@@ -102,4 +102,6 @@ below 20&deg;C
 ## Sensors
 
 The compressor sensors are accessed via AJAX requests to the
-**Sensors root URL** specified in the configuration dialog.
+**Sensors root URL** specified in the configuration dialog. Sensors are
+polled every few seconds. An audible alarm can be triggered if the internal
+temperature sensor exceeds a given limit.
