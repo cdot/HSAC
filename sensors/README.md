@@ -78,9 +78,9 @@ an example configuration file:
 [
   {
    "name": "power",
-   "class", "Power",
+   "class", "Timer",
    "gpio": 19,
-   "timeout": 2000
+   "poll": 100
   },
   {
    "name": "internal_temperature",

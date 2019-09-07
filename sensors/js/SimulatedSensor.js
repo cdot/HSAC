@@ -3,7 +3,7 @@
 define("js/SimulatedSensor", ["js/Sensor", "js/Time"], function(Sensor, Time) {
 
     class SimulatedSensor extends Sensor {
-        
+
         constructor(config) {
             console.log("Creating simulated", config.name);
             super(config);
@@ -14,7 +14,7 @@ define("js/SimulatedSensor", ["js/Sensor", "js/Time"], function(Sensor, Time) {
                 } else {
                     this.min = 0; this.max = 100;
                 }
-            } else if (config.class === "Power") {
+            } else if (config.class === "Timer") {
                 this.lastask = Date.now();
                 this.resample = () => {
                     // Power on time since last sample

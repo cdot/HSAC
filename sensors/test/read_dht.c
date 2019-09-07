@@ -1,38 +1,38 @@
+// Read from DHT on GPIO pin
+
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #define MAXTIMINGS	85
-// GPIO 14 is WiringPi 15
-#define DHTPIN		15
 
 int dht11_dat[5] = { 0, 0, 0, 0, 0 };
 
-void sample()   {
-  uint8_t laststate	= HIGH;
-  uint8_t counter	= 0;
-  uint8_t j		= 0, i;
+void sample(pin) {
+  uint8_t laststate = HIGH;
+  uint8_t counter = 0;
+  uint8_t j = 0, i;
 
   dht11_dat[0] = dht11_dat[1] = dht11_dat[2] = dht11_dat[3] = dht11_dat[4] = 0;
 
-  pinMode(DHTPIN, OUTPUT);
-  digitalWrite(DHTPIN, LOW);
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
   delay( 18 );
-  digitalWrite(DHTPIN, HIGH);
+  digitalWrite(pin, HIGH);
   delayMicroseconds(40);
-  pinMode(DHTPIN, INPUT);
+  pinMode(pin, INPUT);
 
   for (i = 0; i < MAXTIMINGS; i++) {
     counter = 0;
-    while (digitalRead(DHTPIN) == laststate) {
+    while (digitalRead(pin) == laststate) {
       counter++;
       delayMicroseconds(1);
       if (counter == 255)
         break;
     }
-    laststate = digitalRead(DHTPIN);
+    laststate = digitalRead(pin);
 
-    if ( counter == 255 )
+    if (counter == 255)
       break;
 
     if ((i >= 4) && (i % 2 == 0)) {
@@ -52,14 +52,13 @@ void sample()   {
   }
 }
 
-int main( void ) {
-  printf("Raspberry Pi wiringPi DHT11 test\n");
-
-  if (wiringPiSetup() == -1)
+int main(int argc, char** argv) {
+  if (wiringPiSetupGpio() == -1)
     exit(1);
 
+  int pin = atoi(argv[1]);
   while (1) {
-    sample();
+    sample(pin);
     delay(1000);
   }
 }

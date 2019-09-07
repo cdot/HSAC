@@ -1,0 +1,19 @@
+The programs in this directory are low level tests for probing GPIO input pins
+and reading sensors attached to them.
+
+Use "make" to build the C-code tests.
+
+<pin> is a BCM pin number
+
+read_gpio.py <pin>      - Python program to read GPIO using RPi.GPIO
+
+make read_gpio
+./read_gpio <pin>       - C program to read GPIO using wiringPi
+
+node read_gpio.js <pin> - JS program to read GPIO using raspi-gpio
+make read_dht
+
+./read_dht <pin>        - C program to read DHT connected to GPIO
+
+node readTimer.js <pin> - report number of ms that a pin is high between
+                          samples taken every 1/2s. Test for the "Timer" sensor.
