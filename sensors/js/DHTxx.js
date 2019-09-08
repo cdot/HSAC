@@ -7,7 +7,7 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
     class DHTPin {
         constructor(type, gpio) {
             this.mType = type;
-            this.mGpio = gpio;
+            this.gpio = gpio;
             this.mLastSample = { temperature: 0, humidity: 0,
                                  time: 0, error: "Uninitialised" };
             this.mSamplingPromise = null;
@@ -39,7 +39,7 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
                     self.mTimeout = null;
                     reject("Timed out");
                 }, BACK_OFF);
-                DHT.read(this.mType, this.mGpio, function(e, t, h) {
+                DHT.read(this.mType, this.gpio, function(e, t, h) {
                     clearTimeout(self.mTimeout); // clear it ASAP
                     self.mTimeout = null;
                     if (e) {
@@ -81,38 +81,39 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
         constructor(config) {
             super(config);
 
-            this.mDevice = config.type;
-            this.mGpio = config.gpio;
-            this.mField = config.field;
+            this.device_type = config.type;
+            this.gpio = config.gpio;
+            this.field = config.field;
         }
 
         /**
          * @Override
          */
         connect() {
-            if (!this.mDevice || this.mDevice != 11 && this.mDevice != 22)
+            if (!this.device_type || this.device_type != 11 && this.device_type != 22)
                 return Promise.reject(
-                    this.name + " has bad type" + this.mDevice);
+                    this.name + " has bad type" + this.device_type);
 
-            if (!this.mGpio)
+            if (!this.gpio)
                 return Promise.reject(this.name + " has no gpio");
 
-            if (!DHTPins[this.mGpio])
-                DHTPins[this.mGpio] = new DHTPin(this.mDevice, this.mGpio);
+            if (!DHTPins[this.gpio])
+                DHTPins[this.gpio] = new DHTPin(this.device_type, this.gpio);
 
             // Make sure we have GPIO available, and we can read a sample
             return Fs.stat("/dev/gpiomem")
             .catch((e) => {
-                console.error(this.mField, "DHT connect failed: ", e.message);
+                console.error(this.field, "DHT connect failed: ", e.message);
                 return Promise.reject(e.message);
             })
             .then((s) => {
-                return DHTPins[this.mGpio].sample()
+                return DHTPins[this.gpio].sample()
                 .then((s) => {
                     if (s.error) {
-                        console.error(this.mField, "DHT connect sample failed: ", e.message);
+                        console.error(this.field, "DHT connect sample failed: ", s.error);
                         return Promise.reject("sample failed: " + s.error)
                     }
+                    console.log(this.name, "connected to GPIO", this.gpio);
                 });
             });
         }
@@ -121,10 +122,10 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
          * @Override
          */
 	sample() {
-            return DHTPins[this.mGpio]
+            return DHTPins[this.gpio]
             .sample()
             .then((sam) => {
-                return { sample: sam[this.mField], time: sam.time };
+                return { sample: sam[this.field], time: sam.time };
             });
         }
     }

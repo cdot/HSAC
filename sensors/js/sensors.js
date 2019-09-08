@@ -68,10 +68,12 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
                     .connect()
                     .then(() => { resolve(sensor); })
                     .catch((e) => {
+                        log(cfg.name, "connect()",e);
                         cfg.error = "Could not connect: " + e;
                         return reject(cfg);
                     });
                 }, (e) => {
+                    log(clss, "require()",e);
                     cfg.error = "Could not require: " + e;
                     reject(cfg);
                 });
@@ -82,7 +84,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
             if (simulation) {
                 promise = promise
                 .catch((cfg) => {
-                    log(cfg.name + ":", cfg.error);
+                    log(cfg.name, cfg.error);
                     console.log("Using simulation for", cfg.name);
                     return Promise.resolve(new simulation(cfg));
                 });
@@ -104,9 +106,9 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
                     return Promise.resolve("registered /" + sensor.name);
                 })
                 .catch((cfg) => {
-                    console.error(cfg.name, "could not be registered", cfg);
+                    log(cfg.name, "could not be registered", cfg);
                     server.get("/" + cfg.name, (req, res, next) => {
-                        next();//cfg.name + " was not registered");
+                        next();
                     });
                     return Promise.resolve("failed /" + cfg.name);
                 }));

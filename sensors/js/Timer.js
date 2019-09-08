@@ -32,11 +32,14 @@ define("js/Timer", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
             let newState = this.pin.read();
             if (this.state === 1) {
                 this.onTime += t - this.lastUpdate;
-                //if (newState === 0)
-                //    console.log("EDGE 1->0", t);
-            //} else {
-            //    if (newState === 1)
-            //        console.log("EDGE 0->1", t);
+            /*
+                // Super-detailed edge debug
+                if (newState === 0)
+                    console.log("EDGE 1->0", t);
+            } else {
+                if (newState === 1)
+                    console.log("EDGE 0->1", t);
+            */
             }
             this.state = newState;
             this.lastUpdate = t;
@@ -56,6 +59,7 @@ define("js/Timer", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
 
                     this.state = this.pin.read();
                     this.handleTick();
+                    console.log("Timer polling GPIO", this.gpio, "every", this.poll, "ms");
                     resolve();
                 });
             });

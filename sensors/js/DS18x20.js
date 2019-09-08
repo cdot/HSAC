@@ -25,6 +25,7 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor", "js/Time"], function(DS18B20
             return new Promise((resolve, reject) => {
                 DS18B20_raspi.readSimpleC((err, temp) => {
                     if (err) { reject(err); return; }
+                    console.log("DS18x20", this.mSensorId, "connected");
                     resolve();
                 });
             });
