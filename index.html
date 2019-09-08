@@ -62,7 +62,7 @@
           <div class="hidden alarm error" data-compressor="fixed" data-sensor="internal_temperature">
             COMPRESSOR INTERNAL TEMPERATURE IS TOO HIGH!
           </div>
-          <div style="float:right" class="report:internal_temperature"></div>
+          <div style="float:right" id="report:fixed"></div>
           <form id="fixed_form" class="validated_form">
             <div>
               Last run by <span class="cr_operator">?</span>
@@ -93,7 +93,7 @@
                 </th>
                 <td class="widest">
                   <input name="temperature" type="number" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" compressor="fixed" data-compressor="fixed" data-sensor="intake_temperature" data-sample-config='{"max_age":300000,"sampled":"#fixed_temp_from_sensor","unsampled":"#fixed_intake_temp_slider"}'>&deg;C
-                  <span style="display:none" id="fixed_temp_from_sensor">(detected)</span>
+                  <span style="display:none" id="fixed_temp_from_sensor" class="detected">(detected)</span>
                   <div class="temperature slider" id="fixed_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#fixed_temp"}'>
                     <div class="min">4&deg;C</div><div class="max">40&deg;C</div>
                   </div>
@@ -107,7 +107,7 @@
                 </th>
                 <td class="widest">
                   <input name="humidity" type="number" value="50" id="fixed_hum" compressor="fixed" data-compressor="fixed" data-sensor="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider"}'>%
-                  <span style="display:none" id="fixed_hum_from_sensor">(detected)</span>
+                  <span style="display:none" id="fixed_hum_from_sensor" class="detected">(detected)</span>
                   <div class="humidity slider" id="fixed_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
                     <div class="min">0%</div><div class="max">80%</div>
                   </div>
@@ -118,6 +118,8 @@
                   <span data-with-info="#infoRuntime">
                     Runtime
                   </span>
+                  <br/>
+                  <span class="cr_delta detected"></span>
                 </th>
                 <td class="widest">
                   <select class="digital" data-units="1000">
@@ -202,7 +204,6 @@ hours
               <label for="fixed_filters_changed">Filters changed</label>
               <input data-with-info="#infoFilters" type="checkbox" id="fixed_filters_changed" name="filters_changed">
             </div>
-            <span class="cr_delta"></span>
             <span style="display:none" class="cr_filters_changed"> FILTERS HAVE BEEN CHANGED</span>
           </form>
           <button name="add_record">Touch here to record this run</button>
@@ -358,7 +359,7 @@ hours
               <input id="nox_o2s" name="O2_bank_size" data-msg="Must be between 10 and 100" required type="number" class="floating_point length3" step="0.1"value="45.7"> <span data-with-info="#infoBankSize">litre</span> O<sub>2</sub> bank cylinder, which is currently at 
               <input id="nox_o2p" name="O2_bank_pressure" data-msg="Must be between 1 and 300" required type="number" class="integer" min="1" max="300" value="200"> bar
             </p>
-            <label for="nox_ppO2max" data-info="#infoMaxPPO2">
+            <label for="nox_ppO2max">
               A maximum ppO<sub>2</sub> of
             </label>
             <input id="nox_pp02max" type="number" class="floating-point length3" step="0.1" required name="ppO2max" min="0" max="2" value="1.4"> bar gives a MOD of <b><span id="nox_MOD"></span>m</b>
@@ -373,142 +374,129 @@ hours
       <form>
         <table class="form_table zebra">
           <tr>
-            <th class="input_label">
-              <span data-info="#infoDeadline">
-                Loan return deadline
-              </span>
-            </th>
+            <td>
+              Loan return deadline
+            </td>
             <td class="widest">
               <input type="number" required class="integer" name="loan_return"> days
             </td>
           </tr>
           <tr>
-            <th class="input_label">
-              <span data-info="#infoO2Price">
-                O<sub>2</sub> cost per litre &pound;
-              </span>
-            </th>
+            <td class="input_label">
+              O<sub>2</sub> cost
+            </td>
             <td class="widest">
-              <input type="number" class="floating-point length3" step="0.01" required name="o2_price">
+               &pound;<input type="number" class="floating-point length3" step="0.01" required name="o2_price"> / L
             </td>
           </tr>
           <tr>
-            <th class="input_label">
-              <span data-info="Compressor.md">
-                Static Compressor
+            <th colspan="2">
+              <span data-with-info="Compressor.md">
+                Fixed Compressor
               </span>
             </th>
-            <td class="widest">
-              <table>
-                <tr>
-                  <td>Predicted Filter Lifetime, hours @ 20&deg;C:</td>
-                  <td>
-                    <input type="number" class="integer" step="any" required name="compressor:fixed:filter:lifetime">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Coefficients</td>
-                  <td class="widest">
-                    A <input type="number" class="number" step="any" required name="compressor:fixed:filter:a">
-                    B <input type="number" class="number" step="any" required name="compressor:fixed:filter:b"><br/>
-                    C <input type="number" class="number" step="any" required name="compressor:fixed:filter:c">
-                    D <input type="number" class="number" step="any" required name="compressor:fixed:filter:d">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Pumping rate (lm<sup>-1</sup>):</td>
-                  <td class="widest">
-                    <input style="width:100%" type="text" name="compressor:fixed:pumping_rate">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Purge frequency (mins):</td>
-                  <td class="widest">
-                    <input style="width:100%" type="text" name="compressor:fixed:purge_freq">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Max condensate (ml):</td>
-                  <td class="widest">
-                    <input style="width:100%" type="text" name="compressor:fixed:safe_limit">
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <span>
-                      Sensors root URL:
-                    </span>
-                  </td>
-                  <td class="widest">
-                    <input style="width:100%" type="text" url name="compressor:fixed:sensor_url">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Sensor poll frequency (ms):</td>
-                  <td class="widest">
-                    <input style="width:100%" type="number" class="integer" name="compressor:fixed:poll_frequency">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Alarm temperature (&deg;C):</td>
-                  <td class="widest">
-                    <input style="width:100%" type="number" name="compressor:fixed:internal_temperature_alarm">
-                  </td>
-                </tr>
-              </table>
+          </tr>
+          <tr>
+            <td>Predicted filter lifetime</td>
+            <td>
+              <input type="number" class="integer" step="any" required name="compressor:fixed:filter:lifetime"> hours @ 20&deg;C
             </td>
           </tr>
           <tr>
-            <th class="input_label">
-              <span data-info="Compressor.md">
+            <td>Coefficients</td>
+            <td class="widest">
+              A <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:a"><br/>
+              B <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:b"><br/>
+              C <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:c"> <br/>
+              D <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:d">
+            </td>
+          </tr>
+          <tr>
+            <td>Pumping rate</td>
+            <td class="widest">
+              <input type="text" name="compressor:fixed:pumping_rate"> lm<sup>-1</sup>
+            </td>
+          </tr>
+          <tr>
+            <td>Purge frequency</td>
+            <td class="widest">
+              <input type="text" name="compressor:fixed:purge_freq"> mins
+            </td>
+          </tr>
+          <tr>
+            <td>Max condensate</td>
+            <td>
+              <input type="text" name="compressor:fixed:safe_limit"> ml
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span>
+                Sensors root URL
+              </span>
+            </td>
+            <td class="widest">
+              <input type="text" url name="compressor:fixed:sensor_url" class="widest">
+            </td>
+          </tr>
+          <tr>
+            <td>Sensor poll frequency</td>
+            <td class="widest">
+              <input type="number" class="integer" name="compressor:fixed:poll_frequency"> ms
+            </td>
+          </tr>
+          <tr>
+            <td>Alarm temperature</td>
+            <td class="widest">
+              <input type="number" name="compressor:fixed:internal_temperature_alarm">&deg;C
+            </td>
+          </tr>
+          <tr>
+            <th colspan="2">
+              <span data-with-info="Compressor.md">
                 Portable Compressor
               </span>
             </th>
+          </tr>
+          <tr>
+            <td>Predicted filter lifetime</td>
             <td class="widest">
-              <table>
-                <tr>
-                  <td>Predicted Filter Lifetime, hours @ 20&deg;C:</td>
-                  <td class="widest">
-                    <input type="number" class="integer" step="any" required name="compressor:portable:filter:lifetime">
-                  </td>
-                </tr>
-                <tr>
-                  <td>Coefficients:</td>
-                  <td class="widest">
-                    A <input type="number" class="number" step="any" required name="compressor:portable:filter:a">
-                    B <input type="number" class="number" step="any" required name="compressor:portable:filter:b"><br/>
-                    C <input type="number" class="number" step="any" required name="compressor:portable:filter:c">
-                    D <input type="number" class="number" step="any" required name="compressor:portable:filter:d">
-                  </td>
-                </tr>
-              </table>
+              <input type="number" class="integer" step="any" required name="compressor:portable:filter:lifetime"> hours @ 20&deg;C
             </td>
           </tr>
           <tr>
-            <th>
-              <span data-info="Databases.md">Databases</span>
+            <td>Coefficients</td>
+            <td class="widest">
+              A <input type="number" class="number" step="any" required name="compressor:portable:filter:a"><br/>
+              B <input type="number" class="number" step="any" required name="compressor:portable:filter:b"><br/>
+              C <input type="number" class="number" step="any" required name="compressor:portable:filter:c"><br/>
+              D <input type="number" class="number" step="any" required name="compressor:portable:filter:d">
+            </td>
+          </tr>
+          <tr>
+            <th colspan="2">
+              <span data-with-info="Databases.md">Databases</span>
             </th>
+          </tr>
+          <tr>
             <td>
-              <table>
-                <tr>
-                  <td>
-                    Remote DB index URL:
-                  </td>
-                  <td class="widest"><input style="width:100%" type="text" url name="db_index_url"></td>
-                </tr>
-                <tr>
-                  <td>
-                    Local cache URL:
-                  </td>
-                  <td class="widest">
-                    <input class="widest" type="text" url name="cache_url">
-                  </td>
-                </tr>
-              </table>
+              Remote DB index URL
+            </td>
+            <td>
+              <input class="widest" type="text" url name="db_index_url">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Local cache URL
+            </td>
+            <td>
+              <input class="widest" type="text" url name="cache_url">
             </td>
           </tr>
         </table>
       </form>
+      <span class="cache_updater">Update Cache from Remote DB</span>
     </div>
 
     <div id="inventory_pick_dialog" class="hidden">
@@ -644,17 +632,5 @@ hours
       fill you want
     </div>
 
-    <!-- Settings help -->
-    <div class="hidden info" id="infoDeadline">
-      Deadline beyond which an additional donation is requested for
-      late loan returns
-    </div>
-    <div class="hidden info" id="infoO2Price">
-      Price of one litre of O<sub>2</sub>, based on the replacement cost of the
-      O<sub>2</sub> cylinders
-    </div>
-    <div class="hidden info" id="infoMaxPPO2">
-      Maximum ppO<sub>2</sub> used when calculating MOD
-    </div>  
   </body>
 </html>

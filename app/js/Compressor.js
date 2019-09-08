@@ -112,7 +112,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             this.$form
             .find("input[name='filters_changed']")
             .on("change", function() {
-                self.$form
+                self.$tab
                 .find(".cr_filters_changed")
                 .toggle($(this).is(":checked"));
             });
@@ -207,15 +207,16 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             let delta = (this.length() > 0)
                 ? v - this.get(this.length() - 1).runtime : 0;
 
-            const $delta = this.$form.find(".cr_delta");
+            const $delta = this.$tab.find(".cr_delta");
             if (delta > 0) {
                 let hours = Math.floor(delta);
                 delta = (delta - hours) * 60; // minutes
                 let mins = Math.floor(delta);
                 let secs = ((delta - mins) * 60).toFixed(2); // seconds
-                
                 $delta.show().text(
-                    "This run: " + hours + ":" + mins + ":" + secs);
+                    + ("0" + hours).slice(-2)
+                    + ":" + ("0" + mins).slice(-2)
+                    + ":" + ("0" + secs).slice(-5));
             } else
                 $delta.hide();
         }
@@ -227,7 +228,9 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
         setRuntimeAndDigits(v) {
             this.setRuntime(v);
             this.$form.find("select.digital").each(function() {
-                let dig = Math.floor(v / $(this).data("units"));
+                let u = $(this).data("units");
+                let dig = Math.floor(v / u);
+                dig = (u === 0.01) ? Math.round(dig) : Math.floor(dig);
                 $(this).val(dig % 10);
             });
         }
@@ -385,6 +388,16 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 this.getSample("power")
                 .then((sample) => {
                     if (sample.sample > 0) {
+                        // Check that we are within operable limits, if
+                        // not raise an alarm
+                        if (!this.operable()) {
+                            let $report = $("#report:" + this.id);
+                            $report.addClass("error");
+                            if (typeof Audio !== "undefined") {
+                                var snd = new Audio("app/sounds/alarm.mp3");
+                                snd.play();
+                            }
+                        }
                         this.setRuntimeAndDigits(
                             this.runtime + sample.sample / (60 * 60 * 1000));
                         this.formChanged();
@@ -417,7 +430,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     self.getSample(name)
                     .then((sample) => {
                         sample = sample ? sample.sample : 0;
-                        let $report = $(".report:" + name);
+                        let $report = $("#report:" + this.id);
                         $report.html(Math.round(sample) + "&deg;C");
                         let alarm_temp = self.cfg.get(
                             "compressor: " + this.id + ":" + name + "_alarm");
@@ -581,10 +594,11 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * Determine if the compressor should be operated under given
          * conditions of temperature and humidity. See README.md for details.
          */
-        operable(temperature, humidity) {
+        operable() {
             // See https://www.conservationphysics.org/atmcalc/atmoclc2.pdf
-            temperature = parseFloat(temperature);
-            humidity=parseFloat(humidity);
+
+            let temperature = parseFloat(this.$form.find("input[name='temperature']").val());
+            let humidity = parseFloat(this.$form.find("input[name='humidity']").val());
             // Saturation vapour (partial) pressure
             let sat = 610.78 * Math.exp(17.2694 * temperature / (temperature + 238.3)); // pascals
 

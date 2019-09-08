@@ -54,19 +54,30 @@
             let position = params.position || $thing.data("with-info-position") ||
                 params.position || "after";
 
-            if (typeof s === "undefined" || s.charAt(0) === '#' && $(s).length === 0)
+            if (typeof s === "undefined" || s.charAt(0) === '#' && $(s).length === 0) {
+                console.error("INTERNAL ERROR: Missing with-info");
                 throw "Missing " + s;
+            }
 
             let $clickable;
 
             if (position === "hidden")
                 $clickable = $thing;
             else if (position === "before") {
-                $clickable = $("<span class='fas fa-info-circle with-info-before'></span>");
-                $thing.before($clickable);
+                if ($thing.next().is(".with-info-before"))
+                    $clickable = $thing.next();
+                else {
+                    $clickable = $("<span class='fas fa-info-circle with-info-before'></span>");
+                    $thing.before($clickable);
+                }
             } else {
-                $clickable = $("<span class='fas fa-info-circle with-info-after'></span>");
-                $thing.after($clickable);
+                let p = $thing.next();
+                if ($thing.next().is(".with-info-after"))
+                    $clickable = $thing.next();
+                else {
+                    $clickable = $("<span class='fas fa-info-circle with-info-after'></span>");
+                    $thing.after($clickable);
+                }
             }
 
             $clickable.data("info", s);

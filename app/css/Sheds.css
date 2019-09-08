@@ -6,6 +6,13 @@ Chill #AED9DA
 Glass #EDFAFD
 */
 
+/* Rules are organised alphabetically */
+
+.alarm {
+    color: white;
+    background-color: red;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14pt;
@@ -16,14 +23,85 @@ body {
     margin-bottom: 0.3em;
 }
 
+.crowded_tab {
+    padding: 0.2em 0 0 0 !important;
+    margin: 0;
+}
+
+.cr_delta {
+    font-size: smaller;
+}
+
+/* Markdown */
+[data-markdown] {
+    color: blue;
+    text_decoration: underline;
+}
+
+.detected {
+    color: olive;
+    font-size: smaller;
+}
+
+/* Button (not a control) inside a dialog */
+.dialog-inner-button {
+    font-size: smaller;
+    font-weight: bolder;
+    padding: 0.25em;
+}
+
+/* Button (not a control) inside a dialog */
+.dialog-inner-button:hover {
+    font-weight: bolder;
+}
+
+/* Digital runtime display */
+.digital {
+    font-size: 24pt !important;
+    font-family: "Courier New", Courier, monospace !important
+}
+
+/* Markdown */
+.equation {
+    font-style: italic;
+    background-color: pink;
+}
+
 /* Used by validation */
 .error {
     color: white;
     background-color: red;
 }
 
+#fixed {
+    font-size: 18pt;
+}
+
+/* Markdown */
+.fraction {
+    display: inline-block;
+    vertical-align: middle; 
+    margin: 0 0.2em 0.4ex;
+    text-align: center;
+}
+
+/* Markdown */
+.fraction > span {
+    display: block;
+    padding-top: 0.15em;
+}
+
+/* Markdown */
+.fraction span.fdn {border-top: thin solid black;}
+
 .hidden {
     display: none;
+}
+
+.humidity.slider {
+    background-image: linear-gradient(
+      to right, #f2d16b, #086294
+    );
 }
 
 input.floating_point {
@@ -32,6 +110,10 @@ input.floating_point {
 
 input.integer {
     max-width: 4em;
+}
+
+input[name="temperature"], input[name="humidity"] {
+    width: 3em;
 }
 
 /* Used to highlight a chosen item in an inventory tab */
@@ -64,10 +146,20 @@ input.integer {
     text-decoration: line-through;
 }
 
+/* Default is to float buttons to the right, which can obscure them on
+ * low-res displays */
+.jconfirm-buttons {
+    float: left !important;
+}
+
 /* Float validation reports */
 label.error {
     float:right;
     padding: 0 0.2em;
+}
+
+.length3 {
+    width: 3em;
 }
 
 /* Used in the loan table to highlight a late loan */
@@ -131,6 +223,18 @@ label.error {
     background-color: #135589;
 }
 
+#nitrox {
+    font-size: 18pt;
+}
+
+#portable {
+    font-size: 20pt;
+}
+
+.report {
+    color: olive;
+}
+
 /* A scrollable container in a tab */
 .scroll_container {
     height: 70%;
@@ -141,6 +245,28 @@ label.error {
 #settings_block {
     float: right;
     display: inline-block;
+}
+
+.slider {
+    margin-top: 0.4em;
+}
+
+.slider > div.max {
+    float: right;
+    color: white;
+    font-size: 50%;
+}
+
+.slider > div.min {
+    float: left;
+    color: white;
+    font-size: 50%;
+}
+
+.temperature.slider {
+    background-image: linear-gradient(
+      to right, #3c89d0, #F9423A
+    );
 }
 
 /* An element that displays the current time */
@@ -176,21 +302,6 @@ table td,th {
     text-align: left;
 }
 
-.crowded_tab {
-    padding: 0.2em 0 0 0 !important;
-    margin: 0;
-}
-
-/* See also .error */
-.warning {
-    color: red;
-}
-
-/* Used to widen a specific column in a table */
-.widest {
-    width: 100%;
-}
-
 /* Tabs restyling for optimum space on Lenovo TAB 3 8 landscape mode */
 .ui-tabs-nav {
     font-size: 17pt;
@@ -201,86 +312,12 @@ table td,th {
     padding: .2em 1em;
 }
 
-#fixed {
-    font-size: 18pt;
+/* See also .error */
+.warning {
+    color: red;
 }
 
-#portable {
-    font-size: 20pt;
-}
-
-#nitrox {
-    font-size: 18pt;
-}
-
-.report {
-    color: olive;
-}
-
-.length3 {
-    width: 3em;
-}
-
-.digital {
-    font-size: 24pt !important;
-    font-family: "Courier New", Courier, monospace !important
-}
-
-.slider {
-    margin-top: 0.4em;
-}
-
-input[name="temperature"], input[name="humidity"] {
-    width: 3em;
-}
-
-.temperature.slider {
-    background-image: linear-gradient(
-      to right, #3c89d0, #F9423A
-    );
-}
-
-.humidity.slider {
-    background-image: linear-gradient(
-      to right, #f2d16b, #086294
-    );
-}
-
-.slider > div.min {
-    float: left;
-    color: white;
-    font-size: 50%;
-}
-
-.slider > div.max {
-    float: right;
-    color: white;
-    font-size: 50%;
-}
-
-.alarm {
-    color: white;
-    background-color: red;
-}
-
-[data-markdown] {
-    color: blue;
-    text_decoration: underline;
-}
-
-/* Markdown */
-.fraction {
-    display: inline-block;
-    vertical-align: middle; 
-    margin: 0 0.2em 0.4ex;
-    text-align: center;
-}
-.fraction > span {
-    display: block;
-    padding-top: 0.15em;
-}
-.fraction span.fdn {border-top: thin solid black;}
-.equation {
-    font-style: italic;
-    background-color: pink;
+/* Used to widen a specific column in a table */
+.widest {
+    width: 100%;
 }

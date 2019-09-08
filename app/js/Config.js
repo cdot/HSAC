@@ -75,7 +75,7 @@ define("app/js/Config", () => {
                     onContentReady: function () {
                         const $form = this.$content.find("form");
                         const jc = this;
-                        this.$content.find("input")
+                        $form.find("input")
                         .on("change", function () {
                             const item = this.name;
                             let v = $(this).val();
@@ -95,7 +95,7 @@ define("app/js/Config", () => {
                         })
                         .each(function () {
                             const v = self.get(this.name);
-                            if (this.type === "radio")
+                            if (this.type === "checkbox")
                                 $(this).prop('checked', v === this.value);
                             else
                                 $(this).val(v);

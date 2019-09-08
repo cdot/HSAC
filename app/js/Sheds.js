@@ -180,6 +180,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 $(this).siblings('input').change();
             });
 
+            $.validator.setDefaults({ignore: ".novalidate"});
+
             $(".validated_form").each(function () {
                 $(this).validate({
                     // Don't ignore selects that are hidden by jQuery plugins
@@ -194,9 +196,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 "compressor",
                 (v, el, compressor) => {
                     let $form = $(el).closest("form");
-                    return self.compressors[compressor].operable(
-                        $form.find("input[name='temperature']").val(),
-                        $form.find("input[name='humidity']").val());
+                    return self.compressors[compressor].operable();
                 },
                 "Compressor must not be operated");
 
@@ -215,25 +215,27 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             let $gear = $('#settings');
             $gear.on("click", function () {
                 self.config.open({
+                    autoClose: 'close|60000',
                     buttons: {
-                        "Update cache from web": function () {
-                            let $a = $.confirm({
-                                title: "Updating from the web",
-                                content: ""
-                            });
+                        close: function () {
+                            let p;
+                            if (this.$content.find("[name='cache_update']").is(":checked")) {
+                                let $a = $.confirm({
+                                    title: "Updating from the web",
+                                    content: ""
+                                });
 
-                            self.config.save()
-                            .then(() => {
-                                return self.update_from_web((clss, m) => {
+                                p = self.update_from_web((clss, m) => {
                                     $a.setContentAppend(
                                         "<div class='" + clss + "'>" +
                                         m + "</div>");
                                 });
+                            } else
+                                p = Promise.resolve();
+
+                            p.then(() => {
+                                return self.config.save();
                             })
-                            .then(() => { self.reload_ui(); });
-                        },
-                        close: function () {
-                            self.config.save()
                             .then(() => { self.reload_ui(); });
                         }
                     },
@@ -245,10 +247,12 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                                 m.disable();
                         });
                     },
+                    /* onContentReady defined in Config.js */
                     moreOnContentReady: function () {
-                        this.$content.find("[data-info]").each(function () {
-                            $(this).with_info($(this).data("info"));
-                        });
+                        debugger;
+                        this.$content.find("[data-with-info]")
+                        .with_info();
+
                         this.$content.find("input[name='cache_url']")
                         .val(Cookies.get("cache_url"))
                         .off("change")
@@ -270,6 +274,18 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                                 });
                             }
                         });
+
+                        // jconfirm knackers checkboxes, so have to do some
+                        // fancy footwork
+                        this.$content.find(".cache_updater")
+                        .each(function() {
+                            let $label =
+                                $("<label>" + $(this).text() + "</label>");
+                            let $b = $("<input type='checkbox' name='cache_update'>");
+                            $label.append($b);
+                            //$b.checkboxradio();
+                            $(this).replaceWith($label);
+                        })
                     }
                 });
             });
