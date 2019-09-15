@@ -53,6 +53,10 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time"], function(Fs, Sensor, Ti
 
             // Force-unexport first, in case it was previously left locked after a crash
             return Fs.writeFile(GPIOPATH + "unexport", this.gpio)
+            .catch((e) => {
+                console.error("Unexport", this.gpio, "failed", e);
+                return Promise.resolve();
+            })
             .then(() => {
                 return Fs.writeFile(GPIOPATH + "export", this.gpio);
             })
