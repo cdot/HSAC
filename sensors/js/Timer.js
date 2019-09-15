@@ -19,8 +19,11 @@ define("js/Timer", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
             // than this, and will probably be slower.
             this.poll = config.poll || 10;
 
-            // Current state, either high (1) or low (0)
-            this.state = 0;
+            // State of pin that means timer on, 1 or 0
+            this.on_state = config.on_state || 0;
+
+            // Current timer state, on = true, off = false
+            this.isOn = false;
 
             // Accumulate "on" time since the last call to sample()
             this.onTime = 0;
@@ -30,18 +33,9 @@ define("js/Timer", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
         handleTick() {
             let t = Date.now();
             let newState = this.pin.read();
-            if (this.state === 1) {
+            if (this.isOn)
                 this.onTime += t - this.lastUpdate;
-            /*
-                // Super-detailed edge debug
-                if (newState === 0)
-                    console.log("EDGE 1->0", t);
-            } else {
-                if (newState === 1)
-                    console.log("EDGE 0->1", t);
-            */
-            }
-            this.state = newState;
+            this.isOn = (newState === this.on_state);
             this.lastUpdate = t;
             setTimeout(() => { this.handleTick(); }, this.poll)
         }
@@ -57,7 +51,7 @@ define("js/Timer", ['raspi', 'raspi-gpio', "js/Sensor", "js/Time"], function(ras
                         pullResistor: gpio.PULL_DOWN
                     });
 
-                    this.state = this.pin.read();
+                    this.isOn = (this.pin.read() === this.on_state);
                     this.handleTick();
                     console.log("Timer polling GPIO", this.gpio, "every", this.poll, "ms");
                     resolve();
