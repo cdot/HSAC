@@ -70,7 +70,7 @@ DS18x20 sensors have:
 * sensor_id - the ID of the DS18B20 sensor on the 1-wire network
 
 Power sensors have:
-* gpio - the GPIO pin the snesor will pull up
+* gpio - the GPIO pin the sensor will pull up (BCM pin numbering)
 * timeout - the time for which the sensor must be quiescent to qualify as "off"
 
 an example configuration file:
@@ -79,7 +79,7 @@ an example configuration file:
   {
    "name": "power",
    "class", "Timer",
-   "gpio": 19,
+   "gpio": 10,
    "poll": 100
   },
   {
