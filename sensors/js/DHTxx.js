@@ -90,7 +90,8 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
          * @Override
          */
         connect() {
-            if (!this.device_type || this.device_type != 11 && this.device_type != 22)
+            if (!this.device_type || this.device_type != 11
+				&& this.device_type != 22)
                 return Promise.reject(
                     this.name + " has bad type" + this.device_type);
 
@@ -121,7 +122,7 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
         /**
          * @Override
          */
-	sample() {
+		sample() {
             return DHTPins[this.gpio]
             .sample()
             .then((sam) => {

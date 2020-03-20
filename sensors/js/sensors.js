@@ -21,7 +21,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
         ["h", "help", "Show this help"],
         ["c", "config=ARG", "Configuration file (default ~/sensors.cfg)"],
         ["p", "port=ARG", "What port to run the server on (default " + DEFAULT_PORT + ")"],
-        ["s", "simulate", "Use a simulation for any missing hardware"],
+        ["s", "simulate", "Use a simulation for any missing hardware, instead of backing off and retrying"],
         ["v", "verbose", "Verbose debugging messages"]
     ])
         .bindHelp()
@@ -36,6 +36,25 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
 
     let simulation = (cliopt.simulate) ? SimulatedSensor : null;
 
+	function connect(cfg) {
+		cfg.sensor.connect()
+		.then(() => {
+			console.log(`connect: ${cfg.sensor.name} connected`);
+		})
+		.catch((error) => {
+			//console.log(`connect: ${error}`);
+			// If simulation is requested, make a simulated sensor if the
+			// connect failed
+			if (simulation) {
+				console.log(`connect: Using simulation for '${cfg.name}`);
+				cfg.sensor = new simulation(cfg);
+			} else {
+				// Back off and re-try
+				setTimeout(() => { connect(cfg); }, 2000);
+			}
+		});
+	}
+	
     Fs.readFile(cliopt.config)
     .then((config) => {
         return JSON.parse(config);
@@ -61,72 +80,55 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
             let clss = cfg["class"];
 
             let promise = new Promise((resolve, reject) => {
-                requirejs(["js/" + clss], (SensorClass) => {
-                    let sensor = new SensorClass(cfg);
-                    log("Connecting", cfg.name);
-                    sensor
-                    .connect()
-                    .then(() => { resolve(sensor); })
-                    .catch((e) => {
-                        log(cfg.name, "connect()",e);
-                        cfg.error = "Could not connect: " + e;
-                        return reject(cfg);
-                    });
+                requirejs([`js/${clss}`], (SensorClass) => {
+                    cfg.sensor = new SensorClass(cfg);
+					// Start trying to connect
+					connect(cfg);
+					resolve(cfg);
                 }, (e) => {
-                    log(clss, "require()",e);
-                    cfg.error = "Could not require: " + e;
-                    reject(cfg);
+                    log(clss, `require(${clss}) : ${e}`);
+                    cfg.error = `Could not require ${clss}: ${e}`;
+                    if (simulation) {
+						console.log("Using simulation for", cfg.name);
+						cfg.sensor = new simulation(cfg);
+						resolve(cfg);
+					} else
+						reject(cfg);
                 });
             });
-
-            // If simulation is requested, make a simulated sensor if the
-            // construction or connect failed
-            if (simulation) {
-                promise = promise
-                .catch((cfg) => {
-                    log(cfg.name, cfg.error);
-                    console.log("Using simulation for", cfg.name);
-                    return Promise.resolve(new simulation(cfg));
-                });
-            }
 
             // Add routes
             promises.push(
                 promise
-                .then((sensor) => {
-                    server.get("/" + sensor.name, (req, res) => {
+                .then((cfg) => {
+                    server.get(`/${cfg.sensor.name}`, (req, res) => {
                         if (typeof req.query.t !== "undefined")
                             Time.sync(req.query.t);
-                        sensor.sample()
+                        cfg.sensor.sample()
                         .then((sample) => {
                             res.send(sample);
-                        });
+                        })
+						.catch((e) => {
+						});
                     });
                     log("Registered /" + sensor.name);
                     return Promise.resolve("registered /" + sensor.name);
                 })
                 .catch((cfg) => {
                     log(cfg.name, "could not be registered", cfg);
-                    server.get("/" + cfg.name, (req, res, next) => {
+                    server.get(`/${cfg.name}`, (req, res, next) => {
                         next();
                     });
-                    return Promise.resolve("failed /" + cfg.name);
+                    return Promise.resolve(`failed /${cfg.name}`);
                 }));
         }
 
         Promise.all(promises)
         .then((ps) => {
             log(ps);
-            // Make sure at least one sensor is registered
-            for (let tf of ps) {
-                if (/^registered/.test(tf)) {
-                    let port = cliopt.port || config.port || DEFAULT_PORT;
-                    server.listen(port);
-                    console.log("Server started on port", port);
-                    return;
-                }
-            }
-            console.error("No sensors, so no server");
+            let port = cliopt.port || config.port || DEFAULT_PORT;
+            server.listen(port);
+            console.log("Server started on port", port);
         });
     })
     .catch((e) => {
