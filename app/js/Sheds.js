@@ -249,7 +249,6 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     },
                     /* onContentReady defined in Config.js */
                     moreOnContentReady: function () {
-                        debugger;
                         this.$content.find("[data-with-info]")
                         .with_info();
 
@@ -297,13 +296,17 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 let $self = $(this);
                 let data = $self.data("slider");
                 data.animate = true;
+				// The "friend" of a slider is the id of an input that will
+				// take the value from the slider
                 if (data.friend) {
                     data.slide = (e, ui) => {
+						// As the slider slides, set the value of the friend
                         $(data.friend).val(ui.value);
                     };
                 }
                 $(this).slider(data);
                 if (data.friend) {
+					// Initialise the slider value to the friend value
                     $self.slider("value", $(data.friend).val());
                 }
             });

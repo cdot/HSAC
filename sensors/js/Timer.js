@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
 
 /* eslint-env node.js */
-define("js/Timer", ['fs-extra', "js/Sensor", "js/Time"], function(Fs, Sensor, Time) {
+define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], function(Fs, Sensor, Time, OnOffSimulator) {
 
     /**
      * Keeps a count of the number of ms that a pin with a pull-down is held
@@ -74,13 +74,22 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time"], function(Fs, Sensor, Ti
          * Sample is the runtime (time the compressor has been running
          * since the last sample() call)
          */
-        sample() {
+        sample() {				
             return new Promise((resolve) => {
-                let sample = this.onTime;
+				let sample;
+				if (this.simulation)
+					sample = this.simulation.sample();
+				else
+					sample = this.onTime;
                 this.onTime = 0;
                 resolve({ time: Time.now(), sample: sample });
             });
         }
+
+		// @Override
+		simulate() {
+			this.simulation = new OnOffSimulator();
+		}
     }
 
     return Timer;

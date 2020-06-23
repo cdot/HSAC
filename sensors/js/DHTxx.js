@@ -1,17 +1,19 @@
 /*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env node.js */
-define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], function(DHT, Fs, Sensor, Time) {
+define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time", "js/RangeSimulator"], function(DHT, Fs, Sensor, Time, RangeSimulator) {
 
     const BACK_OFF = 5000; // 5s in ms
 
+	// Interface to a DHTxx sensor
     class DHTPin {
         constructor(type, gpio) {
             this.mType = type;
             this.gpio = gpio;
             this.mLastSample = { temperature: 0, humidity: 0,
-                                 time: 0, error: "Uninitialised" };
+                                 time: 0, dubious: "Uninitialised" };
             this.mSamplingPromise = null;
             this.mUnusable = false;
+			this.simulate = undefined;
         }
 
         /**
@@ -20,9 +22,8 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
          * read to return, then the last sample is returned.
          */
         sample() {
-            if (this.mUnusable) {
+            if (this.mUnusable)
                 return Promise.reject("Unusable");
-            }
 
             if (this.mSamplingPromise)
                 return this.mSamplingPromise;
@@ -39,7 +40,7 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
                     self.mTimeout = null;
                     reject("Timed out");
                 }, BACK_OFF);
-                DHT.read(this.mType, this.gpio, function(e, t, h) {
+				let handler = function(e, t, h) {
                     clearTimeout(self.mTimeout); // clear it ASAP
                     self.mTimeout = null;
                     if (e) {
@@ -48,11 +49,22 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
                         reject("DHT error " + e);
                         return;
                     }
+					h=91;
+					// Check sample range
                     let sample = { time: Time.now(), temperature: t, humidity: h };
+					if (h < 20 || h > 90)
+						sample.humidity_dubious = "sensor requires recalibration - enter value manually";
+					if (t < 0 || t > 50)
+						sample.temperature_dubious = `${t}C out of range 0C..50C`;
                     self.mLastSample = sample;
                     resolve(sample);
-                });
-            })
+				}
+				if (this.simulate)
+					handler(null, this.simulate.temp.sample(),
+							this.simulate.hum.sample());
+				else
+					DHT.read(this.mType, this.gpio, handler);
+				})
             .catch((e) => {
                 this.mLastSample.error = e;
                 return Promise.resolve(this.mLastSample);
@@ -70,13 +82,16 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
     let DHTPins = {};
 
     /**
-     * A single GPIO pin may have up to two DHTxx objects on it, for sensing
-     * temperature and humidity. However they will both use the same DHTPin object.
+     * A single GPIO pin may have up to two DHTxx objects on it in the
+	 * configuration, for sensing temperature and humidity. However they
+	 * will both use the same DHTPin object.
      */
     class DHTxx extends Sensor {
 
         /**
-         * @param config {type, gpio} type 11 or 22,
+         * type type 11 or 22
+		 * gpio raspberry pi gpio pin number
+		 * field which field of the sample to return (temperature or humidity)
          */
         constructor(config) {
             super(config);
@@ -123,12 +138,25 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time"], func
          * @Override
          */
 		sample() {
-            return DHTPins[this.gpio]
-            .sample()
-            .then((sam) => {
-                return { sample: sam[this.field], time: sam.time };
+			return DHTPins[this.gpio].sample()
+			.then((sam) => {
+				console.log(sam);
+				let res = { sample: sam[this.field], time: sam.time };
+				if (sam[this.field + "_dubious"])
+					res.dubious = sam[this.field + "_dubious"];
+				return res;
             });
         }
+
+		/**
+		 * @Override
+		 */
+		simulate() {
+			DHTPins[this.gpio].simulate = {
+				hum: new RangeSimulator(20, 90),
+				temp: new RangeSimulator(4, 40)
+			};
+		}
     }
     return DHTxx;
 });

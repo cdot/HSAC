@@ -43,6 +43,20 @@ body {
     font-size: smaller;
 }
 
+.rainbow {
+    animation:rainbowText 1.2s infinite;
+}
+
+@keyframes rainbowText {
+	0%{ color: red; }
+	14%{ color: orange; }
+	29%{ color: yellow; }
+	43%{ color: green; }
+	57%{ color: blue; }
+	71%{ color: indigo; }
+	86%{color: violet; }
+}
+
 /* Button (not a control) inside a dialog */
 .dialog-inner-button {
     font-size: smaller;

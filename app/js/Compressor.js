@@ -295,20 +295,20 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 if (self.debug)
                     self.debug("Loading " + this.length() + " " + this.id +
                                " compressor records");
-                if (this.length() === 0)
-                    return;
-                const cur = this.get(this.length() - 1);
+                if (this.length() > 0) {
+					const cur = this.get(this.length() - 1);
 
-                self.setRuntimeAndDigits(cur.runtime);
-                self.setMinRuntime(cur.runtime);
+					self.setRuntimeAndDigits(cur.runtime);
+					self.setMinRuntime(cur.runtime);
 
-                // Set the compressor record
-                self.$tab.find(".cr_operator").text(cur.operator);
-                self.$tab.find(".cr_time").text(
-                    Entries.formatDateTime(cur.date));
-                self.$tab.find(".cr_flr").text(
-                    new Number(this.remainingFilterLife()).toFixed(2));
-                self.$tab.find(".cr_runtime").text(cur.runtime);
+					// Set the compressor record
+					self.$tab.find(".cr_operator").text(cur.operator);
+					self.$tab.find(".cr_time").text(
+						Entries.formatDateTime(cur.date));
+					self.$tab.find(".cr_flr").text(
+						new Number(this.remainingFilterLife()).toFixed(2));
+					self.$tab.find(".cr_runtime").text(cur.runtime);
+				}
 
                 // Restart the sensor loop
                 this.readSensors();
@@ -348,16 +348,23 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     sample = null;
                 }
             }
-
             if (!sample) {
                 $el.prop("readonly", null);
                 $(spec.sampled).hide();
+                $(spec.dubious).hide();
                 $(spec.unsampled).show();
-            } else {
-                // sample available and young enough
+            } else if (sample.dubious) {
+                $el.prop("readonly", null);
+                $(spec.sampled).hide();
+				$(spec.dubious).text(sample.dubious);
+                $(spec.dubious).show();
+                $(spec.unsampled).show();
+			} else {
+                // sample available, trustworthy, and young enough
                 $el.prop("readonly", "readonly");
                 $el.val(Math.round(sample.sample));
                 $(spec.sampled).show();
+                $(spec.dubious).hide();
                 $(spec.unsampled).hide();
             }
 
@@ -371,7 +378,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          */
         readSensors() {
             let self = this;
-            
+
             // Clear any existing timeout
             if (this.sensor_tick)
                 clearTimeout(this.sensor_tick);

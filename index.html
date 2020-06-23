@@ -42,7 +42,7 @@
 
   </head>
   <body>
-    <div id="loading">
+    <div id="loading" class="rainbow">
       Loading...
     </div>
     <div id="loaded" class="hidden">
@@ -106,8 +106,9 @@
                   </span>
                 </th>
                 <td class="widest">
-                  <input name="humidity" type="number" value="50" id="fixed_hum" compressor="fixed" data-compressor="fixed" data-sensor="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider"}'>%
+                  <input name="humidity" type="number" value="50" id="fixed_hum" compressor="fixed" data-compressor="fixed" data-sensor="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider","dubious":"#fixed_hum_dubious"}'>%
                   <span style="display:none" id="fixed_hum_from_sensor" class="detected">(detected)</span>
+                  <span style="display:none" id="fixed_hum_dubious" class="rainbow">(sensed value out of valid range)</span>
                   <div class="humidity slider" id="fixed_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
                     <div class="min">0%</div><div class="max">80%</div>
                   </div>

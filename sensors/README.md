@@ -17,6 +17,9 @@ intake air drawn into the compressor.
 
 Accessing this sensor is handled by the `node-dht-sensor` npm package. We use GPIO 14 for this sensor.
 
+The sensor has a range between 20% and 90%. If the reading is outside that
+range, the reading is marked as "dubious" as the sensor requires recalibration.
+
 ## DS18b20 sensor
 
 This sensor is used to measure the temperature of the 3rd stage head

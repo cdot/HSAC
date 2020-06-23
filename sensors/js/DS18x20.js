@@ -1,6 +1,6 @@
 /*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env node.js */
-define("js/DS18x20", ['ds18b20-raspi', "js/Sensor", "js/Time"], function(DS18B20_raspi, Sensor, Time) {
+define("js/DS18x20", ['ds18b20-raspi', "js/Sensor", "js/Time", "js/RangeSimulator"], function(DS18B20_raspi, Sensor, Time, RangeSimulator) {
 
     /**
      * Interface to DS18x20 device on one-wire bus connected to
@@ -36,12 +36,20 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor", "js/Time"], function(DS18B20
          */
         sample() {
             return new Promise((resolve, reject) => {
-                DS18B20_raspi.readSimpleC((err, temp) => {
-                    if (err) { reject(err); return; }
-                    resolve({ sample: temp, time: Time.now() });
-                });
+				if (this.simulation)
+					resolve({ sample: this.simulation.sample(),
+							  time: Time.now() });
+				else
+					DS18B20_raspi.readSimpleC((err, temp) => {
+						if (err) { reject(err); return; }
+						resolve({ sample: temp, time: Time.now() });
+					});
             });
         }
+
+		simulate() {
+			this.simulation = new RangeSimulator(4, 40);
+		}
     }
 
     return DS18x20;

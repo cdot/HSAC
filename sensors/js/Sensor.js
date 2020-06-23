@@ -32,6 +32,13 @@ define("js/Sensor", function(Fs) {
         sample() {
             return Promise.resolve(null);
         }
+
+		/**
+		 * Set this sensor to use simulation
+		 */
+		simulate() {
+			throw new Error("Missing simulation");
+		}
     }
 
     return Sensor;

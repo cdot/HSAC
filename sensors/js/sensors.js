@@ -11,7 +11,7 @@ requirejs.config({
     baseUrl: __dirname.replace(/\/[^\/]*$/, "")
 });
 
-requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/SimulatedSensor"], function(Fs, Getopt, Express, CORS, Time, SimulatedSensor) {
+requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs, Getopt, Express, CORS, Time) {
     const DESCRIPTION =
           "DESCRIPTION\nA Raspberry PI sensors ajax server.\n" +
           "See sensors/README.md for details\n\nOPTIONS\n";
@@ -34,7 +34,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
 
     let log = (cliopt.verbose) ? console.log : (() => {});
 
-    let simulation = (cliopt.simulate) ? SimulatedSensor : null;
+    let simulation = cliopt.simulate;
 
 	function connect(cfg) {
 		cfg.sensor.connect()
@@ -47,7 +47,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
 			// connect failed
 			if (simulation) {
 				console.log(`connect: Using simulation for '${cfg.name}`);
-				cfg.sensor = new simulation(cfg);
+				cfg.sensor.simulate();
 			} else {
 				// Back off and re-try
 				setTimeout(() => { connect(cfg); }, 2000);
@@ -82,28 +82,26 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time", "js/Simulate
             let promise = new Promise((resolve, reject) => {
                 requirejs([`js/${clss}`], (SensorClass) => {
                     cfg.sensor = new SensorClass(cfg);
-					// Start trying to connect
-					connect(cfg);
-					resolve(cfg);
+					resolve();
                 }, (e) => {
                     log(clss, `require(${clss}) : ${e}`);
                     cfg.error = `Could not require ${clss}: ${e}`;
-                    if (simulation) {
-						console.log("Using simulation for", cfg.name);
-						cfg.sensor = new simulation(cfg);
-						resolve(cfg);
-					} else
-						reject(cfg);
+ 					reject();
                 });
-            });
-
+            }).then(() => {
+				// Start trying to connect
+				log(`Connect ${cfg.name}`);
+				connect(cfg);
+			});
+			
             // Add routes
             promises.push(
                 promise
-                .then((cfg) => {
+                .then(() => {
                     server.get(`/${cfg.sensor.name}`, (req, res) => {
                         if (typeof req.query.t !== "undefined")
                             Time.sync(req.query.t);
+						log(`Got ${cfg.name} request`);
                         cfg.sensor.sample()
                         .then((sample) => {
                             res.send(sample);
