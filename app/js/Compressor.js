@@ -296,19 +296,19 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     self.debug("Loading " + this.length() + " " + this.id +
                                " compressor records");
                 if (this.length() > 0) {
-					const cur = this.get(this.length() - 1);
+                    const cur = this.get(this.length() - 1);
 
-					self.setRuntimeAndDigits(cur.runtime);
-					self.setMinRuntime(cur.runtime);
+                    self.setRuntimeAndDigits(cur.runtime);
+                    self.setMinRuntime(cur.runtime);
 
-					// Set the compressor record
-					self.$tab.find(".cr_operator").text(cur.operator);
-					self.$tab.find(".cr_time").text(
-						Entries.formatDateTime(cur.date));
-					self.$tab.find(".cr_flr").text(
-						new Number(this.remainingFilterLife()).toFixed(2));
-					self.$tab.find(".cr_runtime").text(cur.runtime);
-				}
+                    // Set the compressor record
+                    self.$tab.find(".cr_operator").text(cur.operator);
+                    self.$tab.find(".cr_time").text(
+                        Entries.formatDateTime(cur.date));
+                    self.$tab.find(".cr_flr").text(
+                        new Number(this.remainingFilterLife()).toFixed(2));
+                    self.$tab.find(".cr_runtime").text(cur.runtime.toFixed(2));
+                }
 
                 // Restart the sensor loop
                 this.readSensors();
@@ -356,10 +356,10 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             } else if (sample.dubious) {
                 $el.prop("readonly", null);
                 $(spec.sampled).hide();
-				$(spec.dubious).text(sample.dubious);
+                $(spec.dubious).text(sample.dubious);
                 $(spec.dubious).show();
                 $(spec.unsampled).show();
-			} else {
+            } else {
                 // sample available, trustworthy, and young enough
                 $el.prop("readonly", "readonly");
                 $el.val(Math.round(sample.sample));
