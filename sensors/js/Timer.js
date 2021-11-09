@@ -5,8 +5,7 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
 
     /**
      * Keeps a count of the number of ms that a pin with a pull-down is held
-     * high between calls to sample(). Used with a custom power detection circuit
-     * that senses power via a current loop.
+     * in a given state between calls to sample().
      */
     const GPIOPATH = '/sys/class/gpio/';
 
@@ -18,12 +17,14 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
             this.gpio = config.gpio;
             this.pin = GPIOPATH + "gpio" + this.gpio + "/";
 
-            // Polling frequency, default to 10ms (ASAP). Polling will be no faster
-            // than this, and will probably be slower.
-            this.poll = config.poll || 10;
+            // Frequency at which we poll the pin. Polling
+            // will be no faster than this, and will probably be slower
+            // due to delays in the IO system reading the pin. Default
+            // is 100ms or 1/10th of a second.
+            this.poll = config.poll || 100;
 
-            // State of pin that means timer on, "1" or "0"
-            this.on_state = config.on_state;
+            // State of pin that means timer on, 1 or 0, default 0
+            this.on_state = config.on_state || 0;
 
             // Current timer state, on = true, off = false
             this.isOn = false;
@@ -33,7 +34,7 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
             this.lastUpdate = Date.now();
         }
 
-        handleTick() {
+        pollPin() {
             Fs.readFile(this.pin + "value")
            .then((v) => {
                 v = parseInt(v.toString());
@@ -43,7 +44,7 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
                     this.onTime += t - this.lastUpdate;
                 this.isOn = (newState === this.on_state);
                 this.lastUpdate = t;
-                setTimeout(() => { this.handleTick(); }, this.poll);
+                setTimeout(() => { this.pollPin(); }, this.poll);
            });
         }
 
@@ -65,7 +66,7 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
             })
             .then((v) => {
                  this.isOn = (parseInt(v.toString()) === this.on_state);
-                 this.handleTick();
+                 this.pollPin();
                  console.log("Timer polling GPIO", this.gpio, "every", this.poll, "ms");
             });
         }
@@ -74,22 +75,22 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
          * Sample is the runtime (time the compressor has been running
          * since the last sample() call)
          */
-        sample() {				
+        sample() {
             return new Promise((resolve) => {
-				let sample;
-				if (this.simulation)
-					sample = this.simulation.sample();
-				else
-					sample = this.onTime;
+                let sample;
+                if (this.simulation)
+                    sample = this.simulation.sample();
+                else
+                    sample = this.onTime;
                 this.onTime = 0;
                 resolve({ time: Time.now(), sample: sample });
             });
         }
 
-		// @Override
-		simulate() {
-			this.simulation = new OnOffSimulator();
-		}
+        // @Override
+        simulate() {
+            this.simulation = new OnOffSimulator();
+        }
     }
 
     return Timer;
