@@ -17,13 +17,12 @@ if (url_params) {
 }
 
 if (params.debug) {
-    suppression = "t=" + Date.now();
     min = "";
 }
 
 requirejs.config({
     baseUrl: ".",
-    urlArgs: suppression, // caches suppression
+    urlArgs: "t=" + Date.now(), // cache suppression
     text: {
         useXhr: function (url, protocol, hostname, port) {
             return true;
