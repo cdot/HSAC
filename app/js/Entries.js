@@ -34,43 +34,104 @@
  * when saving. Keys in later entries that are not in the first entry
  * will be lost.
  *
- * @param params.store AbstractStore subclass. Data will be saved
- * using this, and loaded too unless url is set.
- * @param params.file CSV file name in store
- * @param params.url URL to load data from, overriding store.
- * @param params.keys map from column names to types. Types supported
- * are "string", "Date" and "number". Date is an integer epoch ms, or
- * a string. Number is a float.
- * @param params.asArrays if true, conversion to a map won't happen
  */
 define("app/js/Entries", ["jquery-csv"], () => {
+
     class Entries {
+
+		/**
+		 * @param {object} params parameters
+		 * @param {AbstractStore} params.store Data will be saved
+		 * using this, and loaded too unless url is set.
+		 * @param {string} params.file CSV file name in store
+		 * @param {string} params.url URL to load data from, overriding store.
+		 * @param {Object.<string,string>} params.keys map from
+		 *  column names to types. Types supported are "string",
+		 *  "Date" and "number". Date is an integer epoch ms, or a
+		 *  string. Number is a float.
+		 * @param {boolean} params.asArrays if true, conversion to a
+		 * map won't happen
+		 */
         constructor(params) {
-            params = params || {};
-            this.store = params.store;
-            this.url = params.url;
-            this.file = params.file;
-            this.keys = params.keys;
-            this.debug = params.debug;
-            this.asArrays = params.asArrays;
+			for (let field in params)
+				this[field] = params[field];
             this.reset();
+		}
+
+		/**
+		 * Promise to load the HTML.
+		 * Override in subclasses, calling the superclass.
+		 */
+		loadUI() {
+			return $.get(`app/html/${this.id}.html`)
+			.then(html => {
+				const $tab = $(`<div id="${this.id}"></div>`);
+				$tab.html(html);
+				$("#main_tabs").append($tab);
+				this.$tab = $(`#${this.id}`);
+
+				$tab.find(".spinner").spinner();
+				$tab.find("button").button();
+				$tab.find("input[type='checkbox']").checkboxradio();
+				$tab.find('.ui-spinner-button').click(function () {
+					$(this).siblings('input').change();
+				});
+				this.attachHandlers();
+				this.debug("Loaded", this.id);
+			});
         }
 
+		/**
+		 * Attach handlers, such as button click handlers, to the
+		 * elements in the tab. Pure virtual, subclasses must implement.
+		 */
+		attachHandlers() {
+			throw new Error("Pure virtual");
+		}
+
+		/**
+		 * Promise to reload the UI with new data. NOP unless the UI
+		 * is loaded, as indicated by $tab.
+		 */
+		reloadUI() {
+			if (this.$tab) {
+				this.debug("Reloading", this.id);
+				return this.reload_ui();
+			}
+			return Promise.resolve();
+		}
+
+		/**
+		 * Re-read the store and populate the tab with the data read.
+		 * Pure virtual, subclasses must implement.
+		 */
+		reload_ui() {
+			throw new Error("Pure virtual");
+		}
+
         /**
-         * Reset and force reload
+         * Reset and force reload at the next opportunity
+		 * @return {Promise} resolves to this when done
          */
         reset() {
             this.entries = [];
             this.heads = [];
             this.loaded = false;
+			return Promise.resolve(this);
         }
 
-        // Get the number of entries
+        /**
+		 * Get the number of entries
+		 * @return {number}
+		 */
         length() {
             return this.entries.length;
         }
 
-        // Get the given entry
+        /**
+		 * Get the given entry
+		 * @return {object{ the entry
+		 */
         get(i) {
             if (i < 0 || i >= this.entries.length)
                 return undefined;
@@ -95,34 +156,50 @@ define("app/js/Entries", ["jquery-csv"], () => {
             });
         }
 
-        // Push a new entry
+        /**
+		 * Push a new entry
+		 * @param {object} r the entry
+		 */
         push(r) {
             this.entries.push(r);
         }
 
-        // Get a simple array of column heads
+        /**
+		 * Get a simple array of column heads
+		 */
         getHeads() {
             return this.heads;
         }
 
-        // Get a simple array of entries
+        /**
+		 * Get a simple array of entries
+		 */
         getEntries() {
             return this.entries;
         }
 
-        /** Make a simple date string */
+        /**
+		 ** Make a simple date string
+		 */
         static formatDate(date) {
             return date.toISOString().replace(/T.*/, "");
         }
 
-        /** Make a simple date/time string */
+        /**
+		 * Make a simple date/time string
+		 */
         static formatDateTime(date) {
-            return date.toISOString().replace(/T(\d\d:\d\d).*/, " $1")
+            return date.toISOString().replace(/T(\d\d:\d\d).*/, " $1");
         }
 
-        load() {
-            if (this.loaded)
+		/**
+		 */
+        loadFromStore() {
+			this.debug("loadFromStore of",this.id);
+            if (this.loaded) {
+				this.debug("\tskipped");
                 return Promise.resolve(this);
+			}
 
             var lp;
             if (typeof this.url !== "undefined")
@@ -156,7 +233,7 @@ define("app/js/Entries", ["jquery-csv"], () => {
                     resolve();
                 })
                 .catch((e) => {
-                    if (self.debug) self.debug("Error reading " + (this.url || this.file) +
+                    this.debug("Error reading " + (this.url || this.file) +
                                   ": ", e);
                     this.heads = [];
                     this.entries = [];
@@ -178,7 +255,9 @@ define("app/js/Entries", ["jquery-csv"], () => {
             });
         }
 
-        // Cannot save unless store is defined
+        /**
+		 * Cannot save unless store is defined
+		 */
         save() {
             if (!this.loaded)
                 throw "Can't save, not loaded";
@@ -223,7 +302,8 @@ define("app/js/Entries", ["jquery-csv"], () => {
         }
 
         /**
-         * Given a key and a string, convert that to the target type for that key
+         * Given a key and a string, convert that to the target type
+         * for that key
          * @param key the key
          * @param val the string
          * @return the converted value
@@ -270,6 +350,8 @@ define("app/js/Entries", ["jquery-csv"], () => {
             return val;
         }
 
+		/**
+		 */
         map2array(keys, vals) {
             var datum = [];
             for (var j = 0; j < keys.length; j++) {

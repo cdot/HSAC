@@ -9,23 +9,21 @@ define("app/js/Roles", ["app/js/Entries"], (Entries) => {
          * Roles are read from "roles.csv' on WebDAV
          */
         constructor(params) {
-            super({
-                store: params.config.store,
+            super($.extend(params, {
                 file: "roles.csv",
                 keys: {
                     role: "string",
                     list: "string"
                 },
-                debug: params.config.debug
-            });
+            }));
         }
 
         /**
          * Reload the UI by re-reading the roles file from the cache
          */
-        reload_ui() {
-            if (this.debug) this.debug("Reloading roles");
-            return this.load()
+        reloadUI() {
+            this.debug("Reloading roles");
+            return this.loadFromStore()
             .then(() => {
                 // Roles.csv has two columns, "role" and "list" which is a
                 // comma-separated list of members in that role
@@ -47,8 +45,6 @@ define("app/js/Roles", ["app/js/Entries"], (Entries) => {
          * Update roles in the cache by reading from a CSV file on the web
          */
         update_from_web(roles_url, report) {
-            var self = this;
-
             return $.ajax({
                 url: roles_url,
                 data: {
@@ -58,7 +54,8 @@ define("app/js/Roles", ["app/js/Entries"], (Entries) => {
             })
             .then((response) => {
                 report("info", "Read roles from the web");
-                return self.store.write('roles.csv', response)
+				this.reset();
+                return this.store.write('roles.csv', response)
                 .then(() => {
                     report("info", "Updated roles");
                 })

@@ -35,19 +35,18 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
             var getUrl = window.location;
             var baseUrl = getUrl.protocol + "//" + getUrl.host + "/"
                 + getUrl.pathname.split('/')[1];
-            if (this.debug) this.debug("Base", baseUrl);
+            this.debug("Base", baseUrl);
             if (typeof URL !== "undefined") {
                 try {
                     url = new URL(url, baseUrl);
                 } catch (e) {
-                    if (this.debug)
-                        this.debug("WebDAVStore.connect to " + url + " failed: " + e);
+                    this.debug("WebDAVStore.connect to " + url + " failed: " + e);
                     return Promise.reject(new Error(
                         "Invalid URL, cannot start WebDAVStore"));
                 }
             }
 
-            if (this.debug) this.debug("WebDAVStore: connecting to " + url);
+            this.debug("WebDAVStore: connecting to " + url);
             var opts = {
                 baseUrl: url
             };
@@ -66,8 +65,8 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
 
         read(path) {
             const self = this;
-            path = path.replace(/^\/+/, "");
-            if (this.debug) this.debug("WebDAVStore: Reading " + path);
+			path = path.replace(/^\/+/, "");
+            this.debug("\tWebDAVStore: Reading", path);
             if (!this.DAV)
                 return Promise.reject(new Error("WebDAVStore not connected"));
             return this.DAV
@@ -116,7 +115,7 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
 
             const self = this;
 
-            if (this.debug) this.debug("WebDAVStore: Writing " + path);
+            this.debug("WebDAVStore: Writing " + path);
 
             path = path.replace(/^\/+/, "").split('/');
             var folder = path.slice();

@@ -1,7 +1,10 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser, jquery */
 
-define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) => {
+define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
+
+	require("app/js/jq/with-info");
+
         // Inventory columns that are NOT to be used in a descriptor
     const hide_cols = {
         "Kit Pool": true,
@@ -24,21 +27,21 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
          * Inventory is read from inventory.json
          */
         constructor(params) {
-            super(params.config);
-            this.loans = params.loans;
-            var self = this;
-            self.uid = 0;
-            $(() => {
-                $("#inventory_pick_dialog").dialog({
-                    title: "Select loan item",
-                    modal: true,
-                    autoOpen: false,
-                    width: "100vw",
-                    open: function () {
-                        self.select_picked($(this));
-                    }
-                });
-            });
+            super(params);
+			this.uid = 0;
+		}
+
+		//@override
+		attachHandlers() {
+			$("#inventory_pick_dialog").dialog({
+				title: "Select loan item",
+				modal: true,
+				autoOpen: false,
+				width: "100vw",
+				open: evt => {
+					this.select_picked($(evt.target));
+				}
+			});
         }
 
         /**
@@ -82,17 +85,13 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
         }
 
         reload_ui() {
-            var self = this;
             return this.store.read('inventory.json')
-            .then((data) => {
-                self.data = JSON.parse(data);
-                if (self.debug) self.debug("Loading inventory");
-                $(".inventory_tab").each(function () {
-                    self.populate_tab($(this));
-                });
+            .then(data => {
+                this.data = JSON.parse(data);
+                $(".inventory_tab").each((i, el) => this.populate_tab($(el)));
             })
             .catch((e) => {
-                console.error("Inventory load failed: " + e);
+                console.error("Inventory load failed", e);
             });
         }
 
@@ -106,7 +105,7 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
         populate_tab($it) {
             var inventory = this.data;
             var hide_cols = {};
-            var self = this;
+			const app = this.app;
 
             function fill_sheet(sheet) {
                 var nc = sheet.heads.length,
@@ -120,7 +119,7 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
                     var $tr = $("<tr></tr>");
                     var desc = getLoanDescriptor(sheet, entry);
                     $tr.data("loan_desc", desc);
-                    var on_loan = self.loans.number_on_loan(desc);
+                    var on_loan = app.loans.number_on_loan(desc);
                     var can_pick = true;
                     if (on_loan > 0) {
                         if (typeof colIndex.Count === "undefined") {
@@ -207,7 +206,6 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
          */
         update_from_web(sheets_url, report) {
 
-            var self = this;
             var sheetp = new Entries({
                 url: sheets_url,
                 keys: {
@@ -216,7 +214,7 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
                 }
             });
 
-            return sheetp.load()
+            return sheetp.loadFromStore()
             .then(() => {
                 var promises = [];
 
@@ -231,7 +229,7 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
                         // typeless, columns default to "string"
                     });
                     promises.push(
-                        sheet.load()
+                        sheet.loadFromStore()
                         .then(() => {
                             report("info", "Read " + mapping.sheet +
                                    " from the web");
@@ -239,14 +237,16 @@ define("app/js/Inventory", ["app/js/Entries", "app/js/jq/with-info"], (Entries) 
                                 Class: mapping.sheet,
                                 heads: sheet.getHeads(),
                                 entries: sheet.getEntries()
-                            }
+                            };
                         }));
                 });
 
                 return Promise.all(promises);
             })
-            .then((sheets) => {
-                return self.store.write(
+            .then(sheets => {
+				this.reset();
+				$(document).trigger("reload_ui");
+                return this.store.write(
                     'inventory.json', JSON.stringify(sheets))
                 .then(() => {
                     report("info", "Updated inventory.json");

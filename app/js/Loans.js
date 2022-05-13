@@ -3,16 +3,12 @@
 
 /**
  * Entries for Loan events. These can be edited in place.
- *
- * @param params.config Config object
- * @param params.roles Roles object
  */
 define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 
     class Loans extends Entries {
         constructor(params) {
-            super({
-                store: params.config.store,
+            super($.extend(params, {
                 file: "loans.csv",
                 keys: {
                     date: "Date",
@@ -22,11 +18,8 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                     lender: "string",
                     donation: "number",
                     returned: "string"
-                },
-                debug: params.config.debug
-            });
-            this.cfg = params.config;
-            this.roles = params.roles;
+                }
+            }));
 
             // Defaults used to populate the new entry row
             this.defaults = {
@@ -37,94 +30,96 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 lender: "select",
                 donation: 0
             };
+		}
 
-            let self = this;
+		//@override
+		attachHandlers() {
+			this.$tab = $(`#${this.id}`);
 
-            $(function () {
-                $("#loan_controls").hide();
+			$("#loan_controls").hide();
 
-                $("#loan_save").on("click", function () {
-                    $(".loan_modified").each(function () {
-                        $(this).removeClass("loan_modified");
-                    });
-                    // Save to file
-                    self.save()
-                    .then(() => {
-                        $("#loan_controls").hide();
-                        $(document).trigger("reload_ui");
-                    });
-                });
+			$("#loan_save").on("click", () => {
+				$(".loan_modified").each((i, el) => {
+					$(el).removeClass("loan_modified");
+				});
+				// Save to file
+				this.save()
+				.then(() => {
+					$("#loan_controls").hide();
+					$(document).trigger("reload_ui");
+				});
+			});
 
-                $("#loan_reset").on("click", function () {
-                    $(".loan_modified").each(function () {
-                        $(this).removeClass("loan_modified");
-                    })
-                    // Reload from file
-                    self.reset();
-                    $(document).trigger("reload_ui");
-                    $("#loan_controls").hide();
-                });
+			$("#loan_reset").on("click", () => {
+				$(".loan_modified").each((i, el) => {
+					$(el).removeClass("loan_modified");
+				});
+				// Reload from file
+				this.reset();
+				$(document).trigger("reload_ui");
+				$("#loan_controls").hide();
+			});
 
-                $("#loan_show_all").on("change", () => {
-                    $(document).trigger("reload_ui");
-                });
+			$("#loan_show_all").on("change", () => {
+				$(document).trigger("reload_ui");
+			});
 
-                // Add whatever is in 'capture' as a new loan (after validation)
-                $("#loan_add").on("click", () => {
-                    let bad = [];
-                    try {
-                        if (new Date(self.capture.date) > new Date())
-                            bad.push("date");
-                    } catch (e) {
-                        bad.push("date");
-                    }
-                    if (self.capture.item == self.defaults.item)
-                        bad.push("item");
-                    try {
-                        if (parseInt(self.capture.count) < 0)
-                            bad.push("count");
-                    } catch (e) {
-                        bad.push("count");
-                    }
-                    try {
-                        if (parseFloat(self.capture.donation) < 0)
-                            bad.push("donation");
-                    } catch (e) {
-                        bad.push("donation");
-                    }
-                    Promise.all([
-                        self.roles.find("role", "member")
-                        .then((row) => {
-                            if (row.list.split(",").indexOf(self.capture.borrower) < 0)
-                                bad.push("borrower");
-                        })
-                        .catch(() => {
-                            bad.push("borrower");
-                        }),
-                        self.roles.find("role", "operator")
-                        .then((row) => {
-                            if (row.list.split(",").indexOf(self.capture.lender) < 0)
-                                bad.push("lender");
-                        })
-                        .catch(() => {
-                            bad.push("lender");
-                        })
-                    ]).then(() => {
-                        if (bad.length == 0) {
-                            $("#loan_table>tfoot")
-                            .find(".loan_modified")
-                            .removeClass("loan_modified");
-                            self.push($.extend({}, self.capture));
-                            self.save().then(() => {
-                                $(document).trigger("reload_ui");
-                            });
-                        } else {
-                            $.each(bad, function (i, e) {
-                                $("#loan_dlg_" + e).addClass("error");
-                            })
-                        }
-                    });
-                });
+			// Add whatever is in 'capture' as a new loan (after validation)
+			$("#loan_add").on("click", () => {
+				let bad = [];
+				try {
+					if (new Date(this.capture.date) > new Date())
+						bad.push("date");
+				} catch (e) {
+					bad.push("date");
+				}
+				if (this.capture.item == this.defaults.item)
+					bad.push("item");
+				try {
+					if (parseInt(this.capture.count) < 0)
+						bad.push("count");
+				} catch (e) {
+					bad.push("count");
+				}
+				try {
+					if (parseFloat(this.capture.donation) < 0)
+						bad.push("donation");
+				} catch (e) {
+					bad.push("donation");
+				}
+				Promise.all([
+					this.app.roles.find("role", "member")
+					.then((row) => {
+						if (row.list.split(",").indexOf(this.capture.borrower) < 0)
+							bad.push("borrower");
+					})
+					.catch(() => {
+						bad.push("borrower");
+					}),
+					this.app.roles.find("role", "operator")
+					.then((row) => {
+						if (row.list.split(",").indexOf(this.capture.lender) < 0)
+							bad.push("lender");
+					})
+					.catch(() => {
+						bad.push("lender");
+					})
+				]).then(() => {
+					if (bad.length == 0) {
+						$("#loan_table>tfoot")
+						.find(".loan_modified")
+						.removeClass("loan_modified");
+						this.push($.extend({}, this.capture));
+						this.save().then(() => {
+							this.reset();
+							$(document).trigger("reload_ui");
+						});
+					} else {
+						$.each(bad, function (i, e) {
+							$("#loan_dlg_" + e).addClass("error");
+						});
+					}
+				});
             });
         }
 
@@ -180,7 +175,6 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
         }
 
         mod_select($td, field, set) {
-            let self = this;
             let entry = this.capture;
             if (typeof $td === "number") {
                 entry = this.get($td);
@@ -191,17 +185,17 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 
             $td
             .off("click")
-            .on("click", function () {
+            .on("click", () => {
                 $td.removeClass("error");
-                self.roles.find("role", set)
+                this.app.roles.find("role", set)
                 .then((row) => {
                     $(this).select_in_place({
-                        changed: function (s) {
+                        changed: (s) => {
                             if (s != entry[field]) {
                                 entry[field] = s;
                                 $td.text(s);
                                 $td.removeClass("error");
-                                self.mark_loan_modified($td);
+                                this.mark_loan_modified($td);
                             }
                             return s;
                         },
@@ -220,7 +214,6 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
         }
 
         mod_date($td, field) {
-            let self = this;
             let entry = this.capture;
             if (typeof $td === "number") {
                 entry = this.get($td);
@@ -238,12 +231,12 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 $td.removeClass("error");
                 $(this).datepicker(
                     "dialog", entry[field],
-                    function (date) {
+                    (date) => {
                         date = new Date(date);
                         if (date != entry[field]) {
                             entry[field] = date;
                             $td.text(Entries.formatDate(date));
-                            self.mark_loan_modified($td);
+							this.mark_loan_modified($td);
                         }
                     }, {
                         dateFormat: "yy-mm-dd"
@@ -254,7 +247,6 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
         };
 
         mod_item($td, field) {
-            let self = this;
             let entry = this.capture;
             if (typeof $td === "number") {
                 entry = this.get($td);
@@ -263,14 +255,14 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
             $td
             .text(entry[field])
             .off("click")
-            .on("click", function () {
+            .on("click", () => {
                 $td.removeClass("error");
                 $("#inventory_pick_dialog")
                 .data("picked", entry.item)
-                .data("handler", function (item) {
+                .data("handler", item => {
                     entry.item = item;
                     $td.text(item);
-                    self.mark_loan_modified($td);
+                    this.mark_loan_modified($td);
                 })
                 .dialog("option", "title",
                         ($td.is("td") ? "Change" : "Select new") + " loan item")
@@ -296,7 +288,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 let isLate = false;
                 if (active) {
                     let due = row.date.valueOf() +
-                        this.cfg.get("loan_return") * 24 * 60 * 60 * 1000;
+                        this.config.get("loan_return") * 24 * 60 * 60 * 1000;
                     if (due < Date.now()) {
                         isLate = true;
                         someLate = true;
@@ -369,11 +361,10 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
         };
 
         reload_ui() {
-            let self = this;
             return new Promise((resolve) => {
-                return this.load()
+                return this.loadFromStore()
                 .then(() => {
-                    if (self.debug) self.debug("Loading " + this.length() + " loan records");
+                    this.debug("Loading " + this.length() + " loan records");
                     this.load_tbody();
                     resolve();
                 })
@@ -382,7 +373,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                     resolve();
                 });
             })
-            .then(() => {
+			.then(() => {
                 this.capture = $.extend({}, this.defaults);
                 this.load_tfoot();
                 $("#loan_table").trigger("updateAll");
@@ -401,6 +392,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 
         save_changes() {
             this.save().then(() => {
+				this.reset();
                 $(document).trigger("reload_ui");
             });
         };

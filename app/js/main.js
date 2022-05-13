@@ -29,26 +29,20 @@ requirejs.config({
         }
     },
     paths: {
-        // text! plugin, used for importing css
-        //"text" : "app/libs/text" + min,
+		jquery: 'app/node_modules/jquery/dist/jquery' + min,
+		"jquery-ui": 'app/node_modules/jquery-ui-dist/jquery-ui' + min,
+        "touch-punch" :
+		'app/node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch' + min,
 
-        "jquery" :"app/libs/jquery" + min,
-        "jquery-ui" : "app/libs/jquery-ui" + min,
-        "js-cookie" : "app/libs/js.cookie" + min,
-        "jquery-validate" : "app/libs/jquery.validate" + min,
-        "additional-methods" : "app/libs/additional-methods" + min,
-        "jquery-csv" : "app/libs/jquery.csv" + min,
-        "touch-punch" : "app/libs/jquery.ui.touch-punch" + min,
-        "jquery-confirm" : "app/libs/jquery-confirm.min", // only min available
-        "tablesorter" : "app/libs/jquery.tablesorter.combined" + min,
+        "js-cookie" : "app/node_modules/js-cookie/dist/js.cookie" + min,
+
+        "jquery-validate" : "app/node_modules/jquery-validation/dist/jquery.validate" + min,
+        "additional-methods" : "app/node_modules/jquery-validation/dist/additional-methods" + min,
+        "jquery-csv" : "app/node_modules/jquery-csv/src/jquery.csv" + min,
+        "jquery-confirm" : "app/node_modules/jquery-confirm/dist/jquery-confirm.min", // only min available
+        "tablesorter" : "app/node_modules/tablesorter/dist/js/jquery.tablesorter.combined" + min,
         "markdown-it" : "app/libs/markdown-it" + min
     }
 });
 
-requirejs(["jquery", "jquery-ui"], function () {
-    $(() => {
-        requirejs(["app/js/Sheds"], function(Sheds) {
-            new Sheds(params).begin();
-        });
-    });
-});
+requirejs(["app/js/Sheds"], Sheds => new Sheds(params).begin());

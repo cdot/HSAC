@@ -69,16 +69,15 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
                     d: -0.4806983
                 }
             }
-        }
-        //, console.debug
+        }//, console.debug
     );
 
     tr.addTest("initialises", () => {
         store = $.extend({}, reset);
-        var comp = new Compressor({ id: "test", config: cfg });
-        assert.equal(comp.remaining_filter_life(),
+        var comp = new Compressor($.extend(cfg, { id: "test" }));
+        assert.equal(comp._remainingFilterLife(),
                      cfg.get("test_filter_lifetime"));
-        return comp.add({ operator: "Nuts", temperature: 20, humidity:50,runtime: 0 })
+        return comp._add({ operator: "Nuts", temperature: 20, humidity:50,runtime: 0 })
         .then(() => {
             assert.equal(comp.length(), 1);
             var e = comp.get(0);
@@ -93,7 +92,7 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
     tr.addTest("saves", () => {
         store = $.extend({}, reset);
         var comp = new Compressor({ id:"test", config: cfg });
-        return comp.add({ operator: "Nuts", temperature: 20, runtime: 1 })
+        return comp._add({ operator: "Nuts", temperature: 20, runtime: 1 })
         .then(() => {
             return comp.save().then(() => {
                 var s = $.csv.toArrays(store["test_compressor.csv"]);
@@ -114,11 +113,11 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
     tr.addTest("predicts filter life at 20C", () => {
         store = $.extend({}, reset);
         let comp = new Compressor({ id: "test", config: cfg });
-        return comp.add({ temperature: 20, runtime: 0, filters_changed: true })
+        return comp._add({ temperature: 20, runtime: 0, filters_changed: true })
         .then(() => {
             // Add 50 hours at 20C, should take
             // the filter to (near) zero
-            return comp.add({ temperature: 20, runtime:50 });
+            return comp._add({ temperature: 20, runtime:50 });
         })
         .then(() => {
             assert(Math.abs(comp.remaining_filter_life()) < 0.1,
@@ -131,7 +130,7 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
         let comp = new Compressor({ id: "test", config: cfg });
         // At 40C, multiplicative coefficient should be 0.34, so
         // lifetime should be 50 * 0.34 = 17 hours
-        return comp.add({ temperature: 40, runtime:17 })
+        return comp._add({ temperature: 40, runtime:17 })
         .then(() => {
             assert(Math.abs(comp.remaining_filter_life()) < 1,
                    "FL " + comp.remaining_filter_life());
@@ -143,7 +142,7 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
         let comp = new Compressor({ id: "test", config: cfg });
         // At 0C, multiplicative coefficient is 3.8, so
         // lifetime should be 50 * 3.8 = 190 hours
-        return comp.add({ temperature: 0, runtime:190 })
+        return comp._add({ temperature: 0, runtime:190 })
         .then(() => {
             assert(Math.abs(comp.remaining_filter_life()) < 0.1,
                    "FL " + comp.remaining_filter_life());
@@ -158,7 +157,7 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
         for (let i in test_points) {
             flt -= 1 / test_points[i];
             prom = prom.then(() => {
-                comp.add({ temperature: i, runtime: n++ });
+                comp._add({ temperature: i, runtime: n++ });
             });
         }
         return prom

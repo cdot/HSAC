@@ -25,7 +25,7 @@ define("app/js/Config", () => {
             .then((json) => {
                 const d = JSON.parse(json);
                 this.store_data = $.extend({}, this.store_data, d);
-                if (this.debug) this.debug("Config loaded");
+                this.debug("Config loaded");
             });
         }
 
@@ -33,7 +33,7 @@ define("app/js/Config", () => {
             return this.store.write("config.json",
                                     JSON.stringify(this.store_data, null, 1))
             .then(() => {
-                if (this.debug) this.debug("Config saved");
+                this.debug("Config saved");
             })
             .catch((e) => {
                 $.alert({ title: "Config save failed",
@@ -65,20 +65,19 @@ define("app/js/Config", () => {
         }
 
         open(options) {
-            const self = this;
             const $template = $("#settings_dialog");
 
             return new Promise((resolve, reject) => {
                 const opts = $.extend({
                     title: $template.data("title"),
                     content: $template.html(),
-                    onContentReady: function () {
+                    onContentReady: () => {
                         const $form = this.$content.find("form");
                         const jc = this;
                         $form.find("input")
-                        .on("change", function () {
-                            const item = this.name;
-                            let v = $(this).val();
+                        .on("change", evt => {
+                            const item = evt.target.name;
+                            let v = $(evt.target).val();
                             if (/^[0-9.]*$/.test(v)) {
                                 let sv = v;
                                 try {
@@ -91,14 +90,14 @@ define("app/js/Config", () => {
                             if (opts.validity)
                                 opts.validity.call(jc, ok);
                             if ($form.valid())
-                                self.set(item, v);
+                                this.set(item, v);
                         })
-                        .each(function () {
-                            const v = self.get(this.name);
+                        .each((i, el) => {
+                            const v = this.get(el.name);
                             if (this.type === "checkbox")
-                                $(this).prop('checked', v === this.value);
+                                $(el).prop('checked', v === el.value);
                             else
-                                $(this).val(v);
+                                $(el).val(v);
                         });
                         if (opts.moreOnContentReady)
                             opts.moreOnContentReady.call(this);

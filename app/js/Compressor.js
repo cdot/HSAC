@@ -1,22 +1,19 @@
-/*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
+/*@preserve Copyright (C) 2018-2021 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
 define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entries) => {
 
+	/**
+     * Compressor runtime events page.
+	 */
     class Compressor extends Entries {
 
         /**
-         * Entries for Compressor runtime events. This is a stack -
-         * the only editing available is to delete the last
-         * entry. Standard params same as Entries.
-         * @param params.config Config object
-         * @param params.id string identifier
-         * @param params.debug debug method
+		 * Standard params same as Entries.
          */
         constructor(params) {
-            super({
-                store: params.config.store,
-                file: params.id + '_compressor.csv',
+            super($.extend(params, {
+                file: `${params.id}_compressor.csv`,
                 keys: {
                     date: "Date",
                     operator: "string",
@@ -25,163 +22,158 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     runtime: "number",
                     filters_changed: "boolean"
                 }
-            });
-            this.id = params.id;
-            this.cfg = params.config;
-            this.debug = this.cfg.debug;
+            }));
             this.session_time = 0;
             this.runtime = 0;
-
-            this.init_ui();
         }
 
-        init_ui() {
-            let self = this;
+		//@override
+        attachHandlers() {
+			this.$form = this.$tab.find(".validated_form");
+			this.$runtime = this.$tab.find("input[name='runtime']");
+			this.$submit = this.$tab.find("button[name='add_record']");
 
-            this.$tab = $("#" + this.id);
-            this.$form = this.$tab.children("form");
-            this.$runtime = this.$form.find("input[name='runtime']");
-            this.$submit = this.$tab.find("button[name='add_record']");
+			// Controls for manual timer with portable compressor
+			const $session_play = this.$tab.find("button.session_play");
+			const $session_pause = this.$tab.find("button.session_pause");
+			const $session_time = this.$tab.find(".session_time");
+			let timer;
+			this.session_time = 0; // ms
+			let session_step_start;
 
-            // Controls for manual timer with portable compressor
-            const $session_play = this.$tab.find("button.session_play");
-            const $session_pause = this.$tab.find("button.session_pause");
-            const $session_time = this.$tab.find(".session_time");
-            let timer;
-            this.session_time = 0; // ms
-            let session_step_start;
+			// Handler for a clock tick event
+			$session_time.on("ticktock", () => {
+				let seconds = Math.round(this.session_time / 1000);
+				let minutes = Math.floor(seconds / 60);
+				seconds -= minutes * 60;
+				const hours = Math.floor(minutes / 60);
+				minutes -= hours * 60;
 
-            // Handler for a clock tick event
-            $session_time.on("ticktock", function () {
-                let seconds = Math.round(self.session_time / 1000);
-                let minutes = Math.floor(seconds / 60);
-                seconds -= minutes * 60;
-                const hours = Math.floor(minutes / 60);
-                minutes -= hours * 60;
+				let times = (minutes < 10 ? "0" : "") + minutes +
+					":" + (seconds < 10 ? "0" : "") + seconds;
+				if (hours > 0)
+					times = (hours < 10 ? "0" : "") + hours + ":" + times;
+				$session_time.text(times);
+				let rta = 0;
+				if (this.length() > 0)
+					rta = this.get(this.length() - 1).runtime;
+				// Convert to hours
+				rta += this.session_time / 3600000;
+				this._setRuntimeAndDigits(rta);
+				this._formChanged();
+			});
 
-                let times = (minutes < 10 ? "0" : "") + minutes +
-                    ":" + (seconds < 10 ? "0" : "") + seconds;
-                if (hours > 0)
-                    times = (hours < 10 ? "0" : "") + hours + ":" + times;
-                $session_time.text(times);
-                let rta = 0;
-                if (self.length() > 0)
-                    rta = self.get(self.length() - 1).runtime;
-                // Convert to hours
-                rta += self.session_time / 3600000;
-                self.setRuntimeAndDigits(rta);
-                self.formChanged();
-            });
+			const tock = () => {
+				const now = Date.now();
+				this.session_time += now - session_step_start;
+				session_step_start = now;
+				$session_time.trigger("ticktock");
+			};
 
-            function tock() {
-                const now = Date.now();
-                self.session_time += now - session_step_start;
-                session_step_start = now;
-                $session_time.trigger("ticktock");
-            }
+			const tick = () => {
+				tock();
+				const when = 1000 - (Date.now() % 1000);
+				timer = setTimeout(tick, when);
+			};
 
-            function tick() {
-                tock();
-                const when = 1000 - (Date.now() % 1000);
-                timer = setTimeout(tick, when);
-            }
+			$session_play.on("click", () => {
+				session_step_start = Date.now();
+				tick();
+				$(this).button("disable");
+				$session_pause.button("enable");
+				this.$runtime.prop("readonly", "readonly");
+			});
 
-            $session_play.on("click", function () {
-                session_step_start = Date.now();
-                tick();
-                $(this).button("disable");
-                $session_pause.button("enable");
-                self.$runtime.prop("readonly", "readonly");
-            });
+			$session_pause.click(() => {
+				if (timer)
+					clearTimeout(timer);
+				timer = null;
+				tock();
+				$(this).button("disable");
+				$session_play.button("enable");
+				this.$runtime.prop("readonly", null);
+			});
 
-            $session_pause.click(function () {
-                if (timer)
-                    clearTimeout(timer);
-                timer = null;
-                tock();
-                $(this).button("disable");
-                $session_play.button("enable");
-                self.$runtime.prop("readonly", null);
-            });
+			// Digits runtime control changed?
+			this.$form.find("select.digital")
+			.on("change", () => { this._readDigits(); });
 
-            // Digits runtime control changed?
-            this.$form.find("select.digital")
-            .on("change", () => { this.readDigits(); });
+			// Handling form submission
+			this.$form
+			.find("input[name='filters_changed']")
+			.on("change", () => {
+				this.$tab
+				.find(".cr_filters_changed")
+				.toggle($(this).is(":checked"));
+			});
 
-            // Handling form submission
-            this.$form
-            .find("input[name='filters_changed']")
-            .on("change", function() {
-                self.$tab
-                .find(".cr_filters_changed")
-                .toggle($(this).is(":checked"));
-            });
+			this.$form.find(":input")
+			.on("change", () => this._formChanged());
+			
+			this.$form.on("submit", e => {
+				e.preventDefault();
+				return false;
+			});
 
-            this.$form.find(":input")
-            .on("change", () => { self.formChanged() });
-            
-            this.$form.on("submit", function (e) {
-                e.preventDefault();
-                return false;
-            });
+			const compressor = this;
+			this.$tab.find(".cr_last_run")
+			.off("click")
+			.on("click", () => {
+				let content = $("#infoLastRun").html().replace("$1", () => {
+					return this._activityHTML(5);
+				});
+				$.confirm({
+					title: $("#infoLastRun").data("title"),
+					content: content,
+					buttons: {
+						"Remove last run": () => {
+							compressor._removeLastEntry().then((r) => {
+								compressor._setRuntimeAndDigits(r.runtime);
+								compressor._setMinRuntime(r.runtime);
+								compressor._formChanged();
+							});
+						},
+						"Don't remove": () => {}
+					}
+				});
+			});
 
-            this.$tab.find(".cr_last_run")
-            .off("click")
-            .on("click", function () {
-                let content = $("#infoLastRun").html().replace("$1", () => {
-                    return self.activityHTML(5);
-                });
-                $.confirm({
-                    title: $("#infoLastRun").data("title"),
-                    content: content,
-                    buttons: {
-                        "Remove last run": () => {
-                            self.removeLastEntry().then((r) => {
-                                self.setRuntimeAndDigits(r.runtime);
-                                self.setMinRuntime(r.runtime);
-                                self.formChanged();
-                            });
-                        },
-                        "Don't remove": () => {}
-                    }
-                });
-            });
+			this.$submit
+			.off("click")
+			.on("click", () => {
+				if (!this.$form.valid())
+					return;
 
-            this.$submit
-            .off("click")
-            .on("click", function () {
-                if (!self.$form.valid())
-                    return;
+				// Stop the counter
+				$session_pause.trigger("click");
 
-                // Stop the counter
-                $session_pause.trigger("click");
+				const values = {};
+				this.$form.find(":input").each((i, el) => {
+					if (el.name in this.keys)
+						values[el.name] = this.deserialise(
+							el.name, $(el).val());
+				});
 
-                const values = {};
-                self.$form.find(":input").each(function () {
-                    if (this.name in self.keys)
-                        values[this.name] = self.deserialise(
-                            this.name, $(this).val());
-                });
+				this.$form.find(":input[type='checkbox']")
+				.each((i, el) => {
+					if (el.name in this.keys)
+						values[el.name] = $(el).is(":checked");
+				});
 
-                self.$form.find(":input[type='checkbox']").each(function () {
-                    if (this.name in self.keys)
-                        values[this.name] = $(this).is(":checked");
-                });
-
-                if (self.debug) self.debug("Adding compressor record", values);
-                self.add(values).then(() => {
-                    // Clear the timer
-                    this.session_time = 0;
-                    $session_time.trigger("ticktock");
-                    // Clear down the operator
-                    self.$form.find("[name='operator']").val('');
-                    // Make sure the form reflects where we are
-                    self.setRuntimeAndDigits(values.runtime);
-                    self.setMinRuntime(values.runtime);
-                    // Validate the form for the new values
-                    self.formChanged();
-                });
-            });
+				this.debug("Adding compressor record", values);
+				this._add(values).then(() => {
+					// Clear the timer
+					this.session_time = 0;
+					$session_time.trigger("ticktock");
+					// Clear down the operator
+					this.$form.find("[name='operator']").val('');
+					// Make sure the form reflects where we are
+					this._setRuntimeAndDigits(values.runtime);
+					this._setMinRuntime(values.runtime);
+					// Validate the form for the new values
+					this._formChanged();
+				});
+			});
         }
 
         /**
@@ -189,17 +181,16 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * One of the form fields has changed, validate the form and
          * update the submit button
          */
-        formChanged() {
+        _formChanged() {
             this.$submit.button(
                 "option", "disabled", !this.$form.valid());
         }
-
 
         /**
          * @private
          * Set the runtime but not the digits display
          */
-        setRuntime(v) {
+        _setRuntime(v) {
             this.runtime = v;
 
             this.$runtime.val(v);
@@ -225,13 +216,13 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * @private
          * Set the runtime and also the digits display
          */
-        setRuntimeAndDigits(v) {
-            this.setRuntime(v);
-            this.$form.find("select.digital").each(function() {
-                let u = $(this).data("units");
+        _setRuntimeAndDigits(v) {
+            this._setRuntime(v);
+            this.$form.find("select.digital").each((i, el) => {
+                let u = $(el).data("units");
                 let dig = Math.floor(v / u);
                 dig = (u === 0.01) ? Math.round(dig) : Math.floor(dig);
-                $(this).val(dig % 10);
+                $(el).val(dig % 10);
             });
         }
 
@@ -239,19 +230,19 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * @private
          * On change to the digits display, read it and set the runtime
          */
-        readDigits() {
+        _readDigits() {
             let v = 0;
-            this.$form.find("select.digital").each(function() {
-                v += $(this).val() * $(this).data("units");
+            this.$form.find("select.digital").each((i, el) => {
+                v += $(el).val() * $(el).data("units");
             });
-            this.setRuntime(v);
+            this._setRuntime(v);
         }
 
         /**
          * @private
          * Set the rule for the minimum runtime
          */
-        setMinRuntime(r) {
+        _setMinRuntime(r) {
             if (this.$runtime.length === 0)
                 return;
             if (this.$runtime.attr("type") === "hidden")
@@ -268,8 +259,8 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * Use an AJAX request to retrieve the latest sample
          * for a sensor
          */
-        getSample(name) {
-            const url = this.cfg.get("compressor:" + this.id + ":sensor_url");
+        _getSample(name) {
+            const url = this.config.get("compressor:" + this.id + ":sensor_url");
             return new Promise((resolve, reject) => {
                 $.ajax({
                     url: url + "/" + name,
@@ -288,36 +279,32 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
         }
 
         reload_ui() {
-            const self = this;
-
-            return this.load()
+			return this.loadFromStore()
             .then(() => {
-                if (self.debug)
-                    self.debug("Loading " + this.length() + " " + this.id +
-                               " compressor records");
+                this.debug("\t", this.length(), this.id,
+                           "compressor records");
                 if (this.length() > 0) {
                     const cur = this.get(this.length() - 1);
-
-                    self.setRuntimeAndDigits(cur.runtime);
-                    self.setMinRuntime(cur.runtime);
+                    this._setRuntimeAndDigits(cur.runtime);
+                    this._setMinRuntime(cur.runtime);
 
                     // Set the compressor record
-                    self.$tab.find(".cr_operator").text(cur.operator);
-                    self.$tab.find(".cr_time").text(
+                    this.$tab.find(".cr_operator").text(cur.operator);
+                    this.$tab.find(".cr_time").text(
                         Entries.formatDateTime(cur.date));
-                    self.$tab.find(".cr_flr").text(
-                        new Number(this.remainingFilterLife()).toFixed(2));
-                    self.$tab.find(".cr_runtime").text(cur.runtime.toFixed(2));
+                    this.$tab.find(".cr_flr").text(
+                        new Number(this._remainingFilterLife()).toFixed(2));
+                    this.$tab.find(".cr_runtime").text(cur.runtime.toFixed(2));
                 }
 
                 // Restart the sensor loop
-                this.readSensors();
+                this._readSensors();
 
                 // Validate the form
-                this.formChanged();
+                this._formChanged();
             })
             .catch((e) => {
-                console.error("Compressor load failed: " + e, e);
+                console.error(`${this.id} Compressor load failed`, e);
             });
         }
 
@@ -334,17 +321,17 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          *                when the sample is too old or no sample
          *                can be retrieved.
          */
-        updateSampledField($el, sample) {
+        _updateSampledField($el, sample) {
             let id = this.id + ":" + $el.data("sensor");
             let spec = $el.data("sample-config");
 
             if (!sample) {
-                if (this.debug) this.debug("Sample for", id, "unavailable");
+                this.debug("Sample for", id, "unavailable");
             } else {
                 let thresh = Date.now() - spec.max_age;
                 if (sample.time < thresh) {
                     // Sample unavailable or too old
-                    if (this.debug) this.debug("Sample for", id, "too old");
+                    this.debug("Sample for", id, "too old");
                     sample = null;
                 }
             }
@@ -376,23 +363,22 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * @private
          * Update the sensor readings from the remote sensor URL
          */
-        readSensors() {
-            let self = this;
+        _readSensors() {
 
             // Clear any existing timeout
             if (this.sensor_tick)
                 clearTimeout(this.sensor_tick);
             this.sensor_tick = null;
 
-            let url = this.cfg.get("compressor:" + this.id + ":sensor_url");
+            let url = this.config.get("compressor:" + this.id + ":sensor_url");
             if (typeof url !== "string" || url.length === 0) {
-                if (this.debug) this.debug("No sensor URL set");
+                this.debug("No sensor URL set");
                 return;
             }
 
             let promises = [
                 // Promise to update runtime
-                this.getSample("power")
+                this._getSample("power")
                 .then((sample) => {
                     if (sample.sample > 0) {
                         // Check that we are within operable limits, if
@@ -405,9 +391,9 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                                 snd.play();
                             }
                         }
-                        this.setRuntimeAndDigits(
+                        this._setRuntimeAndDigits(
                             this.runtime + sample.sample / (60 * 60 * 1000));
-                        this.formChanged();
+                        this._formChanged();
                     }
                 })
                 .catch((e) => {})
@@ -415,31 +401,31 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             
             // Promise to update sampled fields
             $("input[data-compressor='" + this.id + "'][data-sensor]")
-            .each(function() {
-                let $el = $(this);
+            .each((i, el) => {
+                let $el = $(el);
                 let name = $el.data("sensor");
                 promises.push(
-                    self.getSample(name)
+                    this._getSample(name)
                     .then((sample) => {
-                        self.updateSampledField($el, sample);
+                        this._updateSampledField($el, sample);
                     })
-                    .catch((e) => { self.updateSampledField($el, null); }));
+                    .catch((e) => { this._updateSampledField($el, null); }));
             });
 
             // Promise to check alarm sensors
             $(".alarm[data-compressor='" + this.id + "'][data-sensor]")
-            .each(function() {
-                let $el = $(this);
+            .each((i, el) => {
+                let $el = $(el);
                 if ($el.data("compressor") !== this.id)
                     return;
                 let name = $el.data("sensor");
                 promises.push(
-                    self.getSample(name)
+                    this._getSample(name)
                     .then((sample) => {
                         sample = sample ? sample.sample : 0;
                         let $report = $("#report:" + this.id);
                         $report.html(Math.round(sample) + "&deg;C");
-                        let alarm_temp = self.cfg.get(
+                        let alarm_temp = this.config.get(
                             "compressor: " + this.id + ":" + name + "_alarm");
                         if (sample >= alarm_temp) {
                             $report.addClass("error");
@@ -458,40 +444,42 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             // Check all sensors
             Promise.all(promises)
             .finally(() => {
-                let timeout = self.cfg.get(
+                let timeout = this.config.get(
                     "compressor:" + this.id + ":poll_frequency");
                 // If poll freq <= 0, don't poll again
                 if (timeout > 0) {
                     // Queue the next poll
                     this.sensor_tick =
-                    setTimeout(() => { self.readSensors(); }, timeout);
+                    setTimeout(() => { this._readSensors(); }, timeout);
                 }
             });
         }
 
-        // Recalcalculate the remaining filter life from the history
-        remainingFilterLife() {
-            let self = this;
+        /**
+		 * Recalcalculate the remaining filter life from the history
+		 * @private
+		 */
+        _remainingFilterLife() {
             const details = false;
             let cfg_pre = "compressor:" + this.id + ":filter:";
-            let avelife = this.cfg.get(cfg_pre + "lifetime");
+            let avelife = this.config.get(cfg_pre + "lifetime");
             if (this.length() === 0)
                 return avelife;
-            let fca = this.cfg.get(cfg_pre + "a");
-            let fcb = this.cfg.get(cfg_pre + "b");
-            let fcc = this.cfg.get(cfg_pre + "c");
-            let fcd = this.cfg.get(cfg_pre + "d");
+            let fca = this.config.get(cfg_pre + "a");
+            let fcb = this.config.get(cfg_pre + "b");
+            let fcc = this.config.get(cfg_pre + "c");
+            let fcd = this.config.get(cfg_pre + "d");
             let flr = avelife;
             let runtime = 0;
-            if (details && self.debug)
-                self.debug("Compute rfl from", this.length(), "records");
+            if (details)
+                this.debug("Compute rfl from", this.length(), "records");
             for (let e of this.entries) {
                 if (e.filters_changed) {
                     // Filters changed. Zero runtime (or filters
                     // changed after runtime) assumed.
                     flr = avelife;
-                    if (details && self.debug)
-                        self.debug("Filters changed, lifetime = " + flr);
+                    if (details)
+                        this.debug("Filters changed, lifetime = " + flr);
                 } else {
                     let dt = (e.runtime - runtime); // hours
                     if (dt > 0) {
@@ -500,18 +488,18 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                         let factor = fcd + (fca - fcd) /
                             (1 + Math.pow(e.temperature / fcc, fcb));
                         let hours_at_T = avelife * factor;
-                        if (details && self.debug)
-                            self.debug("Predicted lifetime at "
+                        if (details)
+                            this.debug("Predicted lifetime at "
                                        + e.temperature +
                                        "°C is " + hours_at_T + " hours");
                         let used = avelife * dt / hours_at_T;
-                        if (details && self.debug)
-                            self.debug("Run of " + dt + " hours used " + used
+                        if (details)
+                            this.debug("Run of " + dt + " hours used " + used
                                           + " hours of filter life");
                         // Fraction of filter change hours consumed
                         flr -= used; // remaining filter life
-                        if (details && self.debug)
-                            self.debug("Remaining filter life " + flr
+                        if (details)
+                            this.debug("Remaining filter life " + flr
                                        + " hours");
                     }
                 }
@@ -524,8 +512,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          * @private
          * Add a new compressor record
          */
-        add(r) {
-            let self = this;
+        _add(r) {
             if (typeof r.runtime === "undefined")
                 r.runtime = 0;
             if (typeof r.filters_changed === "undefined")
@@ -533,15 +520,13 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             this.session_time = 0;
 
             // Reload entries in case they were asynchronously changed
-            return this.load().then(() => {
+            return this.loadFromStore().then(() => {
                 r.date = new Date();
                 this.push(r);
-                if (self.debug) {
-                    self.debug("Runtime after this event was "
-                               + r.runtime + " hours");
-                    self.debug("New prediction of remaining lifetime is "
-                               + this.remainingFilterLife() + " hours");
-                }
+                this.debug("Runtime after this event was "
+                           + r.runtime + " hours");
+                this.debug("New prediction of remaining lifetime is "
+                           + this._remainingFilterLife() + " hours");
                 return this.save().then(() => {
                     if (typeof Audio !== "undefined") {
                         let pick = Math.floor(Math.random() * 25);
@@ -552,27 +537,28 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                         }
                     }
                 })
-                .then(() => {
-                    return this.reload_ui();
-                });
+                .then(() => this.reloadUI());
             });
         }
 
         /**
          * Pop the last entry and return the new last entry
+		 * @private
          */
-        removeLastEntry() {
-            return this.load().then(() => {
+        _removeLastEntry() {
+            return this.loadFromStore().then(() => {
                 this.entries.pop();
                 return this.save().then(() => {
-                    this.reload_ui().then(() => {
-                        return this.get(this.length() - 1);
-                    });
+                    this.reloadUI()
+					.then(() => this.get(this.length() - 1));
                 });
             });
         }
 
-        activityHTML(num_records) {
+		/**
+		 * @private
+		 */
+        _activityHTML(num_records) {
             let ents = this.getEntries();
             if (ents.length === 0)
                 return "No activity";
@@ -620,9 +606,9 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 return true; // very dry already
             let conc3 = conc2 - 0.02;
 
-            let pumping_rate = this.cfg.get(
+            let pumping_rate = this.config.get(
                 "compressor:" + this.id + ":pumping_rate"); // l/min
-            let purge_freq = this.cfg.get(
+            let purge_freq = this.config.get(
                 "compressor:" + this.id + ":purge_freq"); // mins
             let air_per_purge = pumping_rate * purge_freq / 1000; // m^3
 
@@ -630,7 +616,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             // purge period
             let ml = conc3 * air_per_purge; // g ~ ml
 
-            let threshold = this.cfg.get(
+            let threshold = this.config.get(
                 "compressor:" + this.id + ":safe_limit"); // ml
 
             //console.debug(temperature, humidity, sat, conc1, conc2, ml, "<", threshold,"?");

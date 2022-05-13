@@ -5,9 +5,18 @@
  * Shed management application. See README.md
  */
 
-define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries", "app/js/Roles", "app/js/Compressor", "app/js/Loans", "app/js/Inventory", "app/js/Nitrox", "js-cookie", "jquery-validate", "jquery-confirm"], (Config, WebDAVStore, Entries, Roles, Compressor, Loans, Inventory, Nitrox, Cookies) => {
+define("app/js/Sheds", [
+	"app/js/Config", "app/js/WebDAVStore", "app/js/Entries", "app/js/Roles",
+	"js-cookie",
 
-    /**
+	"jquery", "jquery-ui","jquery-validate", "jquery-confirm",
+	"app/js/jq/with-info"
+], (
+	Config, WebDAVStore, Entries, Roles,
+	Cookies
+) => {
+
+	/**
      * Update time displays
      */
     function tick() {
@@ -25,7 +34,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             if (params.debug) {
                 if (params.console) {
                     // Simulated console in #loading
-                    this.debug = function() {
+                    this.debug = () => {
                         console.debug.apply(console, arguments);
                         $("#loading").append(
                             "<br />" + Array.from(arguments).join(" "));
@@ -33,13 +42,15 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     this.consoleActive = true;
                 } else
                     this.debug = console.debug;
-            }
+            } else
+				this.debug = () => {};
 
             // Possible override of cache_url, otherwise use whatever
             // is cookied in the browser
             if (params.cache_url) {
                 Cookies.set("cache_url", params.cache_url, {
-                    expires: 365
+                    expires: 365,
+					sameSite: "strict"
                 });
             }
 
@@ -47,9 +58,16 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             this.config = new Config(
                 new WebDAVStore(this.debug),
                 {
-                    ppO2max: 1.4,
                     loan_return: 10,
-                    o2_price: 0.01,
+                    o2: {
+						price: 0.01,
+						bank: {
+							1: 50.2,
+							2: 50.2,
+							3: 47.5,
+							4: 47.5,
+						}
+					},
                     
                     compressor: {
                         portable: {
@@ -81,62 +99,57 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 this.debug
             );
 
-            this.roles = new Roles({
-                config: this.config
-            });
+            this.roles = new Roles(this.config);
 
-            this.compressors = {
-                fixed: new Compressor({
-                    id: "fixed",
-                    roles: this.roles,
-                    config: this.config
-                }),
-                portable: new Compressor({
-                    id: "portable",
-                    roles: this.roles,
-                    config: this.config
-                })
-            };
-            
-            this.loans = new Loans({
-                roles: this.roles,
-                config: this.config
-            });
-            this.inventory = new Inventory({
-                config: this.config,
-                loans: this.loans
-            });
-            this.nitrox = new Nitrox(this.config);
+			const requires = [];
+			$("#main_tabs li>a").each((i, el) => {
+				const id = el.href.replace(/^.*#/, "");
+				const clazz = $(el).data("class");
+				requires.push(
+					new Promise(resolve => {
+						this.debug("Requiring", id);
+						requirejs([`app/js/${clazz}`], Clazz => {
+							this[id] = new Clazz({
+								config: this.config,
+								app: this,
+								id: id,
+								app: this,
+								store: this.config.store,
+								debug: this.debug
+							});
+							resolve(this[id].loadUI());
+						});
+					}));
+			});
+			Promise.all(requires)
+			.then(() => {
+				$("#main_tabs").tabs();
+				this.reloadUI();
+			});
         }
 
         /**
          * Update all UIs from the cache
          */
-        reload_ui() {
-            if (this.debug) this.debug("Reloading UI");
-            return Promise
-            .all([
-                this.compressors.fixed.reload_ui(),
-                this.compressors.portable.reload_ui(),
-                this.loans.reload_ui(),
-                this.inventory.reload_ui(loans)
-            ])
+        reloadUI() {
+            this.debug("Reloading UI");
+			return Promise.all(Object.values(this)
+						.filter(f => f instanceof Entries)
+						.map(f => f.reloadUI()))
             .then((res) => {
                 $("#main_tabs").tabs("option", "disabled", []);
-                return this.roles.reload_ui();
             });
         }
 
         update_from_web(report) {
-            let self = this;
             if (!this.config.get("db_index_url")) {
                 $.alert({
                     title: "Cannot update from web",
                     content: "No DB index URL set"
                 });
-                return;
+                return Promise.reject();
             }
-            if (self.debug) self.debug("Updating WebDAV from read-only database");
+            this.debug("Updating WebDAV from read-only database");
             let index = new Entries({
                 url: this.config.get("db_index_url"),
                 keys: {
@@ -144,18 +157,15 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                     url: "string"
                 }
             });
-            return index.load()
+            return index.loadFromStore()
             .then(() => {
                 return Promise
                 .all([
                     index.find("sheet", "roles")
-                    .then((row) => {
-                        return self.roles.update_from_web(row.url, report)
-                    }),
+                    .then((row) => this.roles.update_from_web(row.url, report)),
                     index.find("sheet", "inventory")
-                    .then((row) => {
-                        return self.inventory.update_from_web(row.url, report);
-                    })
+                    .then((row) => this.inventory.update_from_web(
+						row.url, report))
                 ]);
             })
             .then(() => {
@@ -171,7 +181,6 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
         }
 
         initialise_ui() {
-            let self = this;
             // Generics
             $(".spinner").spinner();
             $("button").button();
@@ -192,11 +201,11 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             // Add a validator that looks at the temperature and humidity
             // to determine if the values are within range for operating
             // this compressor
-            jQuery.validator.addMethod(
+            $.validator.addMethod(
                 "compressor",
                 (v, el, compressor) => {
                     let $form = $(el).closest("form");
-                    return self.compressors[compressor].operable();
+                    return this[compressor].operable();
                 },
                 "Compressor must not be operated");
 
@@ -210,11 +219,9 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             // Start the clock
             tick();
 
-            $("#main_tabs").tabs();
-
             let $gear = $('#settings');
-            $gear.on("click", function () {
-                self.config.open({
+            $gear.on("click", () => {
+                this.config.open({
                     autoClose: 'close|60000',
                     buttons: {
                         close: function () {
@@ -225,7 +232,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                                     content: ""
                                 });
 
-                                p = self.update_from_web((clss, m) => {
+                                p = this.update_from_web((clss, m) => {
                                     $a.setContentAppend(
                                         "<div class='" + clss + "'>" +
                                         m + "</div>");
@@ -233,10 +240,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                             } else
                                 p = Promise.resolve();
 
-                            p.then(() => {
-                                return self.config.save();
-                            })
-                            .then(() => { self.reload_ui(); });
+                            p
+							.then(() => this.config.save());
                         }
                     },
                     validity: function (ok) {
@@ -284,7 +289,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                             $label.append($b);
                             //$b.checkboxradio();
                             $(this).replaceWith($label);
-                        })
+                        });
                     }
                 });
             });
@@ -293,8 +298,8 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
             $("[data-with-info]").with_info();
   
             $(".slider").each(function() {
-                let $self = $(this);
-                let data = $self.data("slider");
+                let $this = $(this);
+                let data = $this.data("slider");
                 data.animate = true;
 				// The "friend" of a slider is the id of an input that will
 				// take the value from the slider
@@ -307,13 +312,13 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 $(this).slider(data);
                 if (data.friend) {
 					// Initialise the slider value to the friend value
-                    $self.slider("value", $(data.friend).val());
+                    $this.slider("value", $(data.friend).val());
                 }
             });
 
-            $(document).on("reload_ui", function () {
-                self.reload_ui().then(() => {
-                    if (!self.consoleActive)
+            $(document).on("reload_ui", () => {
+                this.reloadUI().then(() => {
+                    if (!this.consoleActive)
                         $("#loading").hide();
                     $("#loaded").show();
                 });
@@ -321,7 +326,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
         }
 
         promise_to_reconnect(url) {
-            let self = this;
+			const app = this;
             return new Promise((resolve) => {
                 $.confirm({
                     title: $("#connect_failed_dialog").prop("title"),
@@ -330,7 +335,7 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                         let jc = this;
                         jc.$content
                         .find("input")
-                        .on("change", function () {
+                        .on("change", () => {
                             jc.$$try_again.trigger("click");
                         })
                         .val(url ? url : "");
@@ -339,15 +344,13 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                         jc.buttons.continue_without.setText("Continue without cache");
                     },
                     buttons: {
-                        try_again: function () {
+                        try_again: () => {
                             let nurl = this.$content.find("input").val();
-                            if (self.debug) self.debug("Trying again with", nurl);
-                            resolve(self.cache_connect(nurl));
+                            this.debug("Trying again with", nurl);
+                            resolve(app.cache_connect(nurl));
                         },
                         continue_without:  function () {
-                            if (self.debug)
-                                self.debug("Continuing without cache");
-
+                            this.debug("Continuing without cache");
                             $(document).trigger("reload_ui");
                             resolve();
                         }
@@ -357,24 +360,27 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
         }
 
         promise_to_authenticate(url) {
-            let self = this;
+            let app = this;
             return new Promise((resolve) => {
                 $.confirm({
                     title: $("#auth_required").prop("title"),
                     content: $("#auth_required").html(),
                     onContentReady: function () {
-                        let self = this;
                         this.$content.find(".url").text(url);
-                        this.$content.find("input[name='pass']").on("change", function () {
-                            self.$$login.trigger("click");
-                        });
+                        this.$content
+						.find("input[name='pass']")
+						.on("change", () => {
+							this.$$login.trigger("click");
+						});
                     },
                     buttons: {
                         login: function () {
-                            let user = this.$content.find("input[name='user']").val();
-                            let pass = this.$content.find("input[name='pass']").val();
-                            self.config.store.setCredentials(user, pass);
-                            resolve(self.cache_connect(url));
+                            let user = this.$content
+								.find("input[name='user']").val();
+                            let pass = this.$content
+								.find("input[name='pass']").val();
+                            app.config.store.setCredentials(user, pass);
+                            resolve(app.cache_connect(url));
                         }
                     }
                 });
@@ -382,47 +388,51 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
         }
 
         cache_connect(url) {
-            let self = this;
-            if (self.debug) self.debug("Trying to connect to", url);
+            this.debug("Trying to connect to", url);
             return this.config.store
             .connect(url)
             .then(() => {
-                if (self.debug) self.debug(url, "connected, loading config");
-                return self.config.load()
+                this.debug("connected to", url, "loading config");
+                return this.config.load()
                 .then(() => {
                     Cookies.set("cache_url", url, {
                         expires: 365
                     });
 
-                    $(document).trigger("reload_ui");
+					// Reset all Entries
+					Promise.all(Object
+								.values(this)
+								.filter(f => f instanceof Entries)
+								.map(f => f.reset()))
+					.then(() => $(document).trigger("reload_ui"));
                 })
                 .catch((e) => {
-                    if (self.debug) self.debug("config.json load failed:", e,
+                    this.debug("config.json load failed:", e,
                                   "Trying to save a draft");
-                    return self.config.save()
+                    return this.config.save()
                     .then(() => {
-                        return self.cache_connect(url);
+                        return this.cache_connect(url);
                     })
                     .catch((e) => {
-                        if (self.debug) self.debug("Bootstrap failed:", e);
+                        this.debug("Bootstrap failed:", e);
                         $.alert({
                             title: "Bootstrap failed",
                             content: "Could not write config.json"
                         });
-                        return self.promise_to_reconnect();
+                        return this.promise_to_reconnect();
                     });
                 });
             })
             .catch((e) => {
-                if (self.debug) self.debug(url, "connect failed", e);
+                this.debug(url, "connect failed", e);
                 if (e.status === 401) {
                     // XMLHttpRequest will only prompt for credentials if
                     // the request is for the same origin with no explicit
                     // credentials. So we have to handle credentials.
-                    if (self.debug) self.debug("Auth failure, get auth");
-                    return self.promise_to_authenticate(url);
+                    this.debug("Auth failure, get auth");
+                    return this.promise_to_authenticate(url);
                 }
-                //return self.promise_to_reconnect(url);
+                //return this.promise_to_reconnect(url);
                 // Trying to repeatedly connect doesn't provide any
                 // useful feedback. Rejecting at least gives a chance
                 // to feeback.
@@ -444,14 +454,6 @@ define("app/js/Sheds", ["app/js/Config", "app/js/WebDAVStore", "app/js/Entries",
                 promise = this.cache_connect(url);
 
             promise
-            .then(() => {
-                // Can't do this without an interaction first
-                // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play 
-                /* if (typeof Audio !== "undefined") {
-                    let snd = new Audio("app/sounds/forecast.wav");
-                    return snd.play();
-                } */
-            })
             .catch((e) => {
                 console.error("Internal failure", e, url);
             });

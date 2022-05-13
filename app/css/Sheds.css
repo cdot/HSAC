@@ -118,16 +118,17 @@ body {
     );
 }
 
+/* Input width control */
 input.floating_point {
-    max-width: 8em;
+    width: 6em;
 }
 
-input.integer {
-    max-width: 4em;
-}
-
-input[name="temperature"], input[name="humidity"] {
+input.integer2 {
     width: 3em;
+}
+
+input.integer3 {
+    width: 4em;
 }
 
 /* Used to highlight a chosen item in an inventory tab */
@@ -170,10 +171,6 @@ input[name="temperature"], input[name="humidity"] {
 label.error {
     float:right;
     padding: 0 0.2em;
-}
-
-.length3 {
-    width: 3em;
 }
 
 /* Used in the loan table to highlight a late loan */
@@ -239,6 +236,14 @@ label.error {
 
 #nitrox {
     font-size: 18pt;
+}
+
+.bank_cylinder {
+	border: thin solid black;
+	display: inline;
+	padding-right: 5px;
+	padding-left: 5px;
+	margin-right: 5px;
 }
 
 #portable {
@@ -334,4 +339,16 @@ table td,th {
 /* Used to widen a specific column in a table */
 .widest {
     width: 100%;
+}
+
+.flex-row {
+	display: flex;
+	margin-top: 0.25em;
+	margin-bottom: 0.25em;
+	flex-direction: row;
+	width: 100%;
+}
+
+.flex-row label {
+	margin-right: 0.25em;
 }

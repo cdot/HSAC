@@ -1,95 +1,183 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("app/js/Nitrox", () => {
-
-    // Universal gas constant
-    const R = 0.0820578; // l-atm/mol-K
-    const atmO2 = 0.209;
-    const K0C = 273.15; // 0C in Kelvin
-    // Van der Waal's coefficients
-    const VdVA_O2 = 1.36; // l^2 atm/mol^2
-    const VdVB_O2 = 0.03183; // l/mol
+define("app/js/Nitrox", [
+	"app/js/Entries", "app/js/NitroxBlender"
+], (
+	Entries, NitroxBlender
+) => {
 
     /**
-     * Ideal gas law states PV = nRT, but this doesn't work very well
-     * for real gases. A closer approximation to reality uses
-     * Van der Waals equation of state to derive better numbers for
-     * P, V, and n. See
-     * https://en.wikipedia.org/wiki/Van_der_Waals_equation
-     * This function calculates this for a gas.
-     * @param P partial pressure of this gas in final system (ideal bar)
-     * @param V total volume, litres
-     * @param a correction for intermolecular forces
-     * @param b correction for finite molecular size
-     * @return real gas partial pressure, in bar
+     * Nitrox calculation tab and data store
      */
-    function vanDerWaal(P, V, T, a, b) {
+    class Nitrox extends Entries {
 
-        if (P == 0)
-            return V;
+        constructor(params) {
+			super($.extend(params, {
+				file: "nitrox.csv",
+                keys: {
+                    date: "Date",
 
-        const N = 1; // Number of moles
+                    blender: "string",
+					cylinder: "number",
+					contains_bar: "number",
+					contains_o2: "number",
 
-        var N2 = N * N,
-            N3 = N2 * N;
-        var ab = a * b,
-            Nb = N * b,
-            N2a = N2 * a;
+					target_bar: "number",
+					target_o2: "number",
 
-        var NRT = N * R * T;
+					bank_used: "number",
+					bank_bar: "number",
 
-        // initial approximation of real volume using ideal gas law (litres)
-        var vReal = NRT / P;
+					achieved_o2: "number"
+                }
+			}));
+		}
 
-        // Iterate Van De Waal's equation of state to improve estimate
-        // of volume
-        var limit = 100;
-        while (true) {
-            var vReal2 = vReal * vReal;
-            var fvReal =
-                (P + (N2a / vReal2)) * (vReal - Nb) - NRT;
-            var f_vReal =
-                (P - (N2a / vReal2) + (2 * ab * (N3 / (vReal2 * vReal))));
-            var h = fvReal / f_vReal;
-            if (Math.abs(h) < 1e-12)
-                break;
-            vReal -= h;
-            if (limit-- == 0)
-                throw "Error: Van der Waal iteration overran";
-        }
-        var nReal = N * V / vReal; // Real number of moles
-        return (nReal * R * T) / V; // Real pressure, bar
-    }
+		//@override
+		attachHandlers() {
+			this.$form = this.$tab.children("form");
+			this.$submit = this.$tab.find("button[name='add_record']");
 
-    class Nitrox {
-        /**
-         * Nitrox calculation tab
-         */
-        constructor(config) {
-            this.cfg = config || {};
-            this.debug = this.cfg.debug;
-            let self = this;
-
-            $(() => {
-                $("#nitrox").children("form").on("submit", (e) => {
-                    e.preventDefault();
-                });
+            $("#nitrox").children("form").on("submit", (e) => {
+                e.preventDefault();
+            });
                 
-                $("#nitrox").find("input").on("change", function (e) {
-                    let $form = $(this).closest("form");
-                    if (!$form.valid()) {
-                        $("#nitrox").children(".report").text("");
-                        return;
-                    }
-                    self.submit();
-                });
-                self.submit();
+            this.$tab.find("input")
+			.on("change", () => this.recalculate());
+
+			this.$tab.find("[name=fix_bank]")
+			.on("click", () => this._fixBank());
+			
+			this.$tab.find("[name=report]>div")
+			.addClass("hidden");
+			
+			this.$tab.find("[name=report]>div").hide();
+
+			this.$tab.find("[name=pick_blend]")
+			.on("change", (evt) => {
+				this.$tab.find("[name=report]>div")
+				.hide();
+				this.$tab.find(`[name=report]>[name=${evt.target.value}]`)
+				.show();
+			});
+			this.$tab.find("[name=pick_blend]:checked")
+			.each((i, el) => {
+				this.$tab.find(`[name=report]>[name=${el.value}]`)
+				.show();
+			});
+
+			this.$tab.find("[name=blender]")
+			.on("change", evt => {
+				if ($(this).val()) {
+					this.$tab.find("[name=blender-sel]").show();
+					this.$tab.find("[name=no-blender-sel]").hide();
+				} else {
+					this.$tab.find("[name=blender-sel").hide();
+					this.$tab.find("[name=no-blender-sel]").show();
+				}
+			});
+		}
+
+		// dialog to fix bank levels
+		_fixBank() {
+			const $dlg = $("#fix_bank_dialog");
+			const $banks = $dlg.find("[name=banks").empty();
+			const banks = this.config.store_data.o2.bank;
+			for (let id in banks) {
+				$banks.append(`<label for="nox_fixbank_${id}">${id}: </label>`);
+				const $cyl = $(`<input type="number" name="nox_fixbank" id="nox_fixbank_${id}" value="${banks[id].bar}" class="integer3"/>`);
+				$banks.append($cyl);
+				$banks.append(" bar<br/>");
+				$cyl.on("change", () => {
+					let newp = $cyl.val();
+					banks[id].bar = newp;
+					this.reloadUI();
+				});
+			}		
+			$dlg.dialog({})
+			.dialog("open");
+		}
+
+		reload_ui() {
+			// Reset banks to default state
+			const $bank = this.$tab.find(".nox_o2_bank");
+			$bank.empty();
+			// re-init from config
+			const banks = this.config.store_data.o2.bank;
+			
+			// Even if the cheapest bank isn't selected, we need
+			// use the O2 value for the bleed computations.
+			this.O2_gbp = 1000000;
+			for (let id in banks) {
+				$bank.append(`<label for="nox_bank_${id}">${id}</label>`);
+				const $choice = $(`<input type="checkbox" name="nox_bank" id="nox_bank_${id}" value="${id}" checked="checked" />`);
+				$bank.append($choice);
+				$choice.checkboxradio({
+					label: `${id} (${banks[id].bar} bar, ${banks[id].price}/ℓ)`
+				});
+				$choice.on("change", () => this.recalculate());
+				if (banks[id].price < this.O2_gbp)
+					this.O2_gbp = banks[id].price;
+			}
+			this.debug(`Cheapest O2 ${this.O2_gbp}`);
+
+			$("input[name=nox_bank]")
+			.on("change", () => this.recalculate());
+
+            return this.loadFromStore()
+            .then(() => {
+				this.debug("Loading " + this.length() + " o2 records");
+				for (let i = 0; i < this.length(); i++) {
+					const cur = this.get(i);
+					// adjust
+					banks[cur.bank_used].bar = cur.bank_bar;
+					this.$tab
+					.find(`[name='bank_${cur.bank_used}']`)
+					.text(cur.bank_bar);
+				}
+ 				this.recalculate();
+           })
+            .catch((e) => {
+                console.error("Nitrox load failed: " + e, e);
             });
         }
 
-        submit() {
-            let conditions = {};
+		expandActions(actions) {
+			function morethan(x,y) {
+				return x >= y;
+			}
+
+			function round(v) {
+				return Math.round(v);
+			}
+
+			function floor(v) {
+				return Math.floor(v);
+			}
+
+			function ceil(v) {
+				return Math.ceil(v);
+			}
+
+			function about(v) {
+				return round(v * 100) / 100;
+			}
+
+			let acts = "";
+			const $templates = $("#action-templates");
+			for (let n = 0; n < actions.length; n++) {
+				const a = actions[n];
+				const text = $templates.find(`[name=${a.action}]`).html();
+				let act;
+				eval("act=`" + text + "`");
+				acts += `<div class='nitrox-step'>${n + 1}. ${act}</div>`;
+			}
+			return acts;
+		}
+
+        recalculate() {
+            const conditions = {};
 
             // temperature: deg C (only needed for real gas approximation)
             // cylinder_size: litres
@@ -100,7 +188,7 @@ define("app/js/Nitrox", () => {
             // O2_bank_size: litres
             // O2_bank_pressure: bar
             // ppO2max: max ppO2
-            $("#nitrox").find("form :input").each(function () {
+            this.$tab.find("input").each(function () {
                 if (this.type === "number")
                     conditions[this.name] = parseFloat($(this).val());
                 else
@@ -111,196 +199,76 @@ define("app/js/Nitrox", () => {
                                   / conditions.target_mix - 1) * 10);
             $("#nox_MOD").text(MOD);
 
-            let $report = $("#nitrox").children(".report");
-            $report.empty();
-           
-            let Pd = conditions.target_pressure;
-            let Md = conditions.target_mix / 100;
-            let Ps = conditions.start_pressure;
-            let Ms = conditions.start_mix / 100;
-            let Pbs = conditions.O2_bank_pressure;
-            let Sb = conditions.O2_bank_size;
-            let Sc = conditions.cylinder_size;
+			const actions = [];
+			let drained_l = 0,
+				wasted_l = 0,
+				used_l = 0,
+				cost_gbp = 0;
+			function action(a) {
+				actions.push(a);
+				switch  (a.action) {
+				case "Bleed":
+					drained_l += a.drained_l;
+					wasted_l += a.wasted_l;
+					break;
+				case "AddFromBank":
+					used_l += a.used_l;
+					cost_gbp += a.cost_gbp;
+					break;
+				}
+			}
 
-            if (this.debug)
-                this.debug("Pd %f Md %f Ps %f Ms %f Sb %f Sc %f",
-                           Pd,    Md,   Ps,   Ms,   Sb,   Sc);
+			// Given:
+			// Ps = start pressure in cylinder
+			const filler = new NitroxBlender({
+				Ps: conditions.start_pressure,
+				// Ms = start mix in cylinder
+				Ms: conditions.start_mix / 100,
+				// Sc = cylinder size
+				Sc: conditions.cylinder_size,
+				// Pd = target pressure
+				Pd: conditions.target_pressure,
+				// Md = target mix
+				Md: conditions.target_mix / 100,
+				// Pf = pressure of fill gas (gas required from the O2 bank)
+				// Mf = mix of the fill gas (O2 = 1)
+				Mf: 1,
+				// Pt = pressure of top-off gas (air)
+				// Mt = mix of top-off gas (air = 0.209)
+				Mt: 0.209,
+				// Min price of O2
+				O2_gbp: this.O2_gbp,
 
-            // See https://scuba.garykessler.net/library/BlendingPaper.pdf
-            // We know that
-            // Pd * Md = Ps * Ms + Pf * Mf + Pt * Mt
-            // Given that Pt = Pd - Ps - Pf, rewrite as
-            // Pd * Md = Ps * Ms + Pf * Mf + (Pd - Ps - Pf) * Mt
-            // Pd * Md = Ps * Ms + Pf * Mf + Pd * Mt - Ps * Mt - Pf * Mt
-            // Pd * Md = Ps * Ms + Pf * Mf + Pd * Mt - Ps * Mt - Pf * Mt
-            // Pf * Mf - Pf * Mt = Pd * Md - Pd * Mt - Ps * Ms + Ps * Mt
-            // Pf * (Mf - Mt) = Pd * (Md - Mt) - Ps * (Ms - Mt)
-            // Pf = (Pd * (Md - Mt) - Ps * (Ms - Mt)) / (Mf - Mt)
-            // Given Mf = 1, Mt = 0.209
-            let Pf = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791;
-            if (this.debug)
-                this.debug("Pf",Pf);
-          
-            // Adjust for real gas approximation
-            // Pf = vanDerWaal(Pf, conditions.cylinder_size,
-            //        conditions.temperature + K0C, VdVA_O2, VdVB_O2);
+				action: action,
+				
+				debug: this.debug
+			});
 
-            let Pt = Pd - Ps - Pf;
-            if (this.debug)
-                this.debug("%f bar O2 + %f bar air required", Pf, Pt);
+			// copy the selected banks
+			const banks = [];
+			this.$tab.find("input[name=nox_bank]:checked")
+			.each(
+				(i, checkbox) => {
+					const name = $(checkbox).val();
+					const cyl = this.config.store_data.o2.bank[name];
+					banks.push({
+						name: name,
+						bar: cyl.bar,
+						size: cyl.size,
+						price: cyl.price
+					});
+				});
 
-            if (Pt < 0) {
-                $report.html(
-                    "There is too much gas already in the cylinder for "
-                    + "this fill. Please bleed the cylinder down to <b>"
-                    + Math.floor(Ps + Pt) + " bar</b>");
-                return;
-            }
-            
-            if (Pf < 0) {
-                // Calculate maximum starting pressure for given fill
-                // Pf = 0 = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791
-                // 0 = Pd * (Md - 0.209) / 0.791 - Ps * (Ms - 0.209) / 0.791
-                // Pd * (Md - 0.209) / 0.791 = Ps * (Ms - 0.209) / 0.791
-                // Pd * (Md - 0.209) = Ps * (Ms - 0.209)
-                let bleedTo = Pd * (Md - 0.209) / (Ms - 0.209);
-
-                if (this.debug)
-                    this.debug("Mix already too rich; bleed to", bleedTo, "bar");
-                $report.html(
-                    "There is too much gas already in the cylinder for "
-                    + "this fill. To use this bank you will have to bleed "
-                    + "the cylinder down to <b>"
-                    + Math.floor(bleedTo) + " bar</b>");
-                return;
-            }
-
-            let Pce = Ps + Pf;
-            if (this.debug)
-                this.debug("New cylinder pressure", Pce);
-
-            // Can we do this fill with the current bank?
-            // Work out litres of O2 required
-            let litres = Pf * Sc;
-            if (this.debug)
-                this.debug("%f litres of O2 required", litres);
-
-            // Work out pressure loss from the bank
-            let pressure_loss = litres / Sb;
-            if (this.debug)
-                this.debug("%f bar required from bank", pressure_loss);
-
-            // Pbe = Pressure in bank after Pf added to cylinder
-            let Pbe = Pbs - pressure_loss;
-            if (this.debug)
-                this.debug("Pbe", Pbe);
-
-            // Is the final cylinder pressure <= the final bank pressure?
-            if (Pce <= Pbe) {
-                // Fill is possible
-                let Pt = Pd - Ps - Pf;
-                if (this.debug)
-                    this.debug("top up with", Pt, "bar of air");
-
-                $report.append(
-                    "Boost cylinder with O<sub>2</sub> to <b>" +
-                    Math.ceil(Pce) + " bar</b>");
-                if (Pt > 1)
-                    $report.append(" before topping up to <b>"
-                                   + Pd + " bar</b> with air");
-       
-                $report.append(
-                    "<p>This will use " +
-                    litres.toFixed(2) +
-                    " litres of O<sub>2</sub> at a cost of <strong>&pound;" +
-                    (litres * parseFloat(this.cfg.get("o2_price"))).toFixed(2) +
-                    "</strong></p>");
-
-                return;
-            }
-
-            $report.append("<div class='warning'>That mix isn't possible</div>");
-            
-            // Fill isn't possible. We need to either bleed the
-            // cylinder down to a level where it is possible, or
-            // adjust the mix (or use a fuller bank)
-            if (this.debug)
-                this.debug("Not enough pressure in bank, %f>%f", Pce, Pbe);
-             
-            // First see what the best fill we *can* deliver with
-            // this bank is, given the current Ps
-            if (Ps > Pbs) {
-                $report.append(
-                    "To use this bank you will have to bleed the cylinder down to below "
-                    + Pbs + " bar first<br />");
-                return;
-            }
-            
-            // Pressure equilibrium is reached when Ps + Pf = Pbe
-
-            // The litres lost from the bank (and therefore gained
-            // by the cylinder)
-            // Bll = (Pbs - Pbe) * Sb;
-            
-            // So the pressure gained by the cylinder
-            // Pf = Bll / Sc = (Pbs - Pbe) * Sb / Sc
-            
-            // Since Pbe = Ps + Pf at equilibrium,
-            // Pf = (Pbs - Ps - Pf) * Sb / Sc
-            // Pf * Sc / Sb = Pbs - Ps - Pf
-            // Pf * Sc / Sb + Pf = Pbs - Ps
-            // Pf * (Sc / Sb + 1) = Pbs - Ps
-            // Pf = (Pbs - Ps) / (Sc / Sb + 1)
-            let best_Pf = (Pbs - Ps) / (Sc / Sb + 1);
-            Pbe = Ps + best_Pf;
-            if (this.debug)
-                this.debug("Best Pf %f Pbe %f", best_Pf, Pbe);
-
-            litres = best_Pf * conditions.cylinder_size;
-            pressure_loss = litres / conditions.O2_bank_size;
-            if (this.debug)
-                this.debug("Lose %f bar to %f", pressure_loss, Pbe);
-
-            // Now we know from above that 
-            // Pf = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791
-            // Rearrange for Md
-            let best_Md = 0.209 + (best_Pf * 0.791 + Ps * (Ms - 0.209)) / Pd;
-            if (this.debug)
-                this.debug("Best possible mix is %f%", best_Md * 100);
-            
-            if (best_Md < Md) {
-                $report.append(
-                    "The best that can be achieved with this bank is <b>"
-                    + Math.floor(best_Md * 100) + "%</b><br />");
-            }
-
-            if (Ps <= 1)
-                return; // can't bleed an empty cylinder
-
-            // Can we reduce Ps to achieve the same Md?
-            // Now we know from above that 
-            // Pf = (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791
-            // and that equilibrium requires that
-            // Pf = (Pbs - Ps) / (Sc / Sb + 1)
-            // so
-            // (Pd * (Md - 0.209) - Ps * (Ms - 0.209)) / 0.791 =
-            //     (Pbs - Ps) / (Sc / Sb + 1)
-            // Pd * (Md - 0.209) - Ps * (Ms - 0.209) = 
-            //     0.791 * Pbs / (Sc / Sb + 1) - 0.791 * Ps / (Sc / Sb + 1)
-            // Pd * (Md - 0.209) - 0.791 * Pbs / (Sc / Sb + 1) = 
-            //      Ps * (Ms - 0.209) - 0.791 * Ps / (Sc / Sb + 1)
-            // Pd * (Md - 0.209) - 0.791 * Pbs / (Sc / Sb + 1) = 
-            //      Ps * ((Ms - 0.209) - 0.791 / (Sc / Sb + 1))
-            // Ps = (Pd * (Md - 0.209) - 0.791 * Pbs / (Sc / Sb + 1)) / 
-            //      ((Ms - 0.209) - 0.791 / (Sc / Sb + 1))
-            let best_Ps =
-                (Pd * (Md - 0.209) - Pbs * 0.791 / (Sc / Sb + 1)) /
-                (     (Ms - 0.209) -       0.791 / (Sc / Sb + 1));
-            if (best_Ps >= 1)
-                $report.append(
-                    "<b>" + conditions.target_mix
-                    + "%</b> can be achieved if you bleed the cylinder down to <b>"
-                    + Math.floor(best_Ps) + " bar</b> first");
+			const $report =	this.$tab.find("[name=report]");
+			if (filler.blend(banks)) {
+				if (cost_gbp > 0)
+					actions.push({
+						action: "Pay",
+						cost_gbp: cost_gbp
+					});
+				$report.html(this.expandActions(actions));
+			} else
+				$report.html(`<div class='nitrox-step'>Fill is not possible</div>`);
         }
     }
     return Nitrox;
