@@ -12,7 +12,7 @@ usually publish a curve indicating expected filter lifetime at
 different temperatures. This is normally an exponential curve that we
 have found can be modelled using a symmetric sigmoidal curve
 <div class="equation">
-F = <div class="fraction">
+F = <div class="fraction" style="display:inline">
 <span class="fup">D + (A - D)</span>
 <span class="fdn">(1 + (<sup>T</sup> &frasl; <sub>C</sub>)<sup>B</sup>)</span>
 </div></div>
