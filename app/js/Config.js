@@ -66,12 +66,13 @@ define("app/js/Config", () => {
 
         open(options) {
             const $template = $("#settings_dialog");
+            const self = this;
 
             return new Promise((resolve, reject) => {
                 const opts = $.extend({
                     title: $template.data("title"),
                     content: $template.html(),
-                    onContentReady: () => {
+                    onContentReady: function() {
                         const $form = this.$content.find("form");
                         const jc = this;
                         $form.find("input")
@@ -93,7 +94,7 @@ define("app/js/Config", () => {
                                 this.set(item, v);
                         })
                         .each((i, el) => {
-                            const v = this.get(el.name);
+                            const v = self.get(el.name);
                             if (this.type === "checkbox")
                                 $(el).prop('checked', v === el.value);
                             else

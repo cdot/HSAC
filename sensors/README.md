@@ -1,7 +1,7 @@
 # Sensors
 
 An ultra-light web server designed to be run on a Raspberry Pi with
-DHT11, DS18B20, and a custom built power sensor, all attached to GPIO.
+DHT11, DS18B20, and a PC817 power sensor, all attached to GPIO.
 
 On receipt of an AJAX request the server reads a sensor and reports the
 value read.
@@ -36,12 +36,8 @@ ls /sys/bus/w1/devices/w1_bus_master1
 ```
 Expect to see devices such as `28-0316027f81ff`
 
-## Power sensor
-The power sensor is a simple coil that generates a current when A/C is
-active. A simple amplifier is then used to drive a GPIO pin high. Software
-is then used to smooth out the inevitable bumps from the A/C to avoid having
-to do any rectification. The power sensor circuit is shown in
-`Current sensor.svg`
+## PC817 sensor
+The PC817 is an opto-isolated power sensor that simply drives a GPIO pin high when power is active.
 
 # Server Configuration
 You will need to install node.js and npm.
@@ -76,36 +72,8 @@ Power sensors have:
 * gpio - the GPIO pin the sensor will pull up (BCM pin numbering)
 * timeout - the time for which the sensor must be quiescent to qualify as "off"
 
-an example configuration file:
-```
-[
-  {
-   "name": "power",
-   "class", "Timer",
-   "gpio": 10,
-   "poll": 100
-  },
-  {
-   "name": "internal_temperature",
-   "class": "DS18x20",
-   "sensor_id": "28-0316027f81ff"
-  },
-  {
-   "name": "intake_temperature",
-   "class": "DHTxx",
-   "type": 11,
-   "gpio": 14,
-   "field": "temperature"
-  },
-  {
-   "name": "intake_humidity",
-   "class": "DHTxx",
-   "type": 11,
-   "gpio": 14,
-   "field": "humidity"
-  }
-]
-```
+an example configuration file is given in sensors/example.cfg
+
 The server has a number of command-line options that can be explored
 using the `--help` option.
 

@@ -53,7 +53,7 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
                 return Promise.reject("Timer not given a gpio pin");
 
             // Force-unexport first, in case it was previously left locked after a crash
-            return Fs.writeFile(GPIOPATH + "unexport", this.gpio)
+            return Fs.writeFile(GPIOPATH + "unexport", "" + this.gpio)
             .catch((e) => {
                 console.error("Unexport", this.gpio, "failed", e);
                 return Promise.resolve();

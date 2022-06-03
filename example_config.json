@@ -1,0 +1,55 @@
+// This configuration is stored in a plain .json file in webdav. This is
+// just an example.
+{
+ "loan_return": 10,
+ "o2": {
+  "bank": {
+   "1": {
+    "price": 0.02,
+    "size": 50.5,
+    "bar": 5
+   },
+   "2": {
+    "price": 0.02,
+    "size": 50.5,
+    "bar": 20
+   },
+   "3": {
+    "price": 0.02,
+    "size": 47.5,
+    "bar": 60
+   },
+   "4": {
+    "price": 0.02,
+    "size": 47.5,
+    "bar": 99
+   }
+  }
+ },
+ "compressor": {
+  "portable": {
+   "filter": {
+    "lifetime": 15,
+    "a": 1.84879,
+    "b": 1.124939,
+    "c": 14.60044,
+    "d": -0.3252651
+   }
+  },
+  "fixed": {
+   "filter": {
+    "lifetime": 40,
+    "a": 3.798205,
+    "b": 1.149582,
+    "c": 11.50844,
+    "d": -0.4806983
+   },
+   "pumping_rate": 300,
+   "purge_freq": 5,
+   "safe_limit": 25,
+   "sensor_url": null,
+   "poll_frequency": 0,
+   "internal_temperature_alarm": 90
+  }
+ }
+}

@@ -70,8 +70,8 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
 
         // Error handling
         server.use(function (err, req, res, next) {
-            res.status(500).send(err)
-        })
+            res.status(500).send(err);
+        });
 
         // Make sensors
         let promises = [];
@@ -131,5 +131,5 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
     })
     .catch((e) => {
         console.error("Error", e);
-    })
+    });
 });

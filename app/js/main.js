@@ -41,7 +41,7 @@ requirejs.config({
         "jquery-csv" : "app/node_modules/jquery-csv/src/jquery.csv" + min,
         "jquery-confirm" : "app/node_modules/jquery-confirm/dist/jquery-confirm.min", // only min available
         "tablesorter" : "app/node_modules/tablesorter/dist/js/jquery.tablesorter.combined" + min,
-        "markdown-it" : "app/libs/markdown-it" + min
+        "markdown-it" : "app/node_modules/markdown-it/dist/markdown-it" + min
     }
 });
 

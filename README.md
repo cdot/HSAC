@@ -17,10 +17,13 @@ browser application presents a tab interface, where each tab offers a
 particular service:
 
 1. Compressor - recording fixed and portable compressor usage with tracking of filter lifetime
-2. Loans - recording of equipment loans with complete editable history
-and cross-links to inventory
+2. Nitrox - nitrox blending calculations
+
+Optionally enabled services (edit index.html to enable):
+
 3. Inventory - equipment records
-4. Nitrox - nitrox blending calculations
+4. Loans - recording of equipment loans with complete editable history
+and cross-links to inventory
 
 Help information is readily available throughout the application through the
 <span class="fas fa-info-circle"></span> buttons.
@@ -31,6 +34,12 @@ compressor performance using electronic sensors.
 
 See [Compressor](Compressor.md) for more detailed information.
 
+### Nitrox
+The calculations necessary for nitrox fills from a bank of cylinders are
+performed using an ideal gas approximation (there is support for real gas
+approximation, but it is significantly more complex and makes little
+difference to the results).
+
 ### Loans
 Outgoing loans are recorded by selection from the inventory. Loan
 returns are recorded aginst the name of the person receiving back the
@@ -40,12 +49,6 @@ is out on loan.
 ### Inventory
 The inventory tab provides a way to quickly look up and find the
 location of equipment.
-
-### Nitrox
-The calculations necessary for simple nitrox fills are performed using
-an ideal gas approximation (there is support for real gas approximation, but
-it is significantly more complex and makes little difference to the final
-computations for Nitrox).
 
 ## Databases
 

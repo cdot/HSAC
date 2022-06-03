@@ -32,6 +32,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
 			this.$form = this.$tab.find(".validated_form");
 			this.$runtime = this.$tab.find("input[name='runtime']");
 			this.$submit = this.$tab.find("button[name='add_record']");
+			this.$change = this.$tab.find("button[name='filters_changed']");
 
 			// Controls for manual timer with portable compressor
 			const $session_play = this.$tab.find("button.session_play");
@@ -99,14 +100,6 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
 			.on("change", () => { this._readDigits(); });
 
 			// Handling form submission
-			this.$form
-			.find("input[name='filters_changed']")
-			.on("change", () => {
-				this.$tab
-				.find(".cr_filters_changed")
-				.toggle($(this).is(":checked"));
-			});
-
 			this.$form.find(":input")
 			.on("change", () => this._formChanged());
 			
@@ -127,7 +120,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
 					content: content,
 					buttons: {
 						"Remove last run": () => {
-							compressor._removeLastEntry().then((r) => {
+							compressor._removeLastEntry().then(r => {
 								compressor._setRuntimeAndDigits(r.runtime);
 								compressor._setMinRuntime(r.runtime);
 								compressor._formChanged();
@@ -154,12 +147,6 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
 							el.name, $(el).val());
 				});
 
-				this.$form.find(":input[type='checkbox']")
-				.each((i, el) => {
-					if (el.name in this.keys)
-						values[el.name] = $(el).is(":checked");
-				});
-
 				this.debug("Adding compressor record", values);
 				this._add(values).then(() => {
 					// Clear the timer
@@ -174,6 +161,20 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
 					this._formChanged();
 				});
 			});
+
+			this.$change
+			.off("click")
+			.on("click", () => {
+				const values = {};
+				this.$form.find(":input").each((i, el) => {
+					if (el.name in this.keys)
+						values[el.name] = this.deserialise(
+							el.name, $(el).val());
+				});
+                values.filters_changed = true;
+				this.debug("Adding filter changed record", values);
+				this._add(values);
+			});
         }
 
         /**
@@ -183,6 +184,8 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          */
         _formChanged() {
             this.$submit.button(
+                "option", "disabled", !this.$form.valid());
+            this.$change.button(
                 "option", "disabled", !this.$form.valid());
         }
 
@@ -250,7 +253,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
 
             this.$runtime.rules("remove", "min");
             this.$runtime.rules("add", {
-                min: r + 1 / (60 * 60) // 1 second
+                min: r
             });
         }
 
@@ -283,6 +286,11 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             .then(() => {
                 this.debug("\t", this.length(), this.id,
                            "compressor records");
+                let lc = 0;
+                for (let e of this.entries) {
+                    if (e.filters_changed)
+                        lc = e.date;
+                }
                 if (this.length() > 0) {
                     const cur = this.get(this.length() - 1);
                     this._setRuntimeAndDigits(cur.runtime);
@@ -294,6 +302,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                         Entries.formatDateTime(cur.date));
                     this.$tab.find(".cr_flr").text(
                         new Number(this._remainingFilterLife()).toFixed(2));
+                    this.$tab.find(".cr_flc").text(lc.toLocaleDateString());
                     this.$tab.find(".cr_runtime").text(cur.runtime.toFixed(2));
                 }
 
@@ -548,10 +557,8 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
         _removeLastEntry() {
             return this.loadFromStore().then(() => {
                 this.entries.pop();
-                return this.save().then(() => {
-                    this.reloadUI()
-					.then(() => this.get(this.length() - 1));
-                });
+                return this.save().then(() => this.reloadUI())
+				.then(() => this.get(this.length() - 1));
             });
         }
 
@@ -571,11 +578,18 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             for (let i = ents.length - num_records; i < ents.length; i++) {
                 let e = ents[i];
                 table += "<tr>";
-                for (let h of heads) {
-                    let d = e[h];
-                    if (d instanceof Date)
-                        d = d.toLocaleString();
-                    table += "<td>" + d + "</td>";
+                if (e.filters_changed) {
+                    table += "<td>" + e.date.toLocaleString() + "</td>";
+                    table += "<td>" + e.operator + "</td>";
+                    table += `<td colspan="${heads.length - 2}">`
+                    + "FILTERS CHANGED" + "</td>";
+                } else {
+                    for (let h of heads) {
+                        let d = e[h];
+                        if (d instanceof Date)
+                            d = d.toLocaleString();
+                        table += "<td>" + d + "</td>";
+                    }
                 }
                 table += "</tr>";
             }

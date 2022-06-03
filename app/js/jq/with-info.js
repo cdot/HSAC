@@ -67,7 +67,7 @@ define("app/js/jq/with-info", [	"jquery" ], (
 				if ($thing.next().is(".with-info-before"))
 					$clickable = $thing.next();
 				else {
-					$clickable = $("<span class='fas fa-info-circle with-info-before'></span>");
+					$clickable = $("<span class='fa fa-info-circle with-info-before'></span>");
 					$thing.before($clickable);
 				}
 			} else {
@@ -75,7 +75,7 @@ define("app/js/jq/with-info", [	"jquery" ], (
 				if ($thing.next().is(".with-info-after"))
 					$clickable = $thing.next();
 				else {
-					$clickable = $("<span class='fas fa-info-circle with-info-after'></span>");
+					$clickable = $("<span class='fa fa-info-circle with-info-after'></span>");
 					$thing.after($clickable);
 				}
 			}
@@ -97,7 +97,7 @@ define("app/js/jq/with-info", [	"jquery" ], (
 				
 				get_info.then((html) => {
 					if (typeof params.bodyIcon === "undefined")
-						html = "<div class='fas fa-info-circle with-info-icon'></div>" + html;
+						html = "<div class='fa fa-info-circle with-info-icon'></div>" + html;
 					else
 						html = params.bodyIcon + html;
 

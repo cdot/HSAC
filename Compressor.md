@@ -1,16 +1,48 @@
+<style >
+.fraction {
+    display: inline-block;
+    vertical-align: middle; 
+    margin: 0 0.2em 0.4ex;
+    text-align: center;
+}
+.fraction > span {
+    display: block;
+    padding-top: 0.15em;
+}
+
+/* Markdown */
+.fraction span.fdn {border-top: thin solid black;}
+.equation {
+    font-style: italic;
+    border: 1px solid black;
+    padding: 0.5em;
+}
+.fup {
+}
+</style>
 # Compressor
+
+Compressor support includes a logging application and an optional sensor
+package.
+
+## Sensors
+
+At HSAC the sensors are interfaced through a [Raspberry Pi](https://www.raspberrypi.org/) that reads [DS18B20](https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf) temperature, [DHT11](https://www.makerguides.com/wp-content/uploads/2019/02/DHT11-Datasheet.pdf) humidity and temperature, and [PC817]()https://octopart.com/datasheet/pc817b-sharp-9239011) sensors. The Raspberry Pi runs a service that polls the sensors, and makes the results available via AJAX requests. The URL to make these requests is called the **Sensors root URL** and is specified in the configuration dialog of the main package. Sensors are
+polled every few seconds. An audible alarm can be triggered if the internal
+temperature sensor exceeds a given limit.
 
 ## Filter Life Prediction
 
 Compressor manufacturers usually publish guidelines for the expected
 lifetime of the filters in their compressors. These normally include a
-<b>Predicted Filter Lifetime</b> for the filter when the compressor is
+<b>Predicted Filter Lifetime</b> *Lp* for the filter when the compressor is
 run at a typical temperature (e.g. 20&deg;C). Compressor filter
 performance degrades significantly at higher temperatures and
 generally improves slightly at lower temperatures, so manufacturers
 usually publish a curve indicating expected filter lifetime at
 different temperatures. This is normally an exponential curve that we
-have found can be modelled using a symmetric sigmoidal curve
+have found in the case of our Coltri MCH/16 can be modelled using a symmetric
+sigmoidal curve
 <div class="equation">
 F = <div class="fraction" style="display:inline">
 <span class="fup">D + (A - D)</span>
@@ -18,12 +50,22 @@ F = <div class="fraction" style="display:inline">
 </div></div>
 
 where *T* is the
-temperature, *F* is a lifetime degradation factor, and **A**, **B**, **C**
-and **D** are constant **Coefficients**. We can apply this degradation factor
+temperature, *F* is a lifetime degradation factor, and *A*, *B*, *C*
+and *D* are constant **Coefficients**.
+
+We can apply this degradation factor *F*
 to the predicted lifetime *Lp* to obtain a predicted lifetime at that
-temperature in hours <i>Lpt = F * Lp</i>. For a runtime of <i>dT</i> hours, we can
-then obtain an estimate of filter lifetime used
-<i>Flu = dT / Lpt</i>. We then subtract that from <i>Lp</i> to get a new remaining
+temperature in hours
+<div class="equation">
+Lpt = F * Lp
+</div>
+
+For a runtime of*dT* hours, we can
+then obtain an fraction of filter lifetime used so far:
+<div class="equation">
+Flu = <div class="fraction"><span class="fup">dT</span><span class="fdn">Lpt</span></div></div>
+
+We then subtract that from *Lp* to get a new remaining
 filter life prediction. 
 
 The default filter lifetime constants for the static compressor
@@ -40,14 +82,14 @@ humidity to determine whether it is safe to operate the compressor.
 
 The lifetime of filters is mostly determined by the amount of water
 that has to be removed from the air. In an effort to maximise filter
-life, the app will automatically restrict use of the compressor based
-on the current temperature and humidity.
+life, the app will advise when temperature and humidity are within limits.
 
 Going back to basics, the saturation partial pressure of water vapour
 is proportional to temperature:
 
 <div class="equation">
-Sp = 610.78 * e<sup>17.2694 * <sup>T</sup> &frasl;<sub>(T + 238.3)</sub></sup>
+Sp = 610.78 * e<sup>17.2694 * (<div class="fraction">
+<span class="fup">T</span><span class="fdn">T + 238.3</span></div>)</div>
 </div>
 
 where *T* is the air temperature in &deg;C, and *Sp* is in Pascals. This
@@ -94,14 +136,8 @@ of this is negligible)
 
 The parameters controlling this calculation can be set up in the
 configuration dialog. Temperature and humidity are either read from sensors
-or manually entered. Experience has shown us that our compressor can tolerate a
+or manually entered. Experience has shown that our compressor can tolerate a
 build up of up to 35ml of condensate before a purge becomes necessary. Purging
-every 7 minutes means we can still fill safely at up to 90% humidity
-below 20&deg;C
+every 7 minutes means we can fill at up to 90% humidity, below 20&deg;C.
 
-## Sensors
-
-The compressor sensors are accessed via AJAX requests to the
-**Sensors root URL** specified in the configuration dialog. Sensors are
-polled every few seconds. An audible alarm can be triggered if the internal
-temperature sensor exceeds a given limit.
+Note that we have found the DHT11 humidity sensor to be particularly unreliable, so we use manually entered values most of the time. Some day we should really replace them with something better (e.g. an AHT20).

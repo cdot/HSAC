@@ -220,6 +220,7 @@ define("app/js/Sheds", [
             tick();
 
             let $gear = $('#settings');
+            let self = this;
             $gear.on("click", () => {
                 this.config.open({
                     autoClose: 'close|60000',
@@ -241,7 +242,7 @@ define("app/js/Sheds", [
                                 p = Promise.resolve();
 
                             p
-							.then(() => this.config.save());
+							.then(() => self.config.save());
                         }
                     },
                     validity: function (ok) {

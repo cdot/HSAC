@@ -36,45 +36,46 @@ define("app/js/Nitrox", [
 
 		//@override
 		attachHandlers() {
-			this.$form = this.$tab.children("form");
-			this.$submit = this.$tab.find("button[name='add_record']");
+            const $tab = this.$tab;
+			this.$form = $tab.children("form");
+			this.$submit = $tab.find("button[name='add_record']");
 
             $("#nitrox").children("form").on("submit", (e) => {
                 e.preventDefault();
             });
                 
-            this.$tab.find("input")
+            $tab.find("input")
 			.on("change", () => this.recalculate());
 
-			this.$tab.find("[name=fix_bank]")
+			$tab.find("[name=fix_bank]")
 			.on("click", () => this._fixBank());
 			
-			this.$tab.find("[name=report]>div")
+			$tab.find("[name=report]>div")
 			.addClass("hidden");
 			
-			this.$tab.find("[name=report]>div").hide();
+			$tab.find("[name=report]>div").hide();
 
-			this.$tab.find("[name=pick_blend]")
+			$tab.find("[name=pick_blend]")
 			.on("change", (evt) => {
-				this.$tab.find("[name=report]>div")
+				$tab.find("[name=report]>div")
 				.hide();
-				this.$tab.find(`[name=report]>[name=${evt.target.value}]`)
+				$tab.find(`[name=report]>[name=${evt.target.value}]`)
 				.show();
 			});
-			this.$tab.find("[name=pick_blend]:checked")
+			$tab.find("[name=pick_blend]:checked")
 			.each((i, el) => {
-				this.$tab.find(`[name=report]>[name=${el.value}]`)
+				$tab.find(`[name=report]>[name=${el.value}]`)
 				.show();
 			});
 
-			this.$tab.find("[name=blender]")
-			.on("change", evt => {
+			$tab.find("[name=blender]")
+			.on("change", function(evt) {
 				if ($(this).val()) {
-					this.$tab.find("[name=blender-sel]").show();
-					this.$tab.find("[name=no-blender-sel]").hide();
+					$tab.find("[name=blender-sel]").show();
+					$tab.find("[name=no-blender-sel]").hide();
 				} else {
-					this.$tab.find("[name=blender-sel").hide();
-					this.$tab.find("[name=no-blender-sel]").show();
+					$tab.find("[name=blender-sel").hide();
+					$tab.find("[name=no-blender-sel]").show();
 				}
 			});
 		}

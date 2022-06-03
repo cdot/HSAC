@@ -63,7 +63,7 @@ define("app/js/Entries", ["jquery-csv"], () => {
 		 * Override in subclasses, calling the superclass.
 		 */
 		loadUI() {
-			return $.get(`app/html/${this.id}.html`)
+			return $.get(`app/html/${this.id}.html?nocache=${Date.now()}`)
 			.then(html => {
 				const $tab = $(`<div id="${this.id}"></div>`);
 				$tab.html(html);
