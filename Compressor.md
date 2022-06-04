@@ -21,9 +21,10 @@ usually publish a curve indicating expected filter lifetime at
 different temperatures. This is normally an exponential curve that we
 have found in the case of our Coltri MCH/16 can be modelled using a symmetric
 sigmoidal curve
-```math
-F=(D + (A - D))/(1+(T/C)^B)
-```
+
+<div>F = <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">D + (A - D)</div><div style="border-top:thin solid black;">1 + (T / C)<sup>B</sup></div>
+</div></div>
+
 where *T* is the
 temperature, *F* is a lifetime degradation factor, and *A*, *B*, *C*
 and *D* are constant **Coefficients**.
@@ -31,20 +32,18 @@ and *D* are constant **Coefficients**.
 We can apply this degradation factor *F*
 to the predicted lifetime *Lp* to obtain a predicted lifetime at that
 temperature in hours
-<div class="equation">
+
 Lpt = F * Lp
-</div>
 
-For a runtime of*dT* hours, we can
-then obtain an fraction of filter lifetime used so far:
-<div class="equation">
-Flu = <div class="fraction"><span class="fup">dT</span><span class="fdn">Lpt</span></div></div>
-
-We then subtract that from *Lp* to get a new remaining
+For a runtime of *dT* hours, we can
+then obtain an fraction of filter lifetime used so far. We then subtract
+that from *Lp* to get a new remaining
 filter life prediction. 
 
+<div>Flr = Lp - <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">dT</div><div style="border-top:thin solid black;">Lpt</div></div></div>
+
 The default filter lifetime constants for the static compressor
-prediction re derived from data provided by Coltri for an MCH 16/ET,
+prediction are derived from data provided by Coltri for an MCH 16/ET,
 and for the portable compressor by Bauer for a PE100, though you can
 provide your own coefficients to match your compressor/filters in the
 configuration dialog (http://www.mycurvefit.com provides a convenient way
@@ -56,33 +55,26 @@ The application automatically evaluates values of temperature and
 humidity to determine whether it is safe to operate the compressor.
 
 The lifetime of filters is mostly determined by the amount of water
-that has to be removed from the air. In an effort to maximise filter
-life, the app will advise when temperature and humidity are within limits.
+that has to be removed from the air, which is in turn dictated by the
+relative humidity. In an effort to maximise filter
+life, the app tracks the operating temperature and humidity.
 
 Going back to basics, the saturation partial pressure of water vapour
 is proportional to temperature:
 
-<div class="equation">
-Sp = 610.78 * e<sup>17.2694 * (<div class="fraction">
-<span class="fup">T</span><span class="fdn">T + 238.3</span></div>)</div>
-</div>
+<div>Sp = 610.78 * e<sup>17.2694 * <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">T</div><div style="border-top:thin solid black;">T + 238.3</div></div></sup></div>
 
 where *T* is the air temperature in &deg;C, and *Sp* is in Pascals. This
 can be converted to a water vapour capacity in gm<sup>-3</sup>
 
-<div class="equation">
-Cw = 2.166 * <div class="fraction"><span class="fup">Sp</span><span class="fdn">T + 273.16</span></div>
-</div>
+<div>Cw = 2.166 * <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">Sp</div><div style="border-top:thin solid black;">(T + 273.16)</div></div></div>
 
 Using these equations, air at 20&deg;C will have a water vapour capacity
-of around 17gm<sup>-3</sup> at 1 bar. Since:
+of around 17gm<sup>-3</sup> at 1 bar. Since
 
-<div class="equation">
-Relative Humidity (RH) = <div class="fraction"><span class="fup">Water vapour content</span><span class="fdn">Water vapour capacity</span></div> * 100%
-</div>
+Relative Humidity (RH) = (Water vapour content) / (Water vapour capacity)
 
-this is the water content at a RH of 100%. At 20&deg;C, 80% humidity, the air contains 13.6gm<sup>-3</sup>.
-At 50% humidity, 8.5gm<sup>-3</sup>
+we can calculate that at 20&deg;C, 80% humidity, the air contains 13.6gm<sup>-3</sup>. At 50% humidity, 8.5gm<sup>-3</sup>
 
 Let's say it's 80%RH and 20&deg;C. You are pumping a 10L cylinder to
 232 bar, that is 2320 litres (2.32m<sup>3</sup>) of air at 1 bar
