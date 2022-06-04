@@ -34,9 +34,7 @@ and *A*, *B*, *C* and *D* are constants.
 
 We can apply this degradation factor *F* to the manufacturer's
 predicted lifetime *Lp* to obtain a predicted lifetime at any
-temperature.
-
-For a runtime of *dT* hours, we can derive a remaining filter life
+temperature. For a runtime of *dT* hours, we can derive a remaining filter life
 prediction *Flp*
 
 ![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Flp%3DLp-dT%2F(F*Lp))

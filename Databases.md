@@ -85,6 +85,7 @@ the `list` column gives a comma-separated list of people who can
 perform that role.  There must be at least the following columns:
 1. member - club members who are permitted to borrow equipment
 2. operator - qualified compressor operators
+3. blender - qualified Nitrox blenders
 
 Other lists may be provided in additional columns for future use. Example:
 ```

@@ -100,32 +100,6 @@ define("app/js/Sheds", [
             );
 
             this.roles = new Roles(this.config);
-
-			const requires = [];
-			$("#main_tabs li>a").each((i, el) => {
-				const id = el.href.replace(/^.*#/, "");
-				const clazz = $(el).data("class");
-				requires.push(
-					new Promise(resolve => {
-						this.debug("Requiring", id);
-						requirejs([`app/js/${clazz}`], Clazz => {
-							this[id] = new Clazz({
-								config: this.config,
-								app: this,
-								id: id,
-								app: this,
-								store: this.config.store,
-								debug: this.debug
-							});
-							resolve(this[id].loadUI());
-						});
-					}));
-			});
-			Promise.all(requires)
-			.then(() => {
-				$("#main_tabs").tabs();
-				this.reloadUI();
-			});
         }
 
         /**
@@ -180,6 +154,9 @@ define("app/js/Sheds", [
             });
         }
 
+        /**
+         * @return Promise
+         */
         initialise_ui() {
             // Generics
             $(".spinner").spinner();
@@ -445,18 +422,41 @@ define("app/js/Sheds", [
         }
 
         begin(params) {
-            this.initialise_ui();
+			const requires = [];
+			$("#main_tabs li>a").each((i, el) => {
+				const id = el.href.replace(/^.*#/, "");
+				const clazz = $(el).data("class");
+				requires.push(
+					new Promise(resolve => {
+						this.debug("Requiring", id);
+						requirejs([`app/js/${clazz}`], Clazz => {
+							this[id] = new Clazz({
+								config: this.config,
+								app: this,
+								id: id,
+								app: this,
+								store: this.config.store,
+								debug: this.debug
+							});
+							resolve(this[id].loadUI());
+						});
+					}));
+			});
+			Promise.all(requires)
+			.then(() => $("#main_tabs").tabs())
+            .then(() => this.initialise_ui())
+            .then(() => {
+                let promise;
+                let url = Cookies.get("cache_url");
+                if (typeof url === "undefined" || url.length == 0)
+                    promise = this.promise_to_reconnect();
+                else
+                    promise = this.cache_connect(url);
 
-            let promise;
-            let url = Cookies.get("cache_url");
-            if (typeof url === "undefined" || url.length == 0)
-                promise = this.promise_to_reconnect();
-            else
-                promise = this.cache_connect(url);
-
-            promise
-            .catch((e) => {
-                console.error("Internal failure", e, url);
+                promise
+                .catch((e) => {
+                    console.error("Internal failure", e, url);
+                });
             });
         }
     }
