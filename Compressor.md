@@ -36,12 +36,10 @@ We can apply this degradation factor *F* to the manufacturer's
 predicted lifetime *Lp* to obtain a predicted lifetime at any
 temperature.
 
-![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Lpt%3DF*Lp)
-
 For a runtime of *dT* hours, we can derive a remaining filter life
 prediction *Flp*
 
-![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Flp%3DLp-dT%2FLpt)
+![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Flp%3DLp-dT%2F(F*Lp))
 
 This calculation is updated automatically at the end of each compressor
 run, providing a continuous estimate of filter life remaining.
