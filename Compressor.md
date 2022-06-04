@@ -9,37 +9,42 @@ At HSAC the sensors are interfaced through a [Raspberry Pi](https://www.raspberr
 polled every few seconds. An audible alarm can be triggered if the internal
 temperature sensor exceeds a given limit.
 
+Note that we have found the DHT11 humidity sensor to be particularly
+unreliable, so we use manually entered values most of the time. Some
+day we should really replace it with something better (e.g. an AHT20).
+
 ## Filter Life Prediction
 
 Compressor manufacturers usually publish guidelines for the expected
 lifetime of the filters in their compressors. These normally include a
-<b>Predicted Filter Lifetime</b> *Lp* for the filter when the compressor is
-run at a typical temperature (e.g. 20&deg;C). Compressor filter
-performance degrades significantly at higher temperatures and
-generally improves slightly at lower temperatures, so manufacturers
-usually publish a curve indicating expected filter lifetime at
-different temperatures. This is normally an exponential curve that we
-have found in the case of our Coltri MCH/16 can be modelled using a symmetric
-sigmoidal curve
+<b>Predicted Filter Lifetime</b> *Lp* for the filter (in hours) when
+the compressor is run at a typical temperature
+(e.g. 20&deg;C). Compressor filter performance degrades significantly
+at higher temperatures and generally improves slightly at lower
+temperatures, so manufacturers usually publish a curve indicating
+expected filter lifetime at different temperatures. This is normally
+an exponential curve that we have found, in the case of our Coltri
+MCH/16, can be modelled fairly accurately using a symmetric sigmoidal
+curve
 
 ![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=F%3DD%2B(A-D)%2F(1%2B(T%2FC)%5EB))
 
-where *T* is the
-temperature, *F* is a lifetime degradation factor, and *A*, *B*, *C*
-and *D* are constant **Coefficients**.
+where *T* is the temperature, *F* is a lifetime degradation factor,
+and *A*, *B*, *C* and *D* are constants.
 
-We can apply this degradation factor *F*
-to the predicted lifetime *Lp* to obtain a predicted lifetime at that
-temperature in hours
+We can apply this degradation factor *F* to the manufacturer's
+predicted lifetime *Lp* to obtain a predicted lifetime at any
+temperature.
 
 ![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Lpt%3DF*Lp)
 
-For a runtime of *dT* hours, we can
-then obtain an fraction of filter lifetime used so far. We then subtract
-that from *Lp* to get a new remaining
-filter life prediction *Flp*
+For a runtime of *dT* hours, we can derive a remaining filter life
+prediction *Flp*
 
 ![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Flp%3DLp-dT%2FLpt)
+
+This calculation is updated automatically at the end of each compressor
+run, providing a continuous estimate of filter life remaining.
 
 The default filter lifetime constants for the static compressor
 prediction are derived from data provided by Coltri for an MCH 16/ET,
@@ -72,26 +77,25 @@ of around 17gm<sup>-3</sup> at 1 bar. Since
 
 Relative Humidity (RH) = (Water vapour content) / (Water vapour capacity)
 
-we can calculate that at 20&deg;C, 80% humidity, the air contains 13.6gm<sup>-3</sup>. At 50% humidity, 8.5gm<sup>-3</sup>
+we can calculate that at 20&deg;C, 80% humidity, the air contains 13.6gm<sup>-3</sup>. At 50% humidity, 8.5gm<sup>-3</sup>.
 
 Let's say it's 80%RH and 20&deg;C. You are pumping a 10L cylinder to
-232 bar, that is 2320 litres (2.32m<sup>3</sup>) of air at 1 bar
+232 bar, that is 2320 litres (2.32m<sup>3</sup>) of air at 1 bar,
 which will contain 31.55g of water vapour. Since the dryness
-requirement (for Nitrox) is 0.02gm<sup>-3</sup>
-that means there can be no more than 0.046g of water in the filled
+requirement (for Nitrox) is 0.02gm<sup>-3</sup>,
+there can be no more than 0.046g of water in the filled
 tank. So we have to remove 31.5g of water.
 
 The reason the amount of water removed is important is that the
-performance of the filtration system depends on it. Let's say you pump
-at 300L per minute. That will fill a 12 from empty in roughly 9
-minutes. So at 80% RH and 20&deg;C, the compressor will remove roughly 38g
-(38ml) of water in that time. You have to purge that water (condensate)
-from the system, otherwise it pools at the base of the filter tower and
-saturates the media, but every time you purge you lose pressure, which
-increases the
-fill time. We have to find a "sweet spot" where the fill time is minimised,
-but the filter life is maximised. We do this by setting a threshold for the
-amount of condensate that can be generated in a single purge cycle.
+performance of the filtration system depends on it. You have to purge
+the extracted water (condensate) from the system regularly, otherwise
+it pools at the base of the filter tower and saturates the media,
+shortening the filter life. But every time you purge you lose
+pressure, which increases the fill time, and also increases the amount
+of air input to the system. We have to find a "sweet spot" where the
+fill time is minimised, but the filter life is maximised. We do this
+by setting a threshold for the volume of condensate that can be
+generated in a single purge cycle.
 
 The threshold is a function of:
 1. The **Maximum condensate** volume (in ml) which is acceptable between purges
@@ -106,4 +110,4 @@ or manually entered. Experience has shown that our compressor can tolerate a
 build up of up to 35ml of condensate before a purge becomes necessary. Purging
 every 7 minutes means we can fill at up to 90% humidity, below 20&deg;C.
 
-Note that we have found the DHT11 humidity sensor to be particularly unreliable, so we use manually entered values most of the time. Some day we should really replace them with something better (e.g. an AHT20).
+For more information on how the calculation is performed see the [source code](https://github.com/cdot/HSAC/blob/master/app/js/Compressor.js), method `_remainingFilterLife`.
