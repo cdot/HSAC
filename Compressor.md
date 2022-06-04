@@ -22,8 +22,7 @@ different temperatures. This is normally an exponential curve that we
 have found in the case of our Coltri MCH/16 can be modelled using a symmetric
 sigmoidal curve
 
-<div>F = <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">D + (A - D)</div><div style="border-top:thin solid black;">1 + (T / C)<sup>B</sup></div>
-</div></div>
+![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=F%3DD%2B(A-D)%2F(1%2B(T%2FC)%5EB))
 
 where *T* is the
 temperature, *F* is a lifetime degradation factor, and *A*, *B*, *C*
@@ -33,14 +32,14 @@ We can apply this degradation factor *F*
 to the predicted lifetime *Lp* to obtain a predicted lifetime at that
 temperature in hours
 
-Lpt = F * Lp
+![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Lpt%3DF*Lp)
 
 For a runtime of *dT* hours, we can
 then obtain an fraction of filter lifetime used so far. We then subtract
 that from *Lp* to get a new remaining
-filter life prediction. 
+filter life prediction *Flp*
 
-<div>Flr = Lp - <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">dT</div><div style="border-top:thin solid black;">Lpt</div></div></div>
+![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Flp%3DLp-dT%2FLpt)
 
 The default filter lifetime constants for the static compressor
 prediction are derived from data provided by Coltri for an MCH 16/ET,
@@ -59,15 +58,14 @@ that has to be removed from the air, which is in turn dictated by the
 relative humidity. In an effort to maximise filter
 life, the app tracks the operating temperature and humidity.
 
-Going back to basics, the saturation partial pressure of water vapour
-is proportional to temperature:
+Going back to basics, the [saturation partial pressure of water vapour](https://en.wikipedia.org/wiki/Tetens_equation) is proportional to temperature:
 
-<div>Sp = 610.78 * e<sup>17.2694 * <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">T</div><div style="border-top:thin solid black;">T + 238.3</div></div></sup></div>
+![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Sp%3D610.78*e%5E(17.2*(T%2F(T%2B237.3))))
 
 where *T* is the air temperature in &deg;C, and *Sp* is in Pascals. This
 can be converted to a water vapour capacity in gm<sup>-3</sup>
 
-<div>Cw = 2.166 * <div style="display:inline-block;vertical-align:middle;text-align:center;"><div style="display:inline;">Sp</div><div style="border-top:thin solid black;">(T + 273.16)</div></div></div>
+![equation](http://www.algebra.com/cgi-bin/plot-formula.mpl?expression=Cw%3D2.166*(Sp%2F(T%20%2B%20273.16)))
 
 Using these equations, air at 20&deg;C will have a water vapour capacity
 of around 17gm<sup>-3</sup> at 1 bar. Since
@@ -88,8 +86,9 @@ performance of the filtration system depends on it. Let's say you pump
 at 300L per minute. That will fill a 12 from empty in roughly 9
 minutes. So at 80% RH and 20&deg;C, the compressor will remove roughly 38g
 (38ml) of water in that time. You have to purge that water (condensate)
-from the system, otherwise it pools at the base of the filter and saturates the
-media, but every time you purge you lose pressure, which increases the
+from the system, otherwise it pools at the base of the filter tower and
+saturates the media, but every time you purge you lose pressure, which
+increases the
 fill time. We have to find a "sweet spot" where the fill time is minimised,
 but the filter life is maximised. We do this by setting a threshold for the
 amount of condensate that can be generated in a single purge cycle.
