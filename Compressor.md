@@ -1,25 +1,3 @@
-<style >
-.fraction {
-    display: inline-block;
-    vertical-align: middle; 
-    margin: 0 0.2em 0.4ex;
-    text-align: center;
-}
-.fraction > span {
-    display: block;
-    padding-top: 0.15em;
-}
-
-/* Markdown */
-.fraction span.fdn {border-top: thin solid black;}
-.equation {
-    font-style: italic;
-    border: 1px solid black;
-    padding: 0.5em;
-}
-.fup {
-}
-</style>
 # Compressor
 
 Compressor support includes a logging application and an optional sensor
@@ -43,12 +21,9 @@ usually publish a curve indicating expected filter lifetime at
 different temperatures. This is normally an exponential curve that we
 have found in the case of our Coltri MCH/16 can be modelled using a symmetric
 sigmoidal curve
-<div class="equation">
-F = <div class="fraction" style="display:inline">
-<span class="fup">D + (A - D)</span>
-<span class="fdn">(1 + (<sup>T</sup> &frasl; <sub>C</sub>)<sup>B</sup>)</span>
-</div></div>
-
+```math
+F=(D + (A - D))/(1+(T/C)^B)
+```
 where *T* is the
 temperature, *F* is a lifetime degradation factor, and *A*, *B*, *C*
 and *D* are constant **Coefficients**.
