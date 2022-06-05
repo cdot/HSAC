@@ -11,28 +11,32 @@ The application comprises three parts:
 
 ## Browser Application
 
+`index.html` and subfolder `app`.
+
 The application user interface is written to use a standard
 browser. This provides a high degree of portability and openness. The
 browser application presents a tab interface, where each tab offers a
 particular service:
 
-1. Compressor - recording fixed and portable compressor usage with tracking of filter lifetime
+1. Compressor - recording fixed compressor usage with tracking of filter lifetime
 2. Nitrox - nitrox blending calculations
 
 Optionally enabled services (edit index.html to enable):
 
-3. Inventory - equipment records
-4. Loans - recording of equipment loans with complete editable history
+3. Portable compressor - like fixed compressor but tuned for a portable
+4. Inventory - equipment records
+5. Loans - recording of equipment loans with complete editable history
 and cross-links to inventory
 
 Help information is readily available throughout the application through the
-<span class="fas fa-info-circle"></span> buttons.
+info buttons.
 
 ### Compressor
+
 Compressor support includes tracking and predicting filter life, and monitoring
 compressor performance using electronic sensors.
 
-See [Compressor](Compressor.md) for more detailed information.
+See [Compressor](app/Compressor.md) for more detailed information.
 
 ### Nitrox
 The calculations necessary for nitrox fills from a bank of cylinders are

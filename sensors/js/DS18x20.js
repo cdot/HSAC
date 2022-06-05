@@ -24,7 +24,10 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor", "js/Time", "js/RangeSimulato
             // Make sure we can read from the config
             return new Promise((resolve, reject) => {
                 DS18B20_raspi.readSimpleC((err, temp) => {
-                    if (err) { reject(err); return; }
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
                     console.log("DS18x20", this.mSensorId, "connected");
                     resolve();
                 });
@@ -41,7 +44,10 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor", "js/Time", "js/RangeSimulato
 							  time: Time.now() });
 				else
 					DS18B20_raspi.readSimpleC((err, temp) => {
-						if (err) { reject(err); return; }
+						if (err) {
+                            reject(err);
+                            return;
+                        }
 						resolve({ sample: temp, time: Time.now() });
 					});
             });

@@ -1,0 +1,185 @@
+/*eslint-env node, mocha */
+
+const requirejs = require('requirejs');
+
+requirejs.config({
+    baseUrl: `${__dirname}/../..`
+});
+
+requirejs([
+	"app/js/Gas", "app/js/NitroxBlender", "app/test/TestRunner"
+], (Gas, NitroxBlender, TestRunner) => {
+    let tr = new TestRunner("NitroxBlender");
+    let assert = tr.assert;
+
+    let tests = [
+        {
+			name: "enough in the bank",
+            T: Gas.C2K(4),
+            Sc: 12,
+            Ms: 0.26,  Ps: 30,
+            Md: 0.32, Pd: 232,
+			banks: [
+				{ name: "bank", price: 0.01, size: 49, bar: 90 } ],
+            expect: [
+				[ "AddFromBank", "bank", 61, 372, 82 ],
+				[ "TopUp", 232 ],
+			]
+		},
+
+        {
+			name: "second bank needed",
+            T: Gas.C2K(25),
+            Sc:  7,
+            Ms: 0.21,  Ps: 20,
+            Md: 0.32, Pd: 232,
+			banks: [
+				{ name: "A", price: 0.005, size: 49, bar: 30 },
+				{ name: "B", price: 0.01, size: 52, bar: 100 },
+			],
+            expect: [
+				[ "AddFromBank", "A", 29, 63, 28 ],
+				[ "AddFromBank", "B", 53, 168, 96 ],
+				[ "TopUp", 232 ],
+			],
+		},
+
+        {
+			name: "all banks needed",
+            T: Gas.C2K(14),
+            Sc:  15,
+            Ms: 0.21,  Ps: 50,
+            Md: 0.5, Pd: 232,
+			banks: [
+				{ name: "A", price: 0.005, size: 49, bar: 30 },
+				{ name: "B", price: 0.01, size: 52, bar: 40 },
+				{ name: "C", price: 0.01, size: 52, bar: 50 },
+				{ name: "D", price: 0.01, size: 52, bar: 200 },
+			],
+            expect: [
+				["Bleed", 1, (50 - 1) * 15, 0 ],
+				["AddFromBank", "A", 23, 330, 23 ],
+				["AddFromBank", "B", 36, 195, 36 ],
+				["AddFromBank", "C", 47, 165, 46 ],
+				["AddFromBank", "D", 86, 585, 188 ],
+				["TopUp", 232 ]
+			],
+		},
+
+        // Too much O2 already in cylinder, need to bleed
+        {
+			name: "too much O2",
+            T: Gas.C2K(40),
+            Sc: 10,
+            Ms: 0.32, Ps: 200,
+            Md: 0.28, Pd: 230,
+            banks: [
+				{ name: "bank", price: 0.015, size: 47,  bar: 210 }
+			],
+            expect: [
+				[ "Bleed", 147, (200-147) * 10, 58.83 ],
+				[ "TopUp", 230 ],
+			]
+		},
+
+        // Mix achievable, but too much pressure already in cylinder,
+		// need to empty it first
+        {
+			name: "too much pressure",
+            T: Gas.C2K(18),
+            Sc: 3,
+            Ms: 0.21, Ps: 40,
+            Md: 0.30, Pd: 230,
+            banks: [
+				{ name: "bank", price: 0.025, size: 40,  bar: 30 }
+			],
+            expect: [
+				[ "Bleed", 1, (40 - 1) * 3, 0 ],
+				[ "AddFromBank", "bank", 27, 78, 28 ],
+				[ "TopUp", 230 ],
+			]
+		},
+
+        {
+			name: "strong mix, all banks needed",
+            T: Gas.C2K(14),
+            Sc:  15,
+            Ms: 0.50,  Ps: 100,
+            Md: 0.5, Pd: 232,
+			banks: [
+				{ name: "A", price: 0.005, size: 49, bar: 30 },
+				{ name: "B", price: 0.01, size: 52, bar: 40 },
+				{ name: "C", price: 0.01, size: 52, bar: 50 },
+				{ name: "D", price: 0.01, size: 52, bar: 200 },
+			],
+            expect: [
+				["Bleed", 1, (100 - 1) * 15, 432.14 ],
+				["AddFromBank", "A", 23, 330, 23 ],
+				["AddFromBank", "B", 36, 195, 36 ],
+				["AddFromBank", "C", 47, 165, 46 ],
+				["AddFromBank", "D", 86, 585, 188 ],
+				["TopUp", 232 ]
+			],
+		},
+    ];
+
+    for (let test of tests) {
+        tr.addTest(test.name, function() {
+			//test.debug = console.debug;
+			//console.debug("\nTest:", test.name);
+			const actions = [];
+			test.action = function() {
+				const args = Array.from(arguments);
+				//console.log(args);
+				actions.push(args);
+			};
+			const filler = new NitroxBlender(test);
+            assert(filler.blend(test.banks, 0));
+			assert.equal(actions.length, test.expect.length);
+			for (let i = 0; i < test.expect.length; i++) {
+				const e = test.expect[i];
+				const a = actions[i];
+				assert.deepEqual(a, e);
+			}
+        });
+    }
+
+	tr.addTest("cheapestBlend", () => {
+		const banks = [
+			{ name: "A", price: 0.005, size: 49, bar: 30 },
+			{ name: "B", price: 0.01, size: 52, bar: 40 },
+			{ name: "C", price: 0.015, size: 52, bar: 150 },
+			{ name: "D", price: 0.025, size: 52, bar: 200 },
+		];
+
+		const params = {
+			T: Gas.C2K(14),
+			Sc:  15,
+			Ms: 0.50,  Ps: 100,
+			Md: 0.5, Pd: 232
+		};
+		//params.debug = console.debug;
+		let filler = new NitroxBlender(params);
+		const blends = filler.bestBlends(banks);
+
+		assert.deepEqual(blends, {
+			cheapest: {
+				bank: 0, cost: 2.89, time: 51.1,
+				actions: [
+					[ 'Bleed', 1, (100-1)*15, 432.14 ],
+					[ 'AddFromBank', 'A', 23, 330, 23 ],
+					[ 'AddFromBank', 'B', 36, 195, 36 ],
+					[ 'AddFromBank', 'C', 86, 750, 135 ],
+					[ 'TopUp', 232 ]
+				]},
+			fastest: {
+				bank: 3, cost: 3.73, time: 37.25,
+				actions: [
+					[ "AddFromBank", "D", 149, 735, 185 ],
+					[ "TopUp", 232 ]
+				]}
+		});
+	});
+
+    tr.run();
+});

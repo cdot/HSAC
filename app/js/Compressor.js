@@ -1,7 +1,9 @@
 /*@preserve Copyright (C) 2018-2021 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entries) => {
+define("app/js/Compressor", [
+    "app/js/Entries", "jquery", "touch-punch"
+], Entries => {
 
 	/**
      * Compressor runtime events page.
@@ -264,7 +266,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
          */
         _getSample(name) {
             const url = this.config.get("compressor:" + this.id + ":sensor_url");
-            return new Promise((resolve, reject) => {
+            return new Promise(resolve => {
                 $.ajax({
                     url: url + "/" + name,
                     data: {
@@ -272,12 +274,8 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                     },
                     dataType: "text"
                 })
-                .done((sample) => {
-                    resolve(JSON.parse(sample));
-                })
-                .fail(() => {
-                    resolve(null);
-                });
+                .done(sample => resolve(JSON.parse(sample)))
+                .fail(() => resolve(null));
             });
         }
 
@@ -312,7 +310,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 // Validate the form
                 this._formChanged();
             })
-            .catch((e) => {
+            .catch(e => {
                 console.error(`${this.id} Compressor load failed`, e);
             });
         }
@@ -388,7 +386,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             let promises = [
                 // Promise to update runtime
                 this._getSample("power")
-                .then((sample) => {
+                .then(sample => {
                     if (sample.sample > 0) {
                         // Check that we are within operable limits, if
                         // not raise an alarm
@@ -405,7 +403,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                         this._formChanged();
                     }
                 })
-                .catch((e) => {})
+                .catch(() => {})
             ];
             
             // Promise to update sampled fields
@@ -415,10 +413,8 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                 let name = $el.data("sensor");
                 promises.push(
                     this._getSample(name)
-                    .then((sample) => {
-                        this._updateSampledField($el, sample);
-                    })
-                    .catch((e) => { this._updateSampledField($el, null); }));
+                    .then(sample => this._updateSampledField($el, sample))
+                    .catch(() => this._updateSampledField($el, null)));
             });
 
             // Promise to check alarm sensors
@@ -543,6 +539,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
                             let snd = new Audio("app/sounds/" + pick + ".mp3");
                             snd.play();
                         } catch (e) {
+                            console.debug("Cannot play", e);
                         }
                     }
                 })
@@ -570,7 +567,7 @@ define("app/js/Compressor", ["app/js/Entries", "jquery", "touch-punch"], (Entrie
             if (ents.length === 0)
                 return "No activity";
                 
-            let heads = this.getHeads().filter((h) => h !== "filters_changed");
+            let heads = this.getHeads().filter(h => h !== "filters_changed");
 
             let table = "<table><thead><tr><th>"
                 + heads.join("</th><th>") + "</tr></thead><tbody>";

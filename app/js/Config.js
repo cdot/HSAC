@@ -22,7 +22,7 @@ define("app/js/Config", () => {
         load() {
             return this.store
             .read("config.json")
-            .then((json) => {
+            .then(json => {
                 const d = JSON.parse(json);
                 this.store_data = $.extend({}, this.store_data, d);
                 this.debug("Config loaded");
@@ -35,7 +35,7 @@ define("app/js/Config", () => {
             .then(() => {
                 this.debug("Config saved");
             })
-            .catch((e) => {
+            .catch(e => {
                 $.alert({ title: "Config save failed",
                           content: e.message });
             });
@@ -68,46 +68,44 @@ define("app/js/Config", () => {
             const $template = $("#settings_dialog");
             const self = this;
 
-            return new Promise((resolve, reject) => {
-                const opts = $.extend({
-                    title: $template.data("title"),
-                    content: $template.html(),
-                    onContentReady: function() {
-                        const $form = this.$content.find("form");
-                        const jc = this;
-                        $form.find("input")
-                        .on("change", evt => {
-                            const item = evt.target.name;
-                            let v = $(evt.target).val();
-                            if (/^[0-9.]*$/.test(v)) {
-                                let sv = v;
-                                try {
-                                    v = parseFloat(sv);
-                                } catch (e) {
-                                    v = sv;
-                                };
+            const opts = $.extend({
+                title: $template.data("title"),
+                content: $template.html(),
+                onContentReady: function() {
+                    const $form = this.$content.find("form");
+                    const jc = this;
+                    $form.find("input")
+                    .on("change", evt => {
+                        const item = evt.target.name;
+                        let v = $(evt.target).val();
+                        if (/^[0-9.]*$/.test(v)) {
+                            let sv = v;
+                            try {
+                                v = parseFloat(sv);
+                            } catch (e) {
+                                v = sv;
                             }
-                            const ok = $form.valid();
-                            if (opts.validity)
-                                opts.validity.call(jc, ok);
-                            if ($form.valid())
-                                this.set(item, v);
-                        })
-                        .each((i, el) => {
-                            const v = self.get(el.name);
-                            if (this.type === "checkbox")
-                                $(el).prop('checked', v === el.value);
-                            else
-                                $(el).val(v);
-                        });
-                        if (opts.moreOnContentReady)
-                            opts.moreOnContentReady.call(this);
-                        if (!this.$content.find("form").valid())
-                            this.buttons.close.disable();
-                    }
-                }, options);
-                $.confirm(opts);
-            });
+                        }
+                        const ok = $form.valid();
+                        if (opts.validity)
+                            opts.validity.call(jc, ok);
+                        if ($form.valid())
+                            self.set(item, v);
+                    })
+                    .each((i, el) => {
+                        const v = self.get(el.name);
+                        if (this.type === "checkbox")
+                            $(el).prop('checked', v === el.value);
+                        else
+                            $(el).val(v);
+                    });
+                    if (opts.moreOnContentReady)
+                        opts.moreOnContentReady.call(this);
+                    if (!this.$content.find("form").valid())
+                        this.buttons.close.disable();
+                }
+            }, options);
+            $.confirm(opts);
         }
     }
     return Config;

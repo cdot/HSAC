@@ -6,7 +6,7 @@ const gpioPin = parseInt(process.argv[2]);
 let state;
 function sample() {
     fs.readFile('/sys/class/gpio/gpio' + gpioPin + "/value")
-    .then((newstate) => {
+    .then(newstate => {
         newstate = parseInt(newstate.toString());
         if (newstate != state)
             console.log("Edge", newstate);
@@ -19,7 +19,7 @@ fs.writeFile('/sys/class/gpio/export', "" + gpioPin)
 .then(() => {
     return fs.writeFile('/sys/class/gpio/gpio' + gpioPin + "/direction", "in");
 })
-.catch((e) => {
+.catch(e => {
     console.error(e);
 })
 .then(() => {

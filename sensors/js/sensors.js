@@ -1,14 +1,16 @@
 /*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env node.js */
+/* global __dirname */
+/* global process */
 
 /**
  * Server giving access to sensors attached to Raspberry Pi
  *
  * See sensors/README.md for information
  */
-let requirejs = require('requirejs');
+requirejs = require('requirejs');
 requirejs.config({
-    baseUrl: __dirname.replace(/\/[^\/]*$/, "")
+    baseUrl: __dirname.replace(/\/[^/]*$/, "")
 });
 
 requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs, Getopt, Express, CORS, Time) {
@@ -17,7 +19,7 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
           "See sensors/README.md for details\n\nOPTIONS\n";
     const DEFAULT_PORT = 8000;
 
-    let cliopt = Getopt.create([
+    const cliopt = Getopt.create([
         ["h", "help", "Show this help"],
         ["c", "config=ARG", "Configuration file (default ~/sensors.cfg)"],
         ["p", "port=ARG", "What port to run the server on (default " + DEFAULT_PORT + ")"],
@@ -30,18 +32,18 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
         .options;
 
     if (typeof cliopt.config === "undefined")
-        cliopt.config = process.env["HOME"] + "/sensors.cfg";
+        cliopt.config = process.env.HOME + "/sensors.cfg";
 
-    let log = (cliopt.verbose) ? console.log : (() => {});
+    const log = (cliopt.verbose) ? console.log : (() => {});
 
-    let simulation = cliopt.simulate;
+    const simulation = cliopt.simulate;
 
 	function connect(cfg) {
 		cfg.sensor.connect()
 		.then(() => {
 			console.log(`connect: ${cfg.sensor.name} connected`);
 		})
-		.catch((error) => {
+		.catch(error => {
 			//console.log(`connect: ${error}`);
 			// If simulation is requested, make a simulated sensor if the
 			// connect failed
@@ -50,21 +52,21 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
 				cfg.sensor.simulate();
 			} else {
 				// Back off and re-try
-				setTimeout(() => { connect(cfg); }, 2000);
+				setTimeout(() => connect(cfg), 2000);
 			}
 		});
 	}
 	
     Fs.readFile(cliopt.config)
-    .then((config) => {
+    .then(config => {
         return JSON.parse(config);
     })
-    .catch((e) => {
+    .catch(e => {
         console.error("Configuration error", e);
         return Promise.reject(e.message);
     })
-    .then((config) => {
-        let server = Express();
+    .then(config => {
+        const server = Express();
 
         server.use(CORS());
 
@@ -74,16 +76,16 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
         });
 
         // Make sensors
-        let promises = [];
-        for (let cfg of config.sensors) {
+        const promises = [];
+        for (const cfg of config.sensors) {
             cfg.log = log;
-            let clss = cfg["class"];
+            const clss = cfg.class;
 
-            let promise = new Promise((resolve, reject) => {
-                requirejs([`js/${clss}`], (SensorClass) => {
+            const promise = new Promise((resolve, reject) => {
+                requirejs([`js/${clss}`], SensorClass => {
                     cfg.sensor = new SensorClass(cfg);
 					resolve();
-                }, (e) => {
+                }, e => {
                     log(clss, `require(${clss}) : ${e}`);
                     cfg.error = `Could not require ${clss}: ${e}`;
  					reject();
@@ -103,16 +105,16 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
                             Time.sync(req.query.t);
 						log(`Got ${cfg.name} request`);
                         cfg.sensor.sample()
-                        .then((sample) => {
+                        .then(sample => {
                             res.send(sample);
                         })
-						.catch((e) => {
+						.catch(e => {
 						});
                     });
-                    log("Registered /" + sensor.name);
-                    return Promise.resolve("registered /" + sensor.name);
+                    log("Registered /" + cfg.sensor.name);
+                    return Promise.resolve("registered /" + cfg.sensor.name);
                 })
-                .catch((cfg) => {
+                .catch(cfg => {
                     log(cfg.name, "could not be registered", cfg);
                     server.get(`/${cfg.name}`, (req, res, next) => {
                         next();
@@ -122,14 +124,14 @@ requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs
         }
 
         Promise.all(promises)
-        .then((ps) => {
+        .then(ps => {
             log(ps);
-            let port = cliopt.port || config.port || DEFAULT_PORT;
+            const port = cliopt.port || config.port || DEFAULT_PORT;
             server.listen(port);
             console.log("Server started on port", port);
         });
     })
-    .catch((e) => {
+    .catch(e => {
         console.error("Error", e);
     });
 });

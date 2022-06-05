@@ -11,7 +11,7 @@ define("js/OnOffSimulator", ["js/Sensor", "js/Time"], function(Sensor, Time) {
 		// Sample that gives on/off times
 		sample() {
             // Power on time since last sample
-            let sample = Math.floor(Math.random() * (Date.now() - this.lastask));
+            const sample = Math.floor(Math.random() * (Date.now() - this.lastask));
             this.lastask = Date.now();
             return sample;
 		}

@@ -394,7 +394,7 @@ define("app/js/DAVClient", () => {
         xhrProvider() {
             return new XMLHttpRequest();
         }
-    };
+    }
 
     return DAVClient;
 });

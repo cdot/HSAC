@@ -55,7 +55,7 @@ define(["mocha", "chai"], function(maybeMocha, chai) {
                     });
                 }
                 else if (typeof self.after === "function")
-                    self.after()
+                    self.after();
             });
             this.mocha.suite.addTest(test);
         }

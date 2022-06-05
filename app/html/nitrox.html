@@ -1,0 +1,36 @@
+<div name="no-blender-sel" class="warning">
+  Only trained blenders may use this page. Please select your name from the list. If you are not there and want to be trained, contact the Training Officer. If you have recently been trained, your name may not have been added yet. In this case, please use the name of the instructor who taught you.
+</div>
+<div class="flex-row">
+  <label for="blender">
+	Blender
+  </label>
+  <select name="blender" class="blender flex-grow" data-msg="Must be a trained blender" required>
+	<option></option>
+  </select>
+</div>
+<div name="blender-sel" style="display:none">
+  Fill a
+  <input id="nox_cs" name="cylinder_size" data-msg="Must be between 1ℓ and 30ℓ" required type="number" class="integer2" min="1" max="30" value="12">ℓ cylinder containing
+  <input id="nox_sp" name="start_pressure" required type="number" class="integer3" min="1" max="300" value="50"> bar of
+  <input id="nox_sm" name="start_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer3" min="21" max="100" value="21">%
+  to 
+  <input id="nox_tp" name="target_pressure" data-msg="Must be between 0 and 250 bar" required type="number" class="integer3" min="1" max="300" value="232"> bar with 
+  <input id="nox_tm" name="target_mix" data-msg="Must be between 21% and 100%" required type="number" class="integer3" min="21" max="100" value="32">%
+  <div>
+	<label for="nox_ppO2max">
+	  A maximum ppO<sub>2</sub> of
+	</label>
+	<input id="nox_ppO2max" type="number" class="floating_point" step="0.1" required name="ppO2max" min="0" max="2" value="1.4"> bar gives a MOD of <b><span id="nox_MOD"></span>m</b>
+  </div>
+  <div>
+	Use bank cylinders:
+	<div class="nox_o2_bank" style="display:inline">
+	  <!-- filled by code -->
+	</div>
+	<button name="fix_bank">Fix bank pressures</button>
+  </div>
+  <div name="report">
+  </div>
+  <button name="add_record">Touch here to record this mix</button>
+</div>

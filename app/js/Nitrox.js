@@ -40,9 +40,9 @@ define("app/js/Nitrox", [
 			this.$form = $tab.children("form");
 			this.$submit = $tab.find("button[name='add_record']");
 
-            $("#nitrox").children("form").on("submit", (e) => {
-                e.preventDefault();
-            });
+            $("#nitrox")
+            .children("form")
+            .on("submit", e =>  e.preventDefault());
                 
             $tab.find("input")
 			.on("change", () => this.recalculate());
@@ -56,7 +56,7 @@ define("app/js/Nitrox", [
 			$tab.find("[name=report]>div").hide();
 
 			$tab.find("[name=pick_blend]")
-			.on("change", (evt) => {
+			.on("change", evt => {
 				$tab.find("[name=report]>div")
 				.hide();
 				$tab.find(`[name=report]>[name=${evt.target.value}]`)
@@ -69,7 +69,7 @@ define("app/js/Nitrox", [
 			});
 
 			$tab.find("[name=blender]")
-			.on("change", function(evt) {
+			.on("change", function() {
 				if ($(this).val()) {
 					$tab.find("[name=blender-sel]").show();
 					$tab.find("[name=no-blender-sel]").hide();
@@ -137,9 +137,9 @@ define("app/js/Nitrox", [
 					.find(`[name='bank_${cur.bank_used}']`)
 					.text(cur.bank_bar);
 				}
- 				this.recalculate();
+                this.recalculate();
            })
-            .catch((e) => {
+            .catch(e => {
                 console.error("Nitrox load failed: " + e, e);
             });
         }

@@ -1,5 +1,6 @@
 /*@preserve Copyright (C) 2015-2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env jquery */
+/* global requirejs */
 
 /**
  * Informational dialog for use with data-with-info. Requires jquery-confirm
@@ -29,7 +30,7 @@ define("app/js/jq/with-info", [	"jquery" ], (
 				return Promise.resolve($("#" + url).innerHTML);
 			}
 
-			return new Promise((resolve) => {
+			return new Promise(resolve => {
 				$.ajax({
 					url: url,
 					data: {
@@ -37,11 +38,12 @@ define("app/js/jq/with-info", [	"jquery" ], (
 					},
 					dataType: "text"
 				})
-				.done((md) => {
+				.done(md => {
 					requirejs(["markdown-it"], function(Markdown) {
 						let html = new Markdown({ html: true }).render(md);
-						$("body").append("<div class='info hidden' id='" + url + "'>"
-										 + html + "</div>");
+                        $("body").append("<div class='info hidden' id='"
+                                         + url + "'>"
+                                         + html + "</div>");
 						resolve(html);
 					});
 				});
@@ -71,7 +73,6 @@ define("app/js/jq/with-info", [	"jquery" ], (
 					$thing.before($clickable);
 				}
 			} else {
-				let p = $thing.next();
 				if ($thing.next().is(".with-info-after"))
 					$clickable = $thing.next();
 				else {
@@ -95,7 +96,7 @@ define("app/js/jq/with-info", [	"jquery" ], (
 					// HTML is in attribute
 					get_info = Promise.resolve(source);
 				
-				get_info.then((html) => {
+				get_info.then(html => {
 					if (typeof params.bodyIcon === "undefined")
 						html = "<div class='fa fa-info-circle with-info-icon'></div>" + html;
 					else

@@ -4,7 +4,9 @@
 /**
  * Entries for Loan events. These can be edited in place.
  */
-define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
+define("app/js/Loans", [
+    "app/js/Entries", "app/js/jq/in-place"
+], Entries => {
 
     class Loans extends Entries {
         constructor(params) {
@@ -89,7 +91,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 				}
 				Promise.all([
 					this.app.roles.find("role", "member")
-					.then((row) => {
+					.then(row => {
 						if (row.list.split(",").indexOf(this.capture.borrower) < 0)
 							bad.push("borrower");
 					})
@@ -97,7 +99,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
 						bad.push("borrower");
 					}),
 					this.app.roles.find("role", "operator")
-					.then((row) => {
+					.then(row => {
 						if (row.list.split(",").indexOf(this.capture.lender) < 0)
 							bad.push("lender");
 					})
@@ -188,9 +190,9 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
             .on("click", () => {
                 $td.removeClass("error");
                 this.app.roles.find("role", set)
-                .then((row) => {
+                .then(row => {
                     $(this).select_in_place({
-                        changed: (s) => {
+                        changed: s => {
                             if (s != entry[field]) {
                                 entry[field] = s;
                                 $td.text(s);
@@ -231,7 +233,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 $td.removeClass("error");
                 $(this).datepicker(
                     "dialog", entry[field],
-                    (date) => {
+                    date => {
                         date = new Date(date);
                         if (date != entry[field]) {
                             entry[field] = date;
@@ -244,7 +246,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                     e);
             });
             return $td;
-        };
+        }
 
         mod_item($td, field) {
             let entry = this.capture;
@@ -269,7 +271,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 .dialog("open");
             });
             return $td;
-        };
+        }
 
         // The tbody is where current loans are recorded
         load_tbody () {
@@ -327,7 +329,7 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 $("#loan_some_late").show();
             else
                 $("#loan_some_late").hide();
-        };
+        }
 
         // The tfoot is where new loans are entered
         load_tfoot() {
@@ -358,17 +360,17 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                 }
                 $col = $col.next();
             }
-        };
+        }
 
         reload_ui() {
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 return this.loadFromStore()
                 .then(() => {
                     this.debug("Loading " + this.length() + " loan records");
                     this.load_tbody();
                     resolve();
                 })
-                .catch((e) => {
+                .catch(e => {
                     console.error("Loans load failed: " + e);
                     resolve();
                 });
@@ -388,18 +390,18 @@ define("app/js/Loans", ["app/js/Entries", "app/js/jq/in-place"], (Entries) => {
                     dateFormat: "ddmmyyyy"
                 });*/
             });
-        };
+        }
 
         save_changes() {
             this.save().then(() => {
 				this.reset();
                 $(document).trigger("reload_ui");
             });
-        };
+        }
 
         number_on_loan(item) {
             let on_loan = 0;
-            this.each((row) => {
+            this.each(row => {
                 let active = (typeof row.returned === "undefined" ||
                               row.returned === "");
                 if (active && row.item === item)

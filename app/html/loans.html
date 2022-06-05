@@ -1,0 +1,51 @@
+<div class="crowded_tab">
+  <div>
+	<div style="float:right">
+      <label for="loan_show_all">Show returned items</label>
+      <input type="checkbox" value="false" id="loan_show_all">
+	</div>
+	<span data-with-info="#infoLoans">Enter new loans on the last row of the table</span>
+	<div id="loan_some_late" class="hidden warning">
+      One or more returns are <span data-with-info="#infoLate">
+		late</span>
+	</div>
+  </div>
+  <div id="loan_controls">
+	<button id="loan_save" class="loan_control">
+      <span class="ui-icon ui-icon-disk"></span>
+      Save Changes
+	</button>
+	<button id="loan_reset" class="loan_control">
+      <span class="ui-icon ui-icon-arrowreturnthick-1-w"></span>
+      Discard Changes
+	</button>
+  </div>
+  <div style="clear:both" class="scroll_container">
+	<table id="loan_table" class="zebra tablesorter" data-order="date,count,item,borrower,lender,donation,returned">
+      <thead>
+		<th>Date</th>
+		<th class="sorter-false isnumber">#</th>
+		<th class="widest">Item</th>
+		<th>Borrower</th>
+		<th>Lender</th>
+		<th class="sorter-false isnumber">&pound;</th>
+		<th>Returned&nbsp;to</th>
+      </thead>
+      <tbody>
+      </tbody>
+      <tfoot>
+		<th class="loan_foot" id="loan_dlg_date"></th>
+		<th class="loan_foot" id="loan_dlg_count"></th>
+		<th class="loan_foot" id="loan_dlg_item"></th>
+		<th class="loan_foot" id="loan_dlg_borrower"></th>
+		<th class="loan_foot" id="loan_dlg_lender"></th>
+		<th class="loan_foot" id="loan_dlg_donation"></th>
+		<th>
+          <button id="loan_add" data-with-info="#infoAddLoan">
+			Add
+          </button>
+		</th>
+      </tfoot>
+	</table>
+  </div>
+</div>

@@ -1,0 +1,151 @@
+<div class="crowded_tab">
+  <div class="hidden alarm error" data-compressor="fixed" data-sensor="internal_temperature">
+	COMPRESSOR INTERNAL TEMPERATURE IS TOO HIGH!
+  </div>
+  <div style="float:right" id="report:fixed"></div>
+  <form id="fixed_form" class="validated_form">
+	<div>
+      Last run by <span class="cr_operator">?</span>
+      <span class="cr_time">?</span>. Runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">hours <span class='fa fa-cog'></span></span>
+    </div><div>
+      <span>Filters were last changed <span class="cr_flc">?</span>.</span>
+      <span data-with-info="#infoFilterEfficiency">Filter estimate is <span class="cr_flr">?</span> hours left</span>
+	</div>
+	<div>
+      Enter details of your run below:
+	</div>
+	<table class="form_table zebra" id="compressor_table">
+      <tr>
+		<th class="input_label">
+          <span data-with-info="#infoOperator">
+			Operator
+          </span>
+		</th>
+		<td colspan="2" class="widest">
+          <select name="operator" class="operator" data-msg="Must be a trained operator" required>
+			<option></option>
+          </select>
+		</td>
+      </tr>
+      <tr>
+		<th class="input_label">
+          <span data-with-info="#infoTemperature">
+			Temperature
+          </span>
+		</th>
+		<td class="widest">
+          <input name="temperature" type="number" class="integer2" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" compressor="fixed" data-compressor="fixed" data-sensor="intake_temperature" data-sample-config='{"max_age":300000,"sampled":"#fixed_temp_from_sensor","unsampled":"#fixed_intake_temp_slider"}'>&deg;C
+          <span style="display:none" id="fixed_temp_from_sensor" class="detected">(detected)</span>
+          <div class="temperature slider" id="fixed_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#fixed_temp"}'>
+			<div class="min">4&deg;C</div><div class="max">40&deg;C</div>
+          </div>
+		</td>
+      </tr>
+      <tr>
+		<th class="input_label">
+          <span data-with-info="#infoHumidity">
+			Humidity
+          </span>
+		</th>
+		<td class="widest">
+          <input name="humidity" type="number" class="integer2" value="50" id="fixed_hum" compressor="fixed" data-compressor="fixed" data-sensor="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider","dubious":"#fixed_hum_dubious"}'>%
+          <span style="display:none" id="fixed_hum_from_sensor" class="detected">(detected)</span>
+          <span style="display:none" id="fixed_hum_dubious" class="rainbow">(sensed value out of valid range)</span>
+          <div class="humidity slider" id="fixed_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
+			<div class="min">0%</div><div class="max">80%</div>
+          </div>
+		</td>
+      </tr>
+      <tr>
+		<th class="input_label">
+          <span data-with-info="#infoRuntime">
+			Runtime
+          </span>
+          <br/>
+          <span class="cr_delta detected"></span>
+		</th>
+		<td class="widest">
+          <select class="digital" data-units="1000">
+			<option>0</option>
+			<option>1</option>
+			<option>2</option>
+			<option>3</option>
+			<option>4</option>
+			<option>5</option>
+			<option>6</option>
+			<option>7</option>
+			<option>8</option>
+			<option>9</option>
+          </select>
+          <select class="digital" data-units="100">
+			<option>0</option>
+			<option>1</option>
+			<option>2</option>
+			<option>3</option>
+			<option>4</option>
+			<option>5</option>
+			<option>6</option>
+			<option>7</option>
+			<option>8</option>
+			<option>9</option>
+          </select>
+          <select class="digital" data-units="10">
+			<option>0</option>
+			<option>1</option>
+			<option>2</option>
+			<option>3</option>
+			<option>4</option>
+			<option>5</option>
+			<option>6</option>
+			<option>7</option>
+			<option>8</option>
+			<option>9</option>
+          </select>
+          <select class="digital" data-units="1">
+			<option>0</option>
+			<option>1</option>
+			<option>2</option>
+			<option>3</option>
+			<option>4</option>
+			<option>5</option>
+			<option>6</option>
+			<option>7</option>
+			<option>8</option>
+			<option>9</option>
+          </select>
+          .
+          <select class="digital" data-units="0.1">
+			<option>0</option>
+			<option>1</option>
+			<option>2</option>
+			<option>3</option>
+			<option>4</option>
+			<option>5</option>
+			<option>6</option>
+			<option>7</option>
+			<option>8</option>
+			<option>9</option>
+          </select>
+          <select class="digital" data-units="0.01">
+			<option>0</option>
+			<option>1</option>
+			<option>2</option>
+			<option>3</option>
+			<option>4</option>
+			<option>5</option>
+			<option>6</option>
+			<option>7</option>
+			<option>8</option>
+			<option>9</option>
+          </select>
+          <input name="runtime" style="display:none" readonly="readonly" type="floating_point" data-msg="Must be greater than the last recorded runtime" min="0" required>
+		  hours
+		</td>
+      </tr>
+	</table>
+  </form>
+  <div style="float:right">
+    <button name="filters_changed">Filters changed</button>
+  </div>
+  <button name="add_record">Touch here to record this run</button>
+</div>

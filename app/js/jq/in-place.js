@@ -9,16 +9,16 @@
 
     $.fn.edit_in_place = function (options) {
 
-        var $this = $(this);
-        var h = options.height || $this.innerHeight() || "1em";
-        var w = options.width || $this.innerWidth() || "1em";
-        var changed = options.changed ||
-            function (text) {
+        let $this = $(this);
+        let h = options.height || $this.innerHeight() || "1em";
+        let w = options.width || $this.innerWidth() || "1em";
+        let changed = options.changed ||
+            function () {
                 return $this.text();
             };
-        var closed = options.closed || function () {};
-        var $input = $(document.createElement("input"));
-        var text = options.text || $this.text();
+        let closed = options.closed || function () {};
+        let $input = $(document.createElement("input"));
+        let text = options.text || $this.text();
 
         // Action on blur
         function blurb() {
@@ -37,7 +37,7 @@
             .css("width", w - 4)
 
             .on("change", function () {
-                var val = $(this)
+                let val = $(this)
                     .val();
                 blurb();
                 if (val !== text)
@@ -60,19 +60,19 @@
 
     $.fn.select_in_place = function (options) {
 
-        var $ul = $("<ul class='sip_menu_ul'></ul>");
-        var $div = $("<div class='sip_div'></div>");
-        var $dlg = $("<div id='sip_menu'></div>");
+        let $ul = $("<ul class='sip_menu_ul'></ul>");
+        let $div = $("<div class='sip_div'></div>");
+        let $dlg = $("<div id='sip_menu'></div>");
         $div.append($ul);
         $dlg.append($div);
         $("body").append($dlg);
 
-        var $this = $(this);
-        var text = $this.text();
+        let $this = $(this);
+        let text = $this.text();
 
-        for (var i = 0; i < options.options.length; i++) {
-            var opt = options.options[i];
-            var $opt = $("<li>" + opt + "</li>");
+        for (let i = 0; i < options.options.length; i++) {
+            let opt = options.options[i];
+            let $opt = $("<li>" + opt + "</li>");
             if (opt === text) {
                 $opt.addClass("ui-state-disabled");
                 $opt[0].scrollIntoView();
@@ -82,13 +82,13 @@
 
         $ul.menu({
             select: function (event, ui) {
-                var val = ui.item.text();
+                let val = ui.item.text();
                 if (options.changed)
                     options.changed.call($this, val);
                 $dlg.dialog("close");
             }
         });
-        var vo = $this.offset();
+        let vo = $this.offset();
 
         $dlg.dialog({
             modal: true,
@@ -106,7 +106,7 @@
             height: window.innerHeight - vo.top,
             resizable: false,
             draggable: false,
-            open: function (event, ui) {
+            open: function () {
                 // Blur when clicking outside the menu
                 $(".ui-widget-overlay").on("click", function () {
                     $dlg.dialog("close");

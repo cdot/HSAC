@@ -13,20 +13,20 @@ define("app/js/AbstractStore", () => {
         /**
          * Promise to connect to this store using the given parameters.
          * Pure virtual.
-         * @param params
+         * @param {object} params
          */
         connect(params) {
-            return Promise.reject(new Error("Store has no connect method"));
-        };
+            return Promise.reject(new Error(`Store has no connect method ${params}`));
+        }
 
         /**
          * Set credentials for this store
-         * @param user username
-         * @param pass password
+         * @param {string} user username
+         * @param {string} pass password
          */
         setCredentials(user, pass) {
-            throw new Error("Store has no setCredentials method");
-        };
+            throw new Error(`Store has no setCredentials method ${user} ${pass}`);
+        }
 
         /**
          * Promise to disconnect from this store. Virtual.
@@ -35,17 +35,17 @@ define("app/js/AbstractStore", () => {
          */
         disconnect() {
             return Promise.resolve();
-        };
+        }
 
         /**
          * Return a Promise to write data. Pure virtual. Note that the store is
          * expected to create intermediate directory levels on the fly.
-         * @param path pathname to store the data under, a / separated path string
-         * @param data a string to store
+         * @param {string} path pathname to store the data under, a / separated path string
+         * @param {string} data a string to store
          */
         write(path, data) {
-            return Promise.reject(new Error("Store has no write method"));
-        };
+            return Promise.reject(new Error(`Store has no write method ${path} ${data}`));
+        }
 
         /**
          * Return a Promise to read data.
@@ -54,7 +54,7 @@ define("app/js/AbstractStore", () => {
          * @param fail called on failure
          */
         read(path, ok, fail) {
-            return Promise.reject(new Error("Store has no read method"));
+            return Promise.reject(new Error("Store has no read method", path, ok, fail));
         }
     }
     return AbstractStore;

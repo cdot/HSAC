@@ -16,7 +16,7 @@ requirejs(["js/Timer"], function(Timer) {
     function bah() {
         pooh
         .sample()
-        .then((s) => {
+        .then(s => {
             if (s.sample > 0)
                 console.log("On for", s, "ms");
 	    setTimeout(bah, 1000);

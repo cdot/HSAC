@@ -49,9 +49,7 @@ requirejs(["app/js/Compressor", "app/js/Config", "app/test/TestRunner", "jquery"
     let cfg = new Config(
         // Dummy store
         {
-            read: (what) => {
-                return Promise.resolve(store[what]);
-            },
+            read: what => Promise.resolve(store[what]),
             write: (what, data) => {
                 store[what] = data;
                 return Promise.resolve();

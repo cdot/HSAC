@@ -1,11 +1,12 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser, jquery */
+/* global require */
 
-define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
+define("app/js/Inventory", ["app/js/Entries"], Entries => {
 
 	require("app/js/jq/with-info");
 
-        // Inventory columns that are NOT to be used in a descriptor
+    // Inventory columns that are NOT to be used in a descriptor
     const hide_cols = {
         "Kit Pool": true,
         "Location": true,
@@ -45,8 +46,8 @@ define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
         }
 
         /**
-         * Highlight the inventory item identified by data-picked by adding the
-         * inventory_chosen class to it
+         * Highlight the inventory item identified by data-picked by
+         * adding the inventory_chosen class to it
          */
         select_picked($dlg) {
             var picked = $dlg.data("picked");
@@ -59,9 +60,7 @@ define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
             if (!this.data)
                 return;
 
-            var si = this.data.findIndex((e) => {
-                return e.Class == sheet;
-            });
+            var si = this.data.findIndex(e => e.Class == sheet);
             if (si < 0)
                 return;
 
@@ -72,7 +71,7 @@ define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
             // Find the best match among the entries on this sheet
             sheet = this.data[si];
             var ents = sheet.entries;
-            var ei = ents.findIndex((e) => {
+            var ei = ents.findIndex(e => {
                 return getLoanDescriptor(sheet, e) == picked;
             });
 
@@ -90,16 +89,17 @@ define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
                 this.data = JSON.parse(data);
                 $(".inventory_tab").each((i, el) => this.populate_tab($(el)));
             })
-            .catch((e) => {
+            .catch(e => {
                 console.error("Inventory load failed", e);
             });
         }
 
 
         /**
-         * Populate an inventory tab. This will be either the top level tab or the
-         * loan item dialog tab. The top level tab will have the class main-inventory
-         * which will modify the way it is populated.
+         * Populate an inventory tab. This will be either the top
+         * level tab or the loan item dialog tab. The top level tab
+         * will have the class main-inventory which will modify the
+         * way it is populated.
          * @param $it the tabs div
          */
         populate_tab($it) {
@@ -200,9 +200,10 @@ define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
         }
 
         /**
-         * Update the inventory on WebDAV by reading an updated version from
-         * CSV files on the web.  The inventory index is read from a known URL, and
-         * then the URLs listed therein are read to get the individual sheets.
+         * Update the inventory on WebDAV by reading an updated
+         * version from CSV files on the web.  The inventory index is
+         * read from a known URL, and then the URLs listed therein are
+         * read to get the individual sheets.
          */
         update_from_web(sheets_url, report) {
 
@@ -218,7 +219,7 @@ define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
             .then(() => {
                 var promises = [];
 
-                sheetp.each((mapping) => {
+                sheetp.each(mapping => {
                     // Get the published CSV
                     var sheet = new Entries({
                         url: mapping.url,
@@ -252,7 +253,7 @@ define("app/js/Inventory", ["app/js/Entries"], (Entries) => {
                     report("info", "Updated inventory.json");
                 });
             })
-            .catch((e) => {
+            .catch(e => {
                 report("error",
                        "Error reading sheets from the web: " +
                        (e.status ? e.status : e));

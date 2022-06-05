@@ -1,14 +1,16 @@
 /*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env node.js */
+/* global __dirname */
+/* global process */
 
 /**
  * Server giving access to sensors attached to Raspberry Pi
  *
  * See sensors/README.md for information
  */
-let requirejs = require('requirejs');
+requirejs = require('requirejs');
 requirejs.config({
-    baseUrl: __dirname.replace(/\/[^\/]*$/, "")
+    baseUrl: __dirname.replace(/\/[^/]*$/, "")
 });
 
 requirejs(["fs-extra", "node-getopt", "request", "child_process"], function(Fs, Getopt, request, child_process) {
@@ -17,7 +19,7 @@ requirejs(["fs-extra", "node-getopt", "request", "child_process"], function(Fs, 
           "See sensors/README.md for details\n\nOPTIONS\n";
     const DEFAULT_PORT = 8000;
 
-    let cliopt = Getopt.create([
+    const cliopt = Getopt.create([
         ["h", "help", "Show this help"],
         ["c", "config=ARG", "Configuration file (default ~/sensors.cfg)"]
     ])
@@ -27,13 +29,13 @@ requirejs(["fs-extra", "node-getopt", "request", "child_process"], function(Fs, 
         .options;
 
     if (typeof cliopt.config === "undefined")
-        cliopt.config = process.env["HOME"] + "/sensors.cfg";
+        cliopt.config = process.env.HOME + "/sensors.cfg";
 
     Fs.readFile(cliopt.config)
-    .then((config) => {
+    .then(config => {
         return JSON.parse(config);
     })
-   .then((config) => {
+   .then(config => {
         request.get(config.get_date.url, {
             auth: {
                 user: config.get_date.user,

@@ -1,10 +1,5 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
-
 /* eslint-env jquery */
-/* global Entries: true */
-/* global module */
-
-"use strict";
 
 /**
  * Generic handling for storing lists of key-value maps in CSV files.
@@ -53,6 +48,7 @@ define("app/js/Entries", ["jquery-csv"], () => {
 		 * map won't happen
 		 */
         constructor(params) {
+            this.debug = () => {};
 			for (let field in params)
 				this[field] = params[field];
             this.reset();
@@ -213,9 +209,9 @@ define("app/js/Entries", ["jquery-csv"], () => {
             else
                 lp = this.store.read(this.file);
 
-            return new Promise((resolve, reject) => {
+            return new Promise(resolve => {
                 return lp
-                .then((list) => {
+                .then(list => {
                     if (typeof list !== "undefined") {
                         var data = $.csv.toArrays(list);
                         if (this.asArrays) {
@@ -230,9 +226,9 @@ define("app/js/Entries", ["jquery-csv"], () => {
                         }
                     }
                     this.loaded = true;
-                    resolve();
+                    resolve(this);
                 })
-                .catch((e) => {
+                .catch(e => {
                     this.debug("Error reading " + (this.url || this.file) +
                                   ": ", e);
                     this.heads = [];

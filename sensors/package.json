@@ -3,16 +3,26 @@
   "version": "1.0.0",
   "license": "MIT",
   "description": "HSAC Shed Sensors",
+    "scripts": {
+        "lint": "eslint js",
+        "update": "ncu -u ",
+		"test": "mocha --extension ut --timeout=5000"
+    },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cdot/HSAC.git"
   },
+	"engines": {
+		"node": ">=12.0.0"
+	},
   "author": "Crawford Currie",
   "bugs": {
     "url": "https://github.com/cdot/HSAC/issues"
   },
   "homepage": "https://github.com/cdot/HSAC",
-  "devDependencies": {},
+    "devDependencies": {
+		"eslint": ">=8.17.0"
+    },
   "dependencies": {
     "cors": "^2.8.5",
     "ds18b20-raspi": "^0.3.6",
@@ -22,5 +32,54 @@
     "node-getopt": "^0.3.2",
     "request": "^2.88.0",
     "requirejs": "^2.3.6"
-  }
+  },
+    "eslintConfig": {
+		"extends": "eslint:recommended",
+		"parserOptions": {
+			"ecmaVersion": 13
+		},
+		"env": {
+			"shared-node-browser": true,
+			"jquery": true,
+			"es6": true,
+			"amd": true
+		},
+		"globals": {
+			"requirejs": "writable",
+			"Mocha": "writable"
+		},
+		"rules": {
+            "arrow-parens": 0,
+			"camelcase": 0,
+            "class-methods-use-this": 0,
+			"curly": 0,
+			"dot-notation": 1,
+            "max-classes-per-file": 0,
+            "max-params": 0,
+			"new-cap": 0,
+			"no-alert": 0,
+			"no-console": 0,
+			"no-debugger": 0,
+			"no-eval": 0,
+			"no-fallthrough": 0,
+			"no-loop-func": 1,
+			"no-mixed-spaces-and-tabs": 0,
+			"no-new": 0,
+            "no-process-env": 0,
+			"no-redeclare": [
+				"error",
+				{
+					"builtinGlobals": true
+				}
+			],
+			"no-trailing-spaces": 0,
+			"no-underscore-dangle": 0,
+			"no-unused-vars": 0,
+			"no-useless-escape": 1,
+			"no-use-before-define": 0,
+            "prefer-promise-reject-errors": 0,
+			"quotes": 0,
+			"strict": 0
+		}
+	}
 }

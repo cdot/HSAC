@@ -1,5 +1,6 @@
 /*@preserve Copyright (C) 2018-2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
+/* global requirejs */
 
 /**
  * Shed management application. See README.md
@@ -110,7 +111,7 @@ define("app/js/Sheds", [
 			return Promise.all(Object.values(this)
 						.filter(f => f instanceof Entries)
 						.map(f => f.reloadUI()))
-            .then((res) => {
+            .then(() => {
                 $("#main_tabs").tabs("option", "disabled", []);
             });
         }
@@ -136,17 +137,18 @@ define("app/js/Sheds", [
                 return Promise
                 .all([
                     index.find("sheet", "roles")
-                    .then((row) => this.roles.update_from_web(row.url, report)),
+                    .then(row => this.roles.update_from_web(row.url, report)),
                     index.find("sheet", "inventory")
-                    .then((row) => this.inventory.update_from_web(
-						row.url, report))
+                    .then(row => this.inventory
+                          ? this.inventory.update_from_web(row.url, report)
+                          : null)
                 ]);
             })
             .then(() => {
                 report("info", "Update from the web finished");
                 $(document).trigger("reload_ui");
             })
-            .catch((e) => {
+            .catch(e => {
                 $.alert({
                     title: "Web update failed",
                     content: e
@@ -181,7 +183,6 @@ define("app/js/Sheds", [
             $.validator.addMethod(
                 "compressor",
                 (v, el, compressor) => {
-                    let $form = $(el).closest("form");
                     return this[compressor].operable();
                 },
                 "Compressor must not be operated");
@@ -210,7 +211,7 @@ define("app/js/Sheds", [
                                     content: ""
                                 });
 
-                                p = this.update_from_web((clss, m) => {
+                                p = self.update_from_web((clss, m) => {
                                     $a.setContentAppend(
                                         "<div class='" + clss + "'>" +
                                         m + "</div>");
@@ -305,7 +306,7 @@ define("app/js/Sheds", [
 
         promise_to_reconnect(url) {
 			const app = this;
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 $.confirm({
                     title: $("#connect_failed_dialog").prop("title"),
                     content: $("#connect_failed_dialog").html(),
@@ -339,7 +340,7 @@ define("app/js/Sheds", [
 
         promise_to_authenticate(url) {
             let app = this;
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 $.confirm({
                     title: $("#auth_required").prop("title"),
                     content: $("#auth_required").html(),
@@ -384,14 +385,14 @@ define("app/js/Sheds", [
 								.map(f => f.reset()))
 					.then(() => $(document).trigger("reload_ui"));
                 })
-                .catch((e) => {
+                .catch(e => {
                     this.debug("config.json load failed:", e,
                                   "Trying to save a draft");
                     return this.config.save()
                     .then(() => {
                         return this.cache_connect(url);
                     })
-                    .catch((e) => {
+                    .catch(e => {
                         this.debug("Bootstrap failed:", e);
                         $.alert({
                             title: "Bootstrap failed",
@@ -401,7 +402,7 @@ define("app/js/Sheds", [
                     });
                 });
             })
-            .catch((e) => {
+            .catch(e => {
                 this.debug(url, "connect failed", e);
                 if (e.status === 401) {
                     // XMLHttpRequest will only prompt for credentials if
@@ -421,7 +422,7 @@ define("app/js/Sheds", [
 
         }
 
-        begin(params) {
+        begin() {
 			const requires = [];
 			$("#main_tabs li>a").each((i, el) => {
 				const id = el.href.replace(/^.*#/, "");
@@ -434,7 +435,6 @@ define("app/js/Sheds", [
 								config: this.config,
 								app: this,
 								id: id,
-								app: this,
 								store: this.config.store,
 								debug: this.debug
 							});
@@ -454,7 +454,7 @@ define("app/js/Sheds", [
                     promise = this.cache_connect(url);
 
                 promise
-                .catch((e) => {
+                .catch(e => {
                     console.error("Internal failure", e, url);
                 });
             });

@@ -22,7 +22,7 @@ define("js/Sensor", function(Fs) {
          * @return {Promise} a promise to check that the sensor is available
          */
         connect() {
-            return Promise.resolve();
+            return Promise.resolve(false);
         }
 
         /**

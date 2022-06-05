@@ -1,7 +1,9 @@
-/*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
+/*@preserve Copyright (C) 2019-2022 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser */
+/* global requirejs */
 
-let suppression = "";
+/* Configure requirejs for the browser application */
+
 let min = ".min";
 
 let params = {};
@@ -24,9 +26,7 @@ requirejs.config({
     baseUrl: ".",
     urlArgs: "t=" + Date.now(), // cache suppression
     text: {
-        useXhr: function (url, protocol, hostname, port) {
-            return true;
-        }
+        useXhr: () => true
     },
     paths: {
 		jquery: 'app/node_modules/jquery/dist/jquery' + min,

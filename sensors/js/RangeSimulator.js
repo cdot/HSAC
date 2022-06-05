@@ -5,7 +5,8 @@ define("js/RangeSimulator", ["js/Time"], function(Time) {
     class RangeSimulator {
 
         constructor(min, max) {
-			this.min = min; this.max = max;
+			this.min = min;
+            this.max = max;
         }
 
 		// Sample that moves within a min..max range with occasional
@@ -13,7 +14,7 @@ define("js/RangeSimulator", ["js/Time"], function(Time) {
         sample() {
             if (typeof this.lastsample == "undefined")
                 this.lastsample = (this.min + this.max) / 2;
-            let delta = (Math.random() - 0.5) * (this.max - this.min) / 10;
+            const delta = (Math.random() - 0.5) * (this.max - this.min) / 10;
             this.lastsample += delta;
             if (this.lastsample > this.max)
                 this.lastsample = this.max;

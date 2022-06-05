@@ -16,7 +16,7 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
         setCredentials(user, pass) {
             this.user = user;
             this.pass = pass;
-        };
+        }
 
         _error(res) {
             if (typeof res.body === "string" && res.body.length > 0) {
@@ -26,7 +26,7 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
                 .replace(/<\/body>.*$/i, "");
             }
             return res;
-        };
+        }
 
         connect(url) {
             if (url && url.lastIndexOf('/') !== url.length - 1)
@@ -56,12 +56,12 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
             }
             this.DAV = new DAVClient(opts);
             return this.read('/');
-        };
+        }
 
         disconnect() {
             this.DAV = null;
             return Promise.resolve();
-        };
+        }
 
         read(path) {
             const self = this;
@@ -73,12 +73,12 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
             .request('GET', path, {
                 "Cache-Control": "no-cache"
             })
-            .then((res) => {
+            .then(res => {
                 if (200 <= res.status && res.status < 300)
                     return Promise.resolve(res.body);
                 return Promise.reject(self._error(res));
             });
-        };
+        }
 
         /**
          * Return a Promise to make the folder given by a path array.
@@ -96,7 +96,7 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
                 Depth: 1
             })
             .then(
-                (res) => {
+                res => {
                     if (200 <= res.status && res.status < 300) {
                         return Promise.resolve();
                     } else if (res.status === 404) {
@@ -108,7 +108,7 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
                     }
                     return Promise.reject(self._error(res));
                 });
-        };
+        }
 
         write(path, data) {
             "use strict";
@@ -127,12 +127,12 @@ define("app/js/WebDAVStore", ["app/js/AbstractStore", "app/js/DAVClient"], (Abst
             return self._mkpath(folder)
             .then(() => {
                 return self.DAV.request('PUT', path.join('/'), {}, data)
-                .then((res) => {
+                .then(res => {
                     if (200 <= res.status && res.status < 300)
                         return Promise.resolve(res.body);
                     return Promise.reject(self._error(res));
                 });
-            })
+            });
         }
     }
     return WebDAVStore;

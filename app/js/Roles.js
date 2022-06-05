@@ -2,7 +2,7 @@
 
 /* eslint-env jquery */
 
-define("app/js/Roles", ["app/js/Entries"], (Entries) => {
+define("app/js/Roles", ["app/js/Entries"], Entries => {
 
     class Roles extends Entries {
         /**
@@ -24,19 +24,21 @@ define("app/js/Roles", ["app/js/Entries"], (Entries) => {
         reloadUI() {
             this.debug("Reloading roles");
             return this.loadFromStore()
-            .then(() => {
+            .then(roles => {
                 // Roles.csv has two columns, "role" and "list" which is a
                 // comma-separated list of members in that role
-                this.each((row) => {
-                    var $lists = $("select." + row.role);
+                roles.each(row => {
+                    if (!row.role || !row.list)
+                        throw new Error("Roles.csv has broken header row");
+                    const $lists = $("select." + row.role);
                     $lists.html("<option></option>");
-                    var list = row.list.split(",");
+                    const list = row.list.split(",");
                     $.each(list, function (i, m) {
                         $lists.append("<option>" + m + "</option>");
                     });
                 });
             })
-            .catch((e) => {
+            .catch(e => {
                 console.error("Roles load failed: " + e);
             });
         }
@@ -52,19 +54,19 @@ define("app/js/Roles", ["app/js/Entries"], (Entries) => {
                 },
                 dataType: "text"
             })
-            .then((response) => {
+            .then(response => {
                 report("info", "Read roles from the web");
 				this.reset();
                 return this.store.write('roles.csv', response)
                 .then(() => {
                     report("info", "Updated roles");
                 })
-                .catch((e) => {
+                .catch(e => {
                     report("error", "Error writing roles to the cache: " +
                            (e.status ? e.status : e));
                 });
             })
-            .catch((e) => {
+            .catch(e => {
                 report("error", "Error reading roles from the web: " +
                        (e.status ? e.status : e));
             });

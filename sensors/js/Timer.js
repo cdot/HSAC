@@ -36,15 +36,15 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
 
         pollPin() {
             Fs.readFile(this.pin + "value")
-           .then((v) => {
+            .then(v => {
                 v = parseInt(v.toString());
-                let t = Date.now();
-                let newState = v;
+                const t = Date.now();
+                const newState = v;
                 if (this.isOn)
                     this.onTime += t - this.lastUpdate;
                 this.isOn = (newState === this.on_state);
                 this.lastUpdate = t;
-                setTimeout(() => { this.pollPin(); }, this.poll);
+                setTimeout(() => this.pollPin(), this.poll);
            });
         }
 
@@ -53,8 +53,8 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
                 return Promise.reject("Timer not given a gpio pin");
 
             // Force-unexport first, in case it was previously left locked after a crash
-            return Fs.writeFile(GPIOPATH + "unexport", "" + this.gpio)
-            .catch((e) => {
+            return Fs.writeFile(GPIOPATH + "unexport", "" + String(this.gpio))
+            .catch(e => {
                 console.error("Unexport", this.gpio, "failed", e);
                 return Promise.resolve();
             })
@@ -64,7 +64,7 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
             .then(() => {
                 return Fs.readFile(this.pin + "value");
             })
-            .then((v) => {
+            .then(v => {
                  this.isOn = (parseInt(v.toString()) === this.on_state);
                  this.pollPin();
                  console.log("Timer polling GPIO", this.gpio, "every", this.poll, "ms");
@@ -76,7 +76,7 @@ define("js/Timer", ['fs-extra', "js/Sensor", "js/Time", "js/OnOffSimulator"], fu
          * since the last sample() call)
          */
         sample() {
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 let sample;
                 if (this.simulation)
                     sample = this.simulation.sample();

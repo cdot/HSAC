@@ -1,6 +1,12 @@
 /*@preserve Copyright (C) 2019 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env node.js */
-define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time", "js/RangeSimulator"], function(DHT, Fs, Sensor, Time, RangeSimulator) {
+define("js/DHTxx", [
+    'node-dht-sensor', "fs-extra",
+    "js/Sensor", "js/Time", "js/RangeSimulator"
+], (
+    DHT, Fs,
+    Sensor, Time, RangeSimulator
+) => {
 
     const BACK_OFF = 5000; // 5s in ms
 
@@ -33,14 +39,14 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time", "js/R
                 return Promise.resolve(this.mLastSample);
             }
 
-            let self = this;
+            const self = this;
             this.mSamplingPromise = new Promise((resolve, reject) => {
                 self.mTimeout = setTimeout(() => {
                     self.mIsSampling = false;
                     self.mTimeout = null;
                     reject("Timed out");
                 }, BACK_OFF);
-                let handler = function(e, t, h) {
+                const handler = (e, t, h) => {
                     clearTimeout(self.mTimeout); // clear it ASAP
                     self.mTimeout = null;
                     if (e) {
@@ -51,25 +57,25 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time", "js/R
                     }
 
                     // Check sample range
-                    let sample = { time: Time.now(), temperature: t, humidity: h };
+                    const sample = { time: Time.now(), temperature: t, humidity: h };
                     if (h < 20 || h > 90)
                         sample.humidity_dubious = "sensor requires recalibration - enter value manually";
                     if (t < 0 || t > 50)
                         sample.temperature_dubious = `${t}C out of range 0C..50C`;
                     self.mLastSample = sample;
                     resolve(sample);
-                }
+                };
                 if (this.simulate)
                     handler(null, this.simulate.temp.sample(),
                             this.simulate.hum.sample());
                 else
                     DHT.read(this.mType, this.gpio, handler);
                 })
-            .catch((e) => {
+            .catch(e => {
                 this.mLastSample.error = e;
                 return Promise.resolve(this.mLastSample);
             })
-            .finally((f) => {
+            .finally(f => {
                 if (this.mTimeout)
                     clearTimeout(this.mTimeout);
                 this.mTimeout = null;
@@ -79,7 +85,7 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time", "js/R
         }
     }
 
-    let DHTPins = {};
+    const DHTPins = {};
 
     /**
      * A single GPIO pin may have up to two DHTxx objects on it in the
@@ -118,18 +124,19 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time", "js/R
 
             // Make sure we have GPIO available, and we can read a sample
             return Fs.stat("/dev/gpiomem")
-            .catch((e) => {
+            .catch(e => {
                 console.error(this.field, "DHT connect failed: ", e.message);
                 return Promise.reject(e.message);
             })
-            .then((s) => {
+            .then(s => {
                 return DHTPins[this.gpio].sample()
-                .then((s) => {
+                .then(s => {
                     if (s.error) {
                         console.error(this.field, "DHT connect sample failed: ", s.error);
-                        return Promise.reject("sample failed: " + s.error)
+                        return Promise.reject("sample failed: " + s.error);
                     }
                     console.log(this.name, "connected to GPIO", this.gpio);
+                    return Promise.resolve();
                 });
             });
         }
@@ -139,9 +146,9 @@ define("js/DHTxx", ['node-dht-sensor', "fs-extra", "js/Sensor", "js/Time", "js/R
          */
         sample() {
             return DHTPins[this.gpio].sample()
-            .then((sam) => {
+            .then(sam => {
                 console.log(sam);
-                let res = { sample: sam[this.field], time: sam.time };
+                const res = { sample: sam[this.field], time: sam.time };
                 if (sam[this.field + "_dubious"])
                     res.dubious = sam[this.field + "_dubious"];
                 return res;
