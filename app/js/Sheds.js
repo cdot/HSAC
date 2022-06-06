@@ -300,6 +300,7 @@ define("app/js/Sheds", [
                     if (!this.consoleActive)
                         $("#loading").hide();
                     $("#loaded").show();
+                    window.scrollTo(0,document.body.scrollHeight);
                 });
             });
         }

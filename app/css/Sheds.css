@@ -108,6 +108,11 @@ body {
 /* Markdown */
 .fraction span.fdn {border-top: thin solid black;}
 
+.fullscreen {
+    height: 100vh;
+    width: 100vw;
+}
+
 .hidden {
     display: none;
 }
