@@ -206,18 +206,17 @@ define("app/js/Sheds", [
                         close: {
                             btnClass: "ui-button ui-corner-all ui-widget",
                             action: function () {
-                                self.config.save();
                                 if (this.$content.find("[name='cache_update']").is(":checked")) {
                                     let $a = $.confirm({
                                         title: "Updating from the web",
                                         content: ""
                                     });
-                                    self.update_from_web((clss, m) => {
-                                        $a.setContentAppend(
-                                            "<div class='" + clss + "'>" +
-                                            m + "</div>");
-                                    });
-                                }
+                                    self.config.save()
+                                    .then(() => self.update_from_web((clss, m) => {
+                                        $a.setContentAppend(`<div class="${clss}">${m}</div>`);
+                                    }));
+                                } else
+                                    self.config.save();
                             }
                         }
                     },

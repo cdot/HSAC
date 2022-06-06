@@ -51,5 +51,6 @@
    "poll_frequency": 0,
    "internal_temperature_alarm": 90
   }
- }
+ },
+ "db_index_url": "https://docs.google.com/spreadsheets/d/e/2PACX-xxx/pub?output=csv"
 }
