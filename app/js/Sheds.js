@@ -203,32 +203,33 @@ define("app/js/Sheds", [
                 this.config.open({
                     autoClose: 'close|60000',
                     buttons: {
-                        close: function () {
-                            let p;
-                            if (this.$content.find("[name='cache_update']").is(":checked")) {
-                                let $a = $.confirm({
-                                    title: "Updating from the web",
-                                    content: ""
-                                });
-
-                                p = self.update_from_web((clss, m) => {
-                                    $a.setContentAppend(
-                                        "<div class='" + clss + "'>" +
-                                        m + "</div>");
-                                });
-                            } else
-                                p = Promise.resolve();
-
-                            p
-							.then(() => self.config.save());
+                        close: {
+                            btnClass: "ui-button ui-corner-all ui-widget",
+                            action: function () {
+                                self.config.save();
+                                if (this.$content.find("[name='cache_update']").is(":checked")) {
+                                    let $a = $.confirm({
+                                        title: "Updating from the web",
+                                        content: ""
+                                    });
+                                    self.update_from_web((clss, m) => {
+                                        $a.setContentAppend(
+                                            "<div class='" + clss + "'>" +
+                                            m + "</div>");
+                                    });
+                                }
+                            }
                         }
                     },
                     validity: function (ok) {
                         $.each(this.buttons, function (i, m) {
-                            if (ok)
+                            if (ok) {
+                                m.removeClass("ui-button-disabled ui-state-disabled");
                                 m.enable();
-                            else
+                            } else {
+                                m.addClass("ui-button-disabled ui-state-disabled");
                                 m.disable();
+                            }
                         });
                     },
                     /* onContentReady defined in Config.js */
@@ -323,13 +324,13 @@ define("app/js/Sheds", [
                         jc.buttons.continue_without.setText("Continue without cache");
                     },
                     buttons: {
-                        try_again: () => {
+                        try_again: function () {
                             let nurl = this.$content.find("input").val();
-                            this.debug("Trying again with", nurl);
+                            app.debug("Trying again with", nurl);
                             resolve(app.cache_connect(nurl));
                         },
                         continue_without:  function () {
-                            this.debug("Continuing without cache");
+                            app.debug("Continuing without cache");
                             $(document).trigger("reload_ui");
                             resolve();
                         }

@@ -7,11 +7,11 @@
     "type": "git",
     "url": "git+https://github.com/cdot/HSAC.git"
   },
-    "scripts": {
-        "lint": "eslint js",
-        "update": "ncu -u ",
-		"test": "mocha --extension ut --timeout=5000"
-    },
+  "scripts": {
+    "lint": "eslint js",
+    "update": "ncu -u ",
+    "test": "mocha --extension ut --timeout=5000"
+  },
   "author": "Crawford Currie",
   "bugs": {
     "url": "https://github.com/cdot/HSAC/issues"
@@ -55,10 +55,10 @@
   "devDependencies": {
     "axios": "^0.27.2",
     "clean-css": "^5.3.0",
+    "eslint": ">=8.17.0",
     "html-minifier": "^4.0.0",
     "jquery-ui-touch-punch": "^0.2.3",
     "markdown-it": "^13.0.1",
-	  "eslint": ">=8.17.0",
     "mocha": "^10.0.0"
   },
   "dependencies": {
