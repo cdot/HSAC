@@ -30,7 +30,7 @@
  * will be lost.
  *
  */
-define("app/js/Entries", ["jquery-csv"], () => {
+define("app/js/Entries", [ "jquery" ], () => {
 
     class Entries {
 
@@ -209,36 +209,35 @@ define("app/js/Entries", ["jquery-csv"], () => {
             else
                 lp = this.store.read(this.file);
 
-            return new Promise(resolve => {
-                return lp
-                .then(list => {
-                    if (typeof list !== "undefined") {
-                        var data = $.csv.toArrays(list);
-                        if (this.asArrays) {
-                            this.heads = data.shift();
-                            this.entries = data;
-                        } else {
-                            this.heads = data[0];
-                            this.entries = [];
-                            for (var i = 1; i < data.length; i++) {
-                                this.entries.push(this.array2map(this.heads, data[i]));
-                            }
+            return Promise.all([
+                lp,
+                new Promise(resolve => requirejs(['jquery-csv'], resolve))
+            ])
+            .then(res => {
+                let text = res[0];
+                if (typeof text !== "undefined") {
+                    var data = $.csv.toArrays(text);
+                    if (this.asArrays) {
+                        this.heads = data.shift();
+                        this.entries = data;
+                    } else {
+                        this.heads = data[0];
+                        this.entries = [];
+                        for (var i = 1; i < data.length; i++) {
+                            this.entries.push(this.array2map(this.heads, data[i]));
                         }
                     }
-                    this.loaded = true;
-                    resolve(this);
-                })
-                .catch(e => {
-                    this.debug("Error reading " + (this.url || this.file) +
-                                  ": ", e);
-                    this.heads = [];
-                    this.entries = [];
-                    // Resolve it as an empty list
-                    this.loaded = true;
-                    resolve();
-                    //reject(new Error("Error reading " + (this.url || this.file) + ": " +
-                    //(e.status ? e.status : e)));
-                });
+                }
+                this.loaded = true;
+                return this;
+            })
+            .catch(e => {
+                this.debug("Error reading " + (this.url || this.file) +
+                           ": ", e);
+                this.heads = [];
+                this.entries = [];
+                this.loaded = true;
+                return this;
             });
         }
 
