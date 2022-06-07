@@ -2,26 +2,24 @@
 
 Custom application for managing a dive club's resources. The application was
 written specifically for use by Hartford Sub-Aqua Club, and reflects the way
-we organise and manage our resources. HSAC members can get [information on our specific configuration](https://docs.google.com/document/d/13a0xBhF8_AJsvffOMFLHleUT0XIu8TSBcTyFuffQ9EQ)
+we organise and manage our resources.
 
-The application comprises three parts:
-1. A browser application
-2. A read-write cache server
-3. An online database of read-only data
+The application comprises two parts:
+1. A [browser application](app/README.md)
+3. A [sensor package](sensors/README.md)
+
+HSAC members can get [information on our specific configuration](https://docs.google.com/document/d/13a0xBhF8_AJsvffOMFLHleUT0XIu8TSBcTyFuffQ9EQ)
 
 ## Browser Application
 
-`index.html` and subfolder `app`.
+The browser application provides a user interface designed to be run in a web
+browser, either in a device specifically allocated for the purpose or in
+a mobile phone or tablet. The application supports a number of services:
 
-The application user interface is written to use a standard
-browser. This provides a high degree of portability and openness. The
-browser application presents a tab interface, where each tab offers a
-particular service:
-
-1. Compressor - recording fixed compressor usage with tracking of filter lifetime
+1. Compressor - recording fixed compressor usage with tracking of filter lifetim, optionally monitoring compressor performance using electronic sensors with the sensor package.
 2. Nitrox - nitrox blending calculations
 
-Optionally enabled services (edit index.html to enable):
+Optionally enabled services (edit `index.html` to enable):
 
 3. Portable compressor - like fixed compressor but tuned for a portable
 4. Inventory - equipment records
@@ -31,32 +29,14 @@ and cross-links to inventory
 Help information is readily available throughout the application through the
 info buttons.
 
-### Compressor
+See [Browser application](app/README.md) for more information.
 
-Compressor support includes tracking and predicting filter life, and monitoring
-compressor performance using electronic sensors.
+## Sensor package
 
-See [Compressor](app/Compressor.md) for more detailed information.
+The sensor package is designed to run on a Raspberry Pi that manages a number
+of electronic sensors on the compressor.
 
-### Nitrox
-The calculations necessary for nitrox fills from a bank of cylinders are
-performed using an ideal gas approximation (there is support for real gas
-approximation, but it is significantly more complex and makes little
-difference to the results).
-
-### Loans
-Outgoing loans are recorded by selection from the inventory. Loan
-returns are recorded aginst the name of the person receiving back the
-kit. The `Inventory` tab is automatically updated to reflect kit that
-is out on loan.
-
-### Inventory
-The inventory tab provides a way to quickly look up and find the
-location of equipment.
-
-## Databases
-
-See [Databases](Databases.md) for details of the database organisation and configuration.
+See [Sensor package](sensors/README.md) for more information.
 
 ## About
 Sheds was written by Crawford Currie http://c-dot.co.uk and is licensed

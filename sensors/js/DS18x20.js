@@ -54,7 +54,7 @@ define("js/DS18x20", ['ds18b20-raspi', "js/Sensor", "js/Time", "js/RangeSimulato
         }
 
 		simulate() {
-			this.simulation = new RangeSimulator(4, 40);
+			this.simulation = new RangeSimulator(1, 100);
 		}
     }
 

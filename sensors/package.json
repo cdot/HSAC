@@ -1,38 +1,39 @@
 {
-  "name": "hsac",
-  "version": "1.0.0",
-  "license": "MIT",
-  "description": "HSAC Shed Sensors",
+    "name": "hsac",
+    "version": "1.0.0",
+    "license": "MIT",
+    "description": "HSAC Shed Sensors",
     "scripts": {
         "lint": "eslint js",
         "update": "ncu -u ",
-		"test": "mocha --extension ut --timeout=5000"
+		"test": "mocha --extension ut --timeout=5000",
+        "simulation": "node js/sensors.js -p 8000 -c example.cfg --simulate"
     },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cdot/HSAC.git"
-  },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cdot/HSAC.git"
+    },
 	"engines": {
 		"node": ">=12.0.0"
 	},
-  "author": "Crawford Currie",
-  "bugs": {
-    "url": "https://github.com/cdot/HSAC/issues"
-  },
-  "homepage": "https://github.com/cdot/HSAC",
+    "author": "Crawford Currie",
+    "bugs": {
+        "url": "https://github.com/cdot/HSAC/issues"
+    },
+    "homepage": "https://github.com/cdot/HSAC",
     "devDependencies": {
 		"eslint": ">=8.17.0"
     },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "ds18b20-raspi": "^0.3.6",
-    "express": "^4.18.1",
-    "fs-extra": "^10.1.0",
-    "node-dht-sensor": "^0.4.3",
-    "node-getopt": "^0.3.2",
-    "request": "^2.88.0",
-    "requirejs": "^2.3.6"
-  },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "ds18b20-raspi": "^0.3.6",
+        "express": "^4.18.1",
+        "fs-extra": "^10.1.0",
+        "node-dht-sensor": "^0.4.3",
+        "node-getopt": "^0.3.2",
+        "request": "^2.88.0",
+        "requirejs": "^2.3.6"
+    },
     "eslintConfig": {
 		"extends": "eslint:recommended",
 		"parserOptions": {

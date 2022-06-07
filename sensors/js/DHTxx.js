@@ -59,7 +59,7 @@ define("js/DHTxx", [
                     // Check sample range
                     const sample = { time: Time.now(), temperature: t, humidity: h };
                     if (h < 20 || h > 90)
-                        sample.humidity_dubious = "sensor requires recalibration - enter value manually";
+                        sample.humidity_dubious = "sensor may require recalibration";
                     if (t < 0 || t > 50)
                         sample.temperature_dubious = `${t}C out of range 0C..50C`;
                     self.mLastSample = sample;
@@ -160,8 +160,8 @@ define("js/DHTxx", [
          */
         simulate() {
             DHTPins[this.gpio].simulate = {
-                hum: new RangeSimulator(20, 90),
-                temp: new RangeSimulator(4, 40)
+                hum: new RangeSimulator(20, 100),
+                temp: new RangeSimulator(1, 45)
             };
         }
     }

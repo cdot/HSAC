@@ -91,7 +91,19 @@ body {
     font-size: 18pt;
 }
 
-/* Markdown */
+.flex-row {
+	display: flex;
+	margin-top: 0.25em;
+	margin-bottom: 0.25em;
+	flex-direction: row;
+	width: 100%;
+}
+
+.flex-row label {
+	margin-right: 0.25em;
+}
+
+/* Markdown - doesn't work, thanks for nothing github
 .fraction {
     display: inline-block;
     vertical-align: middle; 
@@ -99,15 +111,15 @@ body {
     text-align: center;
 }
 
-/* Markdown */
 .fraction > span {
     display: block;
     padding-top: 0.15em;
 }
 
-/* Markdown */
 .fraction span.fdn {border-top: thin solid black;}
+*/
 
+/* Attempt to hide browser url bar :-( */
 .fullscreen {
     padding-top: 3vh;
     height: 110%;
@@ -288,6 +300,10 @@ label.error {
     font-size: 50%;
 }
 
+.small-button {
+    padding: 0 0.2em;
+}
+
 .temperature.slider {
     background-image: linear-gradient(
       to right, #3c89d0, #F9423A
@@ -345,16 +361,4 @@ table td,th {
 /* Used to widen a specific column in a table */
 .widest {
     width: 100%;
-}
-
-.flex-row {
-	display: flex;
-	margin-top: 0.25em;
-	margin-bottom: 0.25em;
-	flex-direction: row;
-	width: 100%;
-}
-
-.flex-row label {
-	margin-right: 0.25em;
 }

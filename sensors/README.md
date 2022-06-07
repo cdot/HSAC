@@ -1,6 +1,6 @@
 # Sensors
 
-An ultra-light web server designed to be run on a Raspberry Pi with
+This is an ultra-light web server, designed to be run on a Raspberry Pi with
 DHT11, DS18B20, and a PC817 power sensor, all attached to GPIO.
 
 On receipt of an AJAX request the server reads a sensor and reports the
@@ -78,6 +78,7 @@ The server has a number of command-line options that can be explored
 using the `--help` option.
 
 ## Running the Server
+
 The server needs to be started on boot, by `/etc/init.d/sensors.sh`
 - you will need to create this file. Assuming the code is checked out to
 `/home/pi/HSAC`:
@@ -128,13 +129,27 @@ not be detected by the service. The server can be restarted at any time using
 $ sudo service sensors.sh restart
 ```
 When the service is running you can use HTTP requests to query the sensors e.g.
+if your sensors service is running on 192.168.1.24, port 8000:
 ```
 $ curl http://192.168.1.24:8000/internal_temperature
 ```
 The Sheds browser app uses these queries to update the UI.
 
-To simplify testing, the sensors application can be run even when no sensors are available by passing the `--simulate` option on the command line.
+# Development
+
+The sensors package is written entirely in Javascript, using [node.js](https://nodejs.org/en/).
+
+The `scripts` field of `package.json` is used to run development tasks.
+Available targets are:
 ```
-$ node /home/pi/HSAC/sensors/js/sensors.js -p 8000 -c /home/pi/HSAC/sensors.cfg --simulate
+$ npm run lint # run eslint on source code
+$ npm run update # run ncu-u to update npm dependencies
+$ npm run test # use nocha to run all unit tests
 ```
-The sensor simulation provides random data for the sensors shown in the example above.
+To simplify app development, the sensors application can be run even when no
+hardware sensors are available by passing the `--simulate` option on the
+command line. This can be done from the command line using:
+```
+$ npm run simulation
+```
+

@@ -33,8 +33,6 @@ define("app/js/Compressor", [
         attachHandlers() {
 			this.$form = this.$tab.find(".validated_form");
 			this.$runtime = this.$tab.find("input[name='runtime']");
-			this.$submit = this.$tab.find("button[name='add_record']");
-			this.$change = this.$tab.find("button[name='filters_changed']");
 
 			// Controls for manual timer with portable compressor
 			const $session_play = this.$tab.find("button.session_play");
@@ -133,7 +131,7 @@ define("app/js/Compressor", [
 				});
 			});
 
-			this.$submit
+            this.$tab.find("button[name='add_record']")
 			.off("click")
 			.on("click", () => {
 				if (!this.$form.valid())
@@ -164,7 +162,14 @@ define("app/js/Compressor", [
 				});
 			});
 
-			this.$change
+			const $change = this.$tab.find("button[name='filters_changed']");
+			this.$tab.find("select[name='operator']")
+            .on("change", function() {
+                const val = $(this).val();
+                $change.button(
+                    "option", "disabled", !val || val.length === 0);
+            });
+			$change
 			.off("click")
 			.on("click", () => {
 				const values = {};
@@ -176,7 +181,9 @@ define("app/js/Compressor", [
                 values.filters_changed = true;
 				this.debug("Adding filter changed record", values);
 				this._add(values);
-			});
+			})
+            .button(
+                "option", "disabled", true);
         }
 
         /**
@@ -185,10 +192,17 @@ define("app/js/Compressor", [
          * update the submit button
          */
         _formChanged() {
-            this.$submit.button(
-                "option", "disabled", !this.$form.valid());
-            this.$change.button(
-                "option", "disabled", !this.$form.valid());
+            try {
+                $("body")[0].requestFullscreen();
+            } catch (e) {
+                console.debug("Fullscreen denied", e);
+            }
+            this.$tab
+            .find("button[name='add_record']")
+            .button("option", "disabled", !this.$form.valid());
+            const val = this.$tab.find("select[name='operator']").val();
+			this.$tab.find("button[name='filters_changed']")
+            .button("option", "disabled", !val || val.length === 0);
         }
 
         /**
@@ -255,7 +269,7 @@ define("app/js/Compressor", [
 
             this.$runtime.rules("remove", "min");
             this.$runtime.rules("add", {
-                min: r
+                min: r + 1 / (60 * 60) // 1 second 1
             });
         }
 
@@ -317,29 +331,36 @@ define("app/js/Compressor", [
 
         /**
          * @private
-         * Update a sampled input field. These fields are identified
-         * by data-sensor="id" where id is the identifier for the sensor
-         * to be sampled, and data-compressor is the compressor.
+         * Update a sampled input field.
+         * @param {object?} sample the input sample, or null if no sample
+         * could be retrieved
          * data-sample-config further has:
+         *     name: the sensor name e.g. intake_temperature
          *     max_age: maximum age for valid samples.
-         *     sampled: element id for the element to be shown
+         *     sampled: selector for the element(s) to be shown
          *              when a sample is found and deemed valid.
-         *     unsampled: element id for the element to be shown
+         *     unsampled: selector for the element(s) to be shown
          *                when the sample is too old or no sample
          *                can be retrieved.
+         *     dubious: selector for when the sample value is questionable
+         *     enabled: selector for a checkbox
          */
         _updateSampledField($el, sample) {
-            let id = this.id + ":" + $el.data("sensor");
-            let spec = $el.data("sample-config");
+            const spec = $el.data("sensor-config");
+            const id = `${this.id}:${spec.name}`;
 
             if (!sample) {
-                this.debug("Sample for", id, "unavailable");
+                this.debug(`Sample for ${id} unavailable`);
             } else {
                 let thresh = Date.now() - spec.max_age;
                 if (sample.time < thresh) {
                     // Sample unavailable or too old
-                    this.debug("Sample for", id, "too old");
+                    this.debug(`Sample for ${id} too old`);
                     sample = null;
+                } else if (spec.enable) {
+                    const $enable = $(spec.enable);
+                    if ($enable.length > 0 && !$enable.is(":checked"))
+                        sample = null;
                 }
             }
             if (!sample) {
@@ -388,16 +409,6 @@ define("app/js/Compressor", [
                 this._getSample("power")
                 .then(sample => {
                     if (sample.sample > 0) {
-                        // Check that we are within operable limits, if
-                        // not raise an alarm
-                        if (!this.operable()) {
-                            let $report = $("#report:" + this.id);
-                            $report.addClass("error");
-                            if (typeof Audio !== "undefined") {
-                                var snd = new Audio("app/sounds/alarm.mp3");
-                                snd.play();
-                            }
-                        }
                         this._setRuntimeAndDigits(
                             this.runtime + sample.sample / (60 * 60 * 1000));
                         this._formChanged();
@@ -407,31 +418,31 @@ define("app/js/Compressor", [
             ];
             
             // Promise to update sampled fields
-            $("input[data-compressor='" + this.id + "'][data-sensor]")
+            $(`input[data-compressor=${this.id}][data-sensor-config]`)
             .each((i, el) => {
                 let $el = $(el);
-                let name = $el.data("sensor");
+                const info = $el.data("sensor-config");
                 promises.push(
-                    this._getSample(name)
+                    this._getSample(info.name)
                     .then(sample => this._updateSampledField($el, sample))
                     .catch(() => this._updateSampledField($el, null)));
             });
 
             // Promise to check alarm sensors
-            $(".alarm[data-compressor='" + this.id + "'][data-sensor]")
+            $(`.alarm[data-compressor=${this.id}][data-sensor-config]`)
             .each((i, el) => {
                 let $el = $(el);
                 if ($el.data("compressor") !== this.id)
                     return;
-                let name = $el.data("sensor");
+                const info = $el.data("sensor-config");
                 promises.push(
-                    this._getSample(name)
+                    this._getSample(info.name)
                     .then((sample) => {
                         sample = sample ? sample.sample : 0;
-                        let $report = $("#report:" + this.id);
-                        $report.html(Math.round(sample) + "&deg;C");
+                        const $report = $(".fixed_internal_temp");
+                        $report.html(`${Math.round(sample)}&deg;C`);
                         let alarm_temp = this.config.get(
-                            "compressor: " + this.id + ":" + name + "_alarm");
+                            `compressor:${this.id}:${info.name}_alarm`);
                         if (sample >= alarm_temp) {
                             $report.addClass("error");
                             $el.show();
@@ -450,12 +461,12 @@ define("app/js/Compressor", [
             Promise.all(promises)
             .finally(() => {
                 let timeout = this.config.get(
-                    "compressor:" + this.id + ":poll_frequency");
+                    `compressor:${this.id}:poll_frequency`);
                 // If poll freq <= 0, don't poll again
                 if (timeout > 0) {
                     // Queue the next poll
                     this.sensor_tick =
-                    setTimeout(() => { this._readSensors(); }, timeout);
+                    setTimeout(() => this._readSensors(), timeout);
                 }
             });
         }

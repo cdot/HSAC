@@ -1,15 +1,23 @@
 <div class="crowded_tab">
-  <div class="hidden alarm error" data-compressor="fixed" data-sensor="internal_temperature">
-	COMPRESSOR INTERNAL TEMPERATURE IS TOO HIGH!
+  <div class="hidden alarm error" data-compressor="fixed" data-sensor-config='{"name":"internal_temperature"}'>
+	3rd STAGE HEAD <span " class="fixed_internal_temp"></span> IS TOO HOT!
   </div>
-  <div style="float:right" id="report:fixed"></div>
+  <div style="float:right;font-size:small">3rd stage: <span class="fixed_internal_temp"></span></div>
   <form id="fixed_form" class="validated_form">
 	<div>
-      Last run by <span class="cr_operator">?</span>
-      <span class="cr_time">?</span>. Runtime was <span class="cr_runtime">0</span> <span class="cr_last_run">hours <span class='fa fa-cog'></span></span>
-    </div><div>
+      Last run by
+      <span class="cr_operator">?</span>
+      <span class="cr_time">?</span>.
+      Runtime was <span class="cr_runtime">0</span> hours.
+      Edit: <span class="cr_last_run fa fa-cog"></span>
+    </div>
+    <div>
       <span>Filters were last changed <span class="cr_flc">?</span>.</span>
-      <span data-with-info="#infoFilterEfficiency">Filter estimate is <span class="cr_flr">?</span> hours left</span>
+      <span data-with-info="#infoFilterEfficiency">
+        Filter estimate is <span class="cr_flr">?</span> hours left</span>
+      <div style="display:inline;float:right">
+        <button class="small-button" name="filters_changed">Filters changed</button>
+      </div>
 	</div>
 	<div>
       Enter details of your run below:
@@ -34,11 +42,17 @@
           </span>
 		</th>
 		<td class="widest">
-          <input name="temperature" type="number" class="integer2" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" compressor="fixed" data-compressor="fixed" data-sensor="intake_temperature" data-sample-config='{"max_age":300000,"sampled":"#fixed_temp_from_sensor","unsampled":"#fixed_intake_temp_slider"}'>&deg;C
-          <span style="display:none" id="fixed_temp_from_sensor" class="detected">(detected)</span>
-          <div class="temperature slider" id="fixed_intake_temp_slider" data-slider='{"min":4,"max":40,"friend":"#fixed_temp"}'>
+          <input name="temperature" type="number" class="integer2" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" data-compressor="fixed" data-sensor-config='{"name":"intake_temperature","max_age":300000,"sampled":".fixed_temp_sensed","dubious":".fixed_temp_dubious","unsampled":".fixed_temp_manual","enable":"#fixed_temp_enable"}'>&deg;C
+          <span class="hidden fixed_temp_sensed detected">(detected)</span>
+          <span class="hidden fixed_temp_manual warning">(Cannot read sensor - please enter value manually)</span>
+          <span class="hidden fixed_temp_dubious rainbow">(sensed value out of valid range)</span>
+          <div class="hidden temperature slider fixed_temp_manual" data-slider='{"min":4,"max":40,"friend":"#fixed_temp"}'>
 			<div class="min">4&deg;C</div><div class="max">40&deg;C</div>
           </div>
+          <!--div style="display:inline">
+            <label for="fixed_temp_enable" class="small-button">use sensor</label>
+            <input id="fixed_temp_enable" type="checkbox" style="float:right" checked />
+          </div-->
 		</td>
       </tr>
       <tr>
@@ -48,12 +62,17 @@
           </span>
 		</th>
 		<td class="widest">
-          <input name="humidity" type="number" class="integer2" value="50" id="fixed_hum" compressor="fixed" data-compressor="fixed" data-sensor="intake_humidity" data-sample-config='{"max_age":300000,"sampled":"#fixed_hum_from_sensor","unsampled":"#fixed_intake_hum_slider","dubious":"#fixed_hum_dubious"}'>%
-          <span style="display:none" id="fixed_hum_from_sensor" class="detected">(detected)</span>
-          <span style="display:none" id="fixed_hum_dubious" class="rainbow">(sensed value out of valid range)</span>
-          <div class="humidity slider" id="fixed_intake_hum_slider" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
+          <input name="humidity" type="number" class="integer2" value="50" id="fixed_hum" data-compressor="fixed" data-sensor-config='{"name":"intake_humidity","max_age":300000,"sampled":".fixed_hum_sensed","unsampled":".fixed_hum_manual","dubious":".fixed_hum_dubious","enable":"#fixed_hum_enable"}'>%
+          <span class="hidden fixed_hum_sensed detected">(detected)</span>
+          <span class="hidden fixed_hum_manual warning">(Cannot read sensor - please enter value manually)</span>
+          <span class="hidden fixed_hum_dubious rainbow">(sensed value out of valid range)</span>
+          <div class="hidden humidity slider fixed_hum_manual" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
 			<div class="min">0%</div><div class="max">80%</div>
           </div>
+          <!--div style="display:inline">
+            <label for="fixed_hum_enable" class="small-button">use sensor</label>
+            <input id="fixed_hum_enable" type="checkbox" style="float:right" checked />
+          </div-->
 		</td>
       </tr>
       <tr>
@@ -144,8 +163,5 @@
       </tr>
 	</table>
   </form>
-  <div style="float:right">
-    <button name="filters_changed">Filters changed</button>
-  </div>
   <button name="add_record">Touch here to record this run</button>
 </div>
