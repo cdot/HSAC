@@ -43,7 +43,7 @@ define("app/js/Config", () => {
 
         get(k, deflt) {
             let data = this.store_data;
-            for (let bit of k.split(":")) {
+            for (const bit of k.split(":")) {
                 data = data[bit];
                 if (typeof data === "undefined")
                     return deflt;
@@ -52,10 +52,10 @@ define("app/js/Config", () => {
         }
 
         set(k, v) {
-            let bits = k.split(":");
+            const bits = k.split(":");
             let data = this.store_data;
             while (bits.length > 1) {
-                let k = bits.shift();
+                const k = bits.shift();
                 if (typeof data[k] === "undefined")
                     data[k] = {};
                 data = data[k];
@@ -79,7 +79,7 @@ define("app/js/Config", () => {
                         const item = evt.target.name;
                         let v = $(evt.target).val();
                         if (/^[0-9.]*$/.test(v)) {
-                            let sv = v;
+                            const sv = v;
                             try {
                                 v = parseFloat(sv);
                             } catch (e) {

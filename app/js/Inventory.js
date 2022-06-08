@@ -25,12 +25,21 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
     class Inventory extends Entries {
 
         /**
-         * Inventory is read from inventory.json
+         * 
+         * @member {}
          */
-        constructor(params) {
-            super(params);
-			this.uid = 0;
-		}
+        uid = 0;
+
+        /**
+         * Array of sheets. The inventory is initially loaded from
+         * CSV (or rather, a number of CSV) but is then serialised
+         * to the cache using JSON to speed up loading/saving. This
+         * is basically an array of serialised CSVs. Each sheet in the
+         * array is given a "Class" to make it easy to find, and has
+         * heads and entries as loaded from that CSV.
+         * @member {object[]}
+         */
+        data = undefined;
 
 		//@override
 		attachHandlers() {
@@ -83,14 +92,20 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
             }
         }
 
+        /**
+         * @override
+         * @return {Promise} promise that resolves to this
+         */
         reload_ui() {
             return this.store.read('inventory.json')
             .then(data => {
                 this.data = JSON.parse(data);
                 $(".inventory_tab").each((i, el) => this.populate_tab($(el)));
+                return this;
             })
             .catch(e => {
                 console.error("Inventory load failed", e);
+                return this;
             });
         }
 
@@ -105,7 +120,6 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
         populate_tab($it) {
             var inventory = this.data;
             var hide_cols = {};
-			const app = this.app;
 
             function fill_sheet(sheet) {
                 var nc = sheet.heads.length,
@@ -119,7 +133,7 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
                     var $tr = $("<tr></tr>");
                     var desc = getLoanDescriptor(sheet, entry);
                     $tr.data("loan_desc", desc);
-                    var on_loan = app.loans.number_on_loan(desc);
+                    var on_loan = this.sheds.loans.number_on_loan(desc);
                     var can_pick = true;
                     if (on_loan > 0) {
                         if (typeof colIndex.Count === "undefined") {
@@ -183,11 +197,14 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
 
             this.uid++;
             $it.append($it_ul);
-            for (var i in inventory) {
-                var sheet = inventory[i];
-                var id = ["sheet", sheet.Class.replace(/\s+/, "_"), this.uid].join("_");
-                $it_ul.append("<li><a href='#" + id + "'>" + sheet.Class + "</a></li>");
-                var $div = $("<div class='inventory_sheet scroll_container' id='" + id + "'></div>");
+            for (const i in inventory) {
+                const sheet = inventory[i];
+                const id = [
+                    "sheet",
+                    sheet.Class.replace(/\s+/, "_"), this.uid
+                ].join("_");
+                $it_ul.append(`<li><a href="#${id}">${sheet.Class}</a></li>`);
+                const $div = $("<div class='inventory_sheet scroll_container' id='" + id + "'></div>");
                 $it.append($div);
                 $div.append(fill_sheet(sheet));
             }
@@ -217,7 +234,7 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
 
             return sheetp.loadFromStore()
             .then(() => {
-                var promises = [];
+                const promises = [];
 
                 sheetp.each(mapping => {
                     // Get the published CSV

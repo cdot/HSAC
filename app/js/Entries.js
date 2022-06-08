@@ -1,62 +1,136 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env jquery */
+/* global requirejs */
 
-/**
- * Generic handling for storing lists of key-value maps in CSV files.
- * Requires the jQuery CSV plugin.
- *
- * For example, a data set such as:
- *
- * a,b,c
- * x,y,z
- * i,j,k
- *
- * will be loaded as:
- *
- * [
- *   { a:x, b:y, c:z },
- *   { a:i, b:j, c:k }
- * ]
- * 
- * if asArrays if false, or if it's true:
- * 
- * [ x, y, z ],
- * [ i, j, k ]
- *
- * In either case getHeads() will return a list of column headings.
- *
- * Note that the first item in the list is used to determine the keys
- * when saving. Keys in later entries that are not in the first entry
- * will be lost.
- *
- */
-define("app/js/Entries", [ "jquery" ], () => {
+define("app/js/Entries", [
+    "jquery"
+], () => {
 
+    /**
+     * Generic handling for storing lists of key-value maps in CSV files.
+     * Requires the jQuery CSV plugin.
+     *
+     * For example, a data set such as:
+     *
+     * a,b,c
+     * x,y,z
+     * i,j,k
+     *
+     * will be loaded as:
+     *
+     * [
+     *   { a:x, b:y, c:z },
+     *   { a:i, b:j, c:k }
+     * ]
+     * 
+     * if asArrays if false, or if it's true:
+     * 
+     * [ x, y, z ],
+     * [ i, j, k ]
+     *
+     * In either case getHeads() will return a list of column headings.
+     *
+     * Note that the first row in the laoded array is used to determine
+     * the keys when saving. Keys in later entries that are not in the
+     * first entry will be lost.
+     *
+     */
     class Entries {
 
+        /**
+         * Unique id for the entries e.g. "fixed" for the fixed compressor.
+         * Used to look up parts in jQuery
+         * @member {string}
+         */
+        id = "unknown";
+
+        /**
+         * Debug function, same sig as console.debug
+         * @member {function}
+         */
+        debug = () => {};
+
+        /**
+         * Shortcut to $("#id")
+         * @member {jQuery}
+         */
+        $tab = undefined;
+
+        /**
+         * List of entries
+         * @member {object[]}
+         */
+        entries = [];
+
+        /**
+         * List of column headings for CSV, loaded from first row
+         * of data.
+         * @member {string[]}
+         */
+        heads = [];
+
+        /**
+         * Map of column name to data type.
+         * @member {Map<string,string>}
+         */
+        keys = undefined;
+
+        /**
+         * Has the data been loaded?
+         * @member {boolean}
+         */
+        loaded = false;
+
+        /**
+         * Root URL for loading. `file` will be appended.
+         * @member {string}
+         */
+        url = undefined;
+        
+        /**
+         * Store for load/save
+         * @member {AbstractStore}
+         */
+        store = undefined;
+
+        /**
+         * Whether to load as arrays or as maps. See class description
+         * for more.
+         */
+        asArrays = false;
+
+        /**
+         * Key within the store for this object
+         * @member {string}
+         */
+        file = undefined;
+
+        /**
+         * Optional pointer to the containing Sheds app. Not used
+         * by this class, but subclasses will use it to cross-reference
+         * between tabs.
+         * @member {Sheds}
+         */
+        sheds = undefined;
+
 		/**
-		 * @param {object} params parameters
-		 * @param {AbstractStore} params.store Data will be saved
-		 * using this, and loaded too unless url is set.
-		 * @param {string} params.file CSV file name in store
-		 * @param {string} params.url URL to load data from, overriding store.
-		 * @param {Object.<string,string>} params.keys map from
-		 *  column names to types. Types supported are "string",
-		 *  "Date" and "number". Date is an integer epoch ms, or a
-		 *  string. Number is a float.
-		 * @param {boolean} params.asArrays if true, conversion to a
-		 * map won't happen
+		 * @param {object} params parameters. Any of the fields may
+         * be initialised this way. This can't be done by passing params
+         * to the constructor, otherwise locally declared fields in
+         * subclasses will blow away fields set from params in the base
+         * class :-(
+         * @return {Promise} promise that resolves when init is complete
 		 */
-        constructor(params) {
-            this.debug = () => {};
-			for (let field in params)
+        init(params) {
+			for (const field in params)
 				this[field] = params[field];
-            this.reset();
+            return this.reset();
 		}
 
 		/**
 		 * Promise to load the HTML.
 		 * Override in subclasses, calling the superclass.
+         * @return {Promise} promise that resolves to this
 		 */
 		loadUI() {
 			return $.get(`app/html/${this.id}.html?nocache=${Date.now()}`)
@@ -64,7 +138,7 @@ define("app/js/Entries", [ "jquery" ], () => {
 				const $tab = $(`<div id="${this.id}"></div>`);
 				$tab.html(html);
 				$("#main_tabs").append($tab);
-				this.$tab = $(`#${this.id}`);
+				this.$tab = $tab;
 
 				$tab.find(".spinner").spinner();
 				$tab.find("button").button();
@@ -74,6 +148,7 @@ define("app/js/Entries", [ "jquery" ], () => {
 				});
 				this.attachHandlers();
 				this.debug("Loaded", this.id);
+                return this;
 			});
         }
 
@@ -87,19 +162,22 @@ define("app/js/Entries", [ "jquery" ], () => {
 
 		/**
 		 * Promise to reload the UI with new data. NOP unless the UI
-		 * is loaded, as indicated by $tab.
+		 * is loaded, as indicated by $tab. DO NOT OVERRIDE -
+         * implement reload_ui instead.
+         * @return {Promise} promise that resolves to this
 		 */
 		reloadUI() {
 			if (this.$tab) {
 				this.debug("Reloading", this.id);
 				return this.reload_ui();
 			}
-			return Promise.resolve();
+			return Promise.resolve(this);
 		}
 
 		/**
 		 * Re-read the store and populate the tab with the data read.
 		 * Pure virtual, subclasses must implement.
+         * @return {Promise} promise that resolves to this
 		 */
 		reload_ui() {
 			throw new Error("Pure virtual");
@@ -126,7 +204,8 @@ define("app/js/Entries", [ "jquery" ], () => {
 
         /**
 		 * Get the given entry
-		 * @return {object{ the entry
+         * @param {number} i index of the entry.
+		 * @return {object} the entry, or undefined if i is out of range.
 		 */
         get(i) {
             if (i < 0 || i >= this.entries.length)
@@ -139,10 +218,11 @@ define("app/js/Entries", [ "jquery" ], () => {
          * resolve is called with the row object.
          * @param col name of the column to search
          * @param val value to search for
+         * @return {Promise} the promise
          */
         find(col, val) {
             return new Promise((resolve, reject) => {
-                for (var i = 0; i < this.entries.length; i++) {
+                for (let i = 0; i < this.entries.length; i++) {
                     if (this.entries[i][col] == val) {
                         resolve(this.entries[i]);
                         return;
@@ -162,6 +242,7 @@ define("app/js/Entries", [ "jquery" ], () => {
 
         /**
 		 * Get a simple array of column heads
+         * @return {string[]}
 		 */
         getHeads() {
             return this.heads;
@@ -169,35 +250,44 @@ define("app/js/Entries", [ "jquery" ], () => {
 
         /**
 		 * Get a simple array of entries
+         * return {object[]}
 		 */
         getEntries() {
             return this.entries;
         }
 
         /**
-		 ** Make a simple date string
+		 * Make a simple ISO date string. Like Date.toLocaleDateString but for
+         * ISO dates.
+         * @param {Date} date a date
+         * @return {string} the string
 		 */
         static formatDate(date) {
             return date.toISOString().replace(/T.*/, "");
         }
 
         /**
-		 * Make a simple date/time string
+		 * Make a simple date/time string. Like Date.toISOString but
+         * with the seconds stripped off.
+         * @param {Date} date a date
+         * @return {string} the string
 		 */
         static formatDateTime(date) {
             return date.toISOString().replace(/T(\d\d:\d\d).*/, " $1");
         }
 
 		/**
+         * Load this thing from the store.
+         * @return {Promise} promise that resolves to this
 		 */
         loadFromStore() {
-			this.debug("loadFromStore of",this.id);
+			this.debug("loadFromStore of", this.id);
             if (this.loaded) {
 				this.debug("\tskipped");
                 return Promise.resolve(this);
 			}
 
-            var lp;
+            let lp;
             if (typeof this.url !== "undefined")
                 lp = $.ajax({
                     url: this.url,
@@ -214,16 +304,16 @@ define("app/js/Entries", [ "jquery" ], () => {
                 new Promise(resolve => requirejs(['jquery-csv'], resolve))
             ])
             .then(res => {
-                let text = res[0];
+                const text = res[0];
                 if (typeof text !== "undefined") {
-                    var data = $.csv.toArrays(text);
+                    const data = $.csv.toArrays(text);
                     if (this.asArrays) {
                         this.heads = data.shift();
                         this.entries = data;
                     } else {
                         this.heads = data[0];
                         this.entries = [];
-                        for (var i = 1; i < data.length; i++) {
+                        for (let i = 1; i < data.length; i++) {
                             this.entries.push(this.array2map(this.heads, data[i]));
                         }
                     }
@@ -242,12 +332,13 @@ define("app/js/Entries", [ "jquery" ], () => {
         }
 
         /**
-         * Like jQuery each except the callback params are reversed
+         * Apply a function to each entry. Like jQuery each except the
+         * callback params are reversed
+         * @param {function} callback takes (e, i) where e is the entry
+         * and i is the index
          */
         each(callback) {
-            $.each(this.entries, (i, e) => {
-                return callback(e, i);
-            });
+            $.each(this.entries, (i, e) => callback(e, i));
         }
 
         /**
@@ -259,14 +350,9 @@ define("app/js/Entries", [ "jquery" ], () => {
             if (!this.store)
                 throw "Can't save, no store";
 
-            // Slightly more supported than Object.keys?
-            var heads = [];
-            for (var k in this.keys) {
-                if (this.keys.hasOwnProperty(k))
-                    heads.push(k);
-            }
-            var data = [heads];
-            for (let row of this.entries) {
+            const heads = Object.keys(this.keys);
+            const data = [heads];
+            for (const row of this.entries) {
                 if (this.asArrays)
                     data.push(row);
                 else
@@ -279,13 +365,14 @@ define("app/js/Entries", [ "jquery" ], () => {
          * Given an array of values and a same-sized array of keys,
          * create an object with fields key:value after applying type
          * conversions.
-         * @param vals Array of values
-         * @params keys Array of keys
+         * @param {string[]} keys Array of keys
+         * @param {string[]} vals Array of values
+         * @return {object} the object mapping keys to vals
          */
         array2map(keys, vals) {
-            var datum = {};
-            for (var j = 0; j < keys.length; j++) {
-                var val = vals[j];
+            const datum = {};
+            for (let j = 0; j < keys.length; j++) {
+                const val = vals[j];
 
                 if (typeof val === "undefined")
                     continue; // ignore undefined
@@ -297,12 +384,11 @@ define("app/js/Entries", [ "jquery" ], () => {
         }
 
         /**
-         * Given a key and a string, convert that to the target type
+         * Given a key and some data, convert that to the target type
          * for that key
-         * @param key the key
-         * @param val the string
-         * @return the converted value
-         * @throws if the value can't be converted
+         * @param {string} key the key
+         * @param {string} val the data
+         * @return {object} the converted value
          */
         deserialise(key, val) {
             if (typeof val === "undefined")
@@ -330,27 +416,33 @@ define("app/js/Entries", [ "jquery" ], () => {
         }
 
         /**
-         * Given a key and a string, convert that to a suitable type for
-         * serialisation
-         * @param key the key
-         * @param val the string
+         * Given a key and an object, convert that to a suitable type for
+         * serialisation in CSV
+         * @param {string} key the key
+         * @param {object} val the data
          * @return the converted value
-         * @throws if the value can't be converted
          */
         serialise(key, val) {
-            if (typeof val !== "undefined" && (this.keys[key] === "Date"
-                                               || val instanceof Date))
+            if (typeof val !== "undefined"
+                && (this.keys[key] === "Date" || val instanceof Date))
                 // Dates are serialised as simplified ISO8601 strings
                 return val.toISOString();
             return val;
         }
 
 		/**
+         * Given an array of keys and a map from key name to value,
+         * create an array of serialised values in the same order as keys.
+         * create an object with fields key:value after applying type
+         * conversions.
+         * @param {string[]} keys Array of key names
+         * @param {Map[<string,object>} vals Map of key to value
+         * @return {string[]} the array
 		 */
         map2array(keys, vals) {
-            var datum = [];
-            for (var j = 0; j < keys.length; j++) {
-                var key = keys[j],
+            const datum = [];
+            for (let j = 0; j < keys.length; j++) {
+                const key = keys[j],
                     val = vals[key];
                 datum.push(this.serialise(key, val));
             }

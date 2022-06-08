@@ -9,15 +9,15 @@
 
     $.fn.edit_in_place = function (options) {
 
-        let $this = $(this);
-        let h = options.height || $this.innerHeight() || "1em";
-        let w = options.width || $this.innerWidth() || "1em";
-        let changed = options.changed ||
+        const $this = $(this);
+        const h = options.height || $this.innerHeight() || "1em";
+        const w = options.width || $this.innerWidth() || "1em";
+        const changed = options.changed ||
             function () {
                 return $this.text();
             };
-        let closed = options.closed || function () {};
-        let $input = $(document.createElement("input"));
+        const closed = options.closed || function () {};
+        const $input = $(document.createElement("input"));
         let text = options.text || $this.text();
 
         // Action on blur
@@ -37,7 +37,7 @@
             .css("width", w - 4)
 
             .on("change", function () {
-                let val = $(this)
+                const val = $(this)
                     .val();
                 blurb();
                 if (val !== text)
@@ -60,19 +60,19 @@
 
     $.fn.select_in_place = function (options) {
 
-        let $ul = $("<ul class='sip_menu_ul'></ul>");
-        let $div = $("<div class='sip_div'></div>");
-        let $dlg = $("<div id='sip_menu'></div>");
+        const $ul = $("<ul class='sip_menu_ul'></ul>");
+        const $div = $("<div class='sip_div'></div>");
+        const $dlg = $("<div id='sip_menu'></div>");
         $div.append($ul);
         $dlg.append($div);
         $("body").append($dlg);
 
-        let $this = $(this);
-        let text = $this.text();
+        const $this = $(this);
+        const text = $this.text();
 
         for (let i = 0; i < options.options.length; i++) {
-            let opt = options.options[i];
-            let $opt = $("<li>" + opt + "</li>");
+            const opt = options.options[i];
+            const $opt = $("<li>" + opt + "</li>");
             if (opt === text) {
                 $opt.addClass("ui-state-disabled");
                 $opt[0].scrollIntoView();
@@ -82,13 +82,13 @@
 
         $ul.menu({
             select: function (event, ui) {
-                let val = ui.item.text();
+                const val = ui.item.text();
                 if (options.changed)
                     options.changed.call($this, val);
                 $dlg.dialog("close");
             }
         });
-        let vo = $this.offset();
+        const vo = $this.offset();
 
         $dlg.dialog({
             modal: true,

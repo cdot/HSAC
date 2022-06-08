@@ -5,8 +5,9 @@
 /**
  * Informational dialog for use with data-with-info. Requires jquery-confirm
  */
-define("app/js/jq/with-info", [	"jquery" ], (
-) => {
+define("app/js/jq/with-info", [
+	"jquery"
+], () => {
 
 	/**
 	 * An element with data-with-info will be displayed with an information
@@ -40,7 +41,7 @@ define("app/js/jq/with-info", [	"jquery" ], (
 				})
 				.done(md => {
 					requirejs(["markdown-it"], function(Markdown) {
-						let html = new Markdown({ html: true }).render(md);
+						const html = new Markdown({ html: true }).render(md);
                         $("body").append("<div class='info hidden' id='"
                                          + url + "'>"
                                          + html + "</div>");
@@ -51,9 +52,9 @@ define("app/js/jq/with-info", [	"jquery" ], (
 		}
 		
 		for (let i = 0; i < this.length; i++) {
-			let $thing = $(this[i]);
-			let s = params.text || $thing.data("with-info");
-			let position = params.position || $thing.data("with-info-position") ||
+			const $thing = $(this[i]);
+			const s = params.text || $thing.data("with-info");
+			const position = params.position || $thing.data("with-info-position") ||
 				params.position || "after";
 
 			if (typeof s === "undefined" || s.charAt(0) === '#' && $(s).length === 0) {
@@ -72,18 +73,16 @@ define("app/js/jq/with-info", [	"jquery" ], (
 					$clickable = $("<span class='fa fa-info-circle with-info-before'></span>");
 					$thing.before($clickable);
 				}
-			} else {
-				if ($thing.next().is(".with-info-after"))
-					$clickable = $thing.next();
-				else {
-					$clickable = $("<span class='fa fa-info-circle with-info-after'></span>");
-					$thing.after($clickable);
-				}
+			} else if ($thing.next().is(".with-info-after"))
+				$clickable = $thing.next();
+			else {
+				$clickable = $("<span class='fa fa-info-circle with-info-after'></span>");
+				$thing.after($clickable);
 			}
 
 			$clickable.data("info", s);
 			$clickable.on("click", function () {
-				let source = $(this).data("info");
+				const source = $(this).data("info");
 				let get_info = Promise.resolve();
 				
 				if (/\.md$/.test(source))
@@ -115,6 +114,3 @@ define("app/js/jq/with-info", [	"jquery" ], (
 		}
 	};
 });
-
-
-

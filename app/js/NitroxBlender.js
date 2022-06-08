@@ -51,82 +51,99 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
      * * Pt - top-up pressure (Pd = Ps + Pf + Pt)
      */
     class NitroxBlender {
+
         /**
-         * @param {object} p - parameters
-         * @param {number} p.T - temperature (Celsius)
-         * @param {number} p.Ps - start pressure in cylinder (all gases)
-         * @param {number} p.Ms - start mix in cylinder, fraction of O2
-         * @param {number} p.Sc - size of cylinder
-         * @param {number} p.Pd - target pressure, in bar
-         * @param {number} p.Ps - target mix, fraction of O2
-         * @param {number} [p.Mt=0.209] - top-up mix (default 0.209 = Air)
-         * @param {function=} p.debug - optional debug function (signature
+         * Temperature used in real gas computations (K)
+         */
+        T = 0;
+
+        /**
+         * start pressure in cylinder
+         * @member {number}
+         */
+        Ps = 0;
+
+        /**
+         * start mix in cylinder
+         * @member {number}
+         */
+        Ms = 0;
+
+        /**
+         * cylinder size
+         * @member {number}
+         */
+        Sc = 0;
+
+        /**
+         * target pressure
+         * @member {number}
+         */
+        Pd = 0;
+
+        /**
+         * target mix
+         * @member {number}
+         */
+        Md = 0;
+
+        /**
+         * mix of top-off gas (air = 0.209)
+         * @member {number}
+         */
+        Mt = 0.209;
+
+        /**
+         * Min O2 price (used to calculate bleed cost)
+         * @member {number}
+         */
+        O2_gbp = 0.001;
+
+        /**
+         * Bank cylinder
+         * @member {BankCylinder}
+         */
+        bank = 0;
+
+        /**
+         * Action
+         * @member {Action}
+         */
+        action = undefined;
+
+        /**
+         * Optional debug function (signature
          * as console.debug)
-         * @param {BankCylinder} bank - bank cylinder to use
-         * @param {Action} action - action function
+         * @member {function}
+         */
+        debug = () => {};
+
+        /**
+         * @param {object} p - parameters. Any of the fields can be
+         * initialised.
          */
         constructor(p) {
-            /**
-             * Temperature used in real gas computations
-             */
-            this.T = Gas.C2K(p.T || 0);
-            
-            /**
-             * start pressure in cylinder
-             * @member {number}
-             */
-            this.Ps = p.Ps;
-
-            /**
-             * start mix in cylinder
-             * @member {number}
-             */
-            this.Ms = p.Ms;
-
-            /**
-             * cylinder size
-             * @member {number}
-             */
-            this.Sc = p.Sc;
-
-            /**
-             * target pressure
-             * @member {number}
-             */
-            this.Pd = p.Pd;
-
-            /**
-             * target mix
-             * @member {number}
-             */
-            this.Md = p.Md;
-
-            /**
-             * mix of top-off gas (air = 0.209)
-             * @member {number}
-             */
-            this.Mt = (p.Mt ||  0.209);
-
-            /**
-             * Min O2 price (used to calculate bleed cost)
-             * @member {number}
-             */
-            this.O2_gbp = p.O2_gbp || 0.001;
-
-            /**
-             * Bank cylinder
-             * @member {BankCylinder}
-             */
+            if (typeof this.T !== "undefined")
+                this.T = Gas.C2K(p.T);
+            if (typeof p.Ps !== "undefined")
+                this.Ps = p.Ps;
+            if (typeof p.Ms !== "undefined")
+                this.Ms = p.Ms;
+            if (typeof p.Sc !== "undefined")
+                this.Sc = p.Sc;
+            if (typeof p.Pd !== "undefined")
+                this.Pd = p.Pd;
+            if (typeof p.Md !== "undefined")
+                this.Md = p.Md;
+            if (typeof p.Mt !== "undefined")
+                this.Mt = p.Mt;
+            if (typeof p.O2 !== "undefined")
+                this.O2_gbp = p.O2_gbp;
             if (p.bank)
                 this.setBank(p.bank);
-
-            /**
-             * Action
-             * @member {function}
-             */
             this.action = p.action;
-
-            this.debug = p.debug;
+            if (typeof p.debug === "function")
+                this.debug = p.debug;
         }
 
         /**
@@ -177,7 +194,7 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
                 Gas.bar2Pa(this.bank.bar), Sb, this.T, "O");
             const cyl_moles_O2 = Gas.real_moles(
                 Gas.bar2Pa(this.Ms * this.Ps), Sc, this.T, "O");
-            const cyl_moles_N2 =  Gas.real_moles(
+            const cyl_moles_N2 = Gas.real_moles(
                 Gas.bar2Pa((1 - this.Ms) * this.Ps), Sc, this.T, "N");
             const ppO2 = Gas.real_pressure(
                 bank_moles_O2 + cyl_moles_O2, Sb + Sc, this.T, "O");
@@ -240,7 +257,7 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
                 // Pd * Md - Pd * Mt = Ps * Ms - Ps * Mt
                 // Pd * (Md - Mt) = Ps * (Ms - Mt)
                 // Ps = Pd * (Md - Mt) / (Ms - Mt)
-                this.Ps = this.Pd * (this.Md - this.Mt)    / (this.Ms - this.Mt);
+                this.Ps = this.Pd * (this.Md - this.Mt) / (this.Ms - this.Mt);
                 this.debug(`\ttoo much O2, bleed to ${this.Ps}`);
             }
 
@@ -281,7 +298,7 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
                 to_bar: this.Ps, // target pressure
                 drained_l: drained_l, // total litres drained
                 drained_bar: drained_l / this.Sc, // total bar drained
-                wasted_l: wasted_l, // litres of O2 wasted
+                wasted_l: wasted_l // litres of O2 wasted
             });
         }
 
@@ -309,7 +326,7 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
             this.Ps += Pf;
             this.debug(`\tbank now ${this.bank.bar} bar`,
                           `\n\tcylinder now ${this.Ps} bar`,
-                          `\n\tintermediate Ms = ${this.Ms*100}%`,
+                          `\n\tintermediate Ms = ${this.Ms * 100}%`,
                           `\n\tcost £${litres_used * this.bank.price}`);
         }
 
@@ -330,7 +347,7 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
             });
             const mix = (this.Ps * this.Ms + Pt * this.Mt) / this.Pd;
             this.debug(`Top up with ${Pt} bar of air,`,
-                       `which will result in a ${mix*100}% mix`);
+                       `which will result in a ${mix * 100}% mix`);
             this.Ps += Pt;
         }
 
@@ -349,11 +366,11 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
                 startBank = 0;
             if (this.Ms <= 0.21) this.Ms = AIR;
             this.debug("blend: target is", this.Pd, "bar of",
-                       `${this.Md*100}% in a`,
+                       `${this.Md * 100}% in a`,
                        `${this.Sc}L cylinder`);
             this.debug(
                 `\tCylinder already has ${this.Ps} bar`,
-                `of ${this.Ms*100}%,`,
+                `of ${this.Ms * 100}%,`,
                 `so contains ${(this.Ps * this.Ms)} bar of O2`);
             if (this.Ms > AIR)
                 this.debug(
@@ -366,17 +383,18 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
                 if (banks[banki] !== this.bank)
                     this.setBank(banks[banki]);
                 if (this.canAddFromBank()) {
+                    // We can usefully add O2 from this bank
                     if (!this.haveEnoughO2())
                         this.addO2();
-                    if (this.haveEnoughO2()) {
-                        this.topUp();
-                        return true;
-                    }
                 }
                 else if (!bled && this.canBleed()) {
                     this.bleedDown();
                     bled = true;
                     banki--; // repeat this bank
+                }
+                if (this.haveEnoughO2()) {
+                    this.topUp();
+                    return true;
                 }
             }
             return false;
@@ -400,7 +418,7 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
             let actions = [];
             function action(a) {
                 actions.push(a);
-                switch  (a.action) {
+                switch (a.action) {
                 case "Bleed":
                     drained_l += a.drained_l;
                     wasted_l += a.wasted_l;
@@ -413,19 +431,18 @@ define("app/js/NitroxBlender", ["app/js/Gas"], Gas => {
             const params = {
                 T: this.T,
                 Sc:  this.Sc,
-                Ms: this.Ms,  Ps: this.Ps,
+                Ms: this.Ms, Ps: this.Ps,
                 Md: this.Md, Pd: this.Pd,
                 O2_gbp: this.O2_gbp,
                 action: action,
                 debug: this.debug
             };
-            let res = {
-            };
+            const res = {};
             for (let startBank = 0; startBank < banks.length; startBank++) {
                 this.debug(`--- startBank ${startBank}`);
-                drained_l = 0,
-                wasted_l = 0,
-                used_l = 0,
+                drained_l = 0;
+                wasted_l = 0;
+                used_l = 0;
                 actions = [];
                 const b = new NitroxBlender(params);
                 if (b.blend(banks, startBank)) {

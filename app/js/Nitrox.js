@@ -12,8 +12,26 @@ define("app/js/Nitrox", [
      */
     class Nitrox extends Entries {
 
-        constructor(params) {
-			super($.extend(params, {
+        /**
+         * Configuration object
+         * @member {Config}
+         */
+        config;
+
+        /**
+         * Shortcut to the form in the $tab
+         * @member {jQuery}
+         */
+        $form;
+
+		/**
+         * £ per L of the cheapest O2, used in bleed calculations
+         * @member {number}
+         */
+        O2_gbp = 1000000;
+
+        init(params) {
+			return super.init($.extend(params, {
 				file: "nitrox.csv",
                 keys: {
                     date: "Date",
@@ -38,11 +56,10 @@ define("app/js/Nitrox", [
 		attachHandlers() {
             const $tab = this.$tab;
 			this.$form = $tab.children("form");
-			this.$submit = $tab.find("button[name='add_record']");
 
             $("#nitrox")
             .children("form")
-            .on("submit", e =>  e.preventDefault());
+            .on("submit", e => e.preventDefault());
                 
             $tab.find("input")
 			.on("change", () => this.recalculate());
@@ -85,22 +102,26 @@ define("app/js/Nitrox", [
 			const $dlg = $("#fix_bank_dialog");
 			const $banks = $dlg.find("[name=banks").empty();
 			const banks = this.config.store_data.o2.bank;
-			for (let id in banks) {
+			for (const id in banks) {
 				$banks.append(`<label for="nox_fixbank_${id}">${id}: </label>`);
 				const $cyl = $(`<input type="number" name="nox_fixbank" id="nox_fixbank_${id}" value="${banks[id].bar}" class="integer3"/>`);
 				$banks.append($cyl);
 				$banks.append(" bar<br/>");
 				$cyl.on("change", () => {
-					let newp = $cyl.val();
+					const newp = $cyl.val();
 					banks[id].bar = newp;
 					this.reloadUI();
 				});
-			}		
-			$dlg.dialog({})
-			.dialog("open");
+            }
+            $dlg.dialog({})
+            .dialog("open");
 		}
 
-		reload_ui() {
+		/**
+         * @override
+         * @return {Promise} promise that resolves to this
+         */
+        reload_ui() {
 			// Reset banks to default state
 			const $bank = this.$tab.find(".nox_o2_bank");
 			$bank.empty();
@@ -110,7 +131,7 @@ define("app/js/Nitrox", [
 			// Even if the cheapest bank isn't selected, we need
 			// use the O2 value for the bleed computations.
 			this.O2_gbp = 1000000;
-			for (let id in banks) {
+			for (const id in banks) {
 				$bank.append(`<label for="nox_bank_${id}">${id}</label>`);
 				const $choice = $(`<input type="checkbox" name="nox_bank" id="nox_bank_${id}" value="${id}" checked="checked" />`);
 				$bank.append($choice);
@@ -138,13 +159,16 @@ define("app/js/Nitrox", [
 					.text(cur.bank_bar);
 				}
                 this.recalculate();
-           })
+                return this;
+            })
             .catch(e => {
                 console.error("Nitrox load failed: " + e, e);
+                return this;
             });
         }
 
 		expandActions(actions) {
+            /* eslint-disable no-unused-vars */
 			function morethan(x,y) {
 				return x >= y;
 			}
@@ -164,6 +188,7 @@ define("app/js/Nitrox", [
 			function about(v) {
 				return round(v * 100) / 100;
 			}
+            /* eslint-enable no-unused-vars */
 
 			let acts = "";
 			const $templates = $("#action-templates");
@@ -196,18 +221,18 @@ define("app/js/Nitrox", [
                     conditions[this.name] = $(this).val();
             });
 
-            let MOD = Math.floor((100 * conditions.ppO2max
+            const MOD = Math.floor((100 * conditions.ppO2max
                                   / conditions.target_mix - 1) * 10);
             $("#nox_MOD").text(MOD);
 
 			const actions = [];
-			let drained_l = 0,
-				wasted_l = 0,
-				used_l = 0,
-				cost_gbp = 0;
+			let drained_l = 0;
+			let wasted_l = 0;
+			let used_l = 0;
+			let cost_gbp = 0;
 			function action(a) {
 				actions.push(a);
-				switch  (a.action) {
+				switch (a.action) {
 				case "Bleed":
 					drained_l += a.drained_l;
 					wasted_l += a.wasted_l;
@@ -260,8 +285,8 @@ define("app/js/Nitrox", [
 					});
 				});
 
-			const $report =	this.$tab.find("[name=report]");
-			if (filler.blend(banks)) {
+            const $report = this.$tab.find("[name=report]");
+            if (filler.blend(banks)) {
 				if (cost_gbp > 0)
 					actions.push({
 						action: "Pay",

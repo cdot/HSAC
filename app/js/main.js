@@ -6,11 +6,11 @@
 
 let min = ".min";
 
-let params = {};
-let url_params = window.location.search.substring(1);
+const params = {};
+const url_params = window.location.search.substring(1);
 if (url_params) {
-    for (let setting of url_params.split(/[;&]/)) {
-        let set = setting.split("=", 2);
+    for (const setting of url_params.split(/[;&]/)) {
+        const set = setting.split("=", 2);
         if (set.length == 1)
             params[setting] = true;
         else

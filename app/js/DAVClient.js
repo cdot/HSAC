@@ -18,9 +18,9 @@ define("app/js/DAVClient", () => {
     }
 
     function _parseClarkNotation(propertyName) {
-        let result = propertyName.match(/^{([^}]+)}(.*)$/);
+        const result = propertyName.match(/^{([^}]+)}(.*)$/);
         if (!result)
-            return;
+            return undefined;
 
         return {
             name: result[2],
@@ -40,10 +40,10 @@ define("app/js/DAVClient", () => {
     function _parsePropNode(propNode) {
         let content = null;
         if (propNode.childNodes && propNode.childNodes.length > 0) {
-            let subNodes = [];
+            const subNodes = [];
             // filter out text nodes
             for (let j = 0; j < propNode.childNodes.length; j++) {
-                let node = propNode.childNodes[j];
+                const node = propNode.childNodes[j];
                 if (node.nodeType === 1) {
                     subNodes.push(node);
                 }
@@ -64,46 +64,49 @@ define("app/js/DAVClient", () => {
      */
     function _parseMultiStatus(xmlBody, xmlNamespaces) {
 
-        let parser = new DOMParser();
-        let doc = parser.parseFromString(xmlBody, "application/xml");
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xmlBody, "application/xml");
 
-        let resolver = function (foo) {
+        function resolver(foo) {
             let ii;
             for (ii in xmlNamespaces) {
                 if (xmlNamespaces[ii] === foo) {
                     return ii;
                 }
             }
-        };
+            return undefined;
+        }
 
-        let responseIterator = doc.evaluate('/d:multistatus/d:response', doc, resolver, XPathResult.ANY_TYPE, null);
+        const responseIterator = doc.evaluate(
+            '/d:multistatus/d:response', doc, resolver,
+            XPathResult.ANY_TYPE, null);
 
-        let result = [];
+        const result = [];
         let responseNode = responseIterator.iterateNext();
 
         while (responseNode) {
 
-            let response = {
+            const response = {
                 href: null,
                 propStat: []
             };
 
             response.href = doc.evaluate('string(d:href)', responseNode, resolver, XPathResult.ANY_TYPE, null).stringValue;
 
-            let propStatIterator = doc.evaluate('d:propstat', responseNode, resolver, XPathResult.ANY_TYPE, null);
+            const propStatIterator = doc.evaluate('d:propstat', responseNode, resolver, XPathResult.ANY_TYPE, null);
             let propStatNode = propStatIterator.iterateNext();
 
             while (propStatNode) {
-                let propStat = {
+                const propStat = {
                     status: doc.evaluate('string(d:status)', propStatNode, resolver, XPathResult.ANY_TYPE, null).stringValue,
-                    properties: {},
+                    properties: {}
                 };
 
-                let propIterator = doc.evaluate('d:prop/*', propStatNode, resolver, XPathResult.ANY_TYPE, null);
+                const propIterator = doc.evaluate('d:prop/*', propStatNode, resolver, XPathResult.ANY_TYPE, null);
 
                 let propNode = propIterator.iterateNext();
                 while (propNode) {
-                    let content = _parsePropNode(propNode);
+                    const content = _parsePropNode(propNode);
                     propStat.properties['{' + propNode.namespaceURI + '}' + propNode.localName] = content;
                     propNode = propIterator.iterateNext();
 
@@ -133,12 +136,12 @@ define("app/js/DAVClient", () => {
         let body = '  <d:set>\n' +
             '   <d:prop>\n';
 
-        for (let ii in properties) {
+        for (const ii in properties) {
             if (!properties.hasOwnProperty(ii)) {
                 continue;
             }
 
-            let property = _parseClarkNotation(ii);
+            const property = _parseClarkNotation(ii);
             let propName;
             let propValue = properties[ii];
             if (xmlNamespaces[property.namespace]) {
@@ -147,7 +150,7 @@ define("app/js/DAVClient", () => {
                 propName = 'x:' + property.name + ' xmlns:x="' + property.namespace + '"';
             }
 
-            // FIXME: hard-coded for now until we allow properties to
+            // TODO: hard-coded for now until we allow properties to
             // specify whether to be escaped or not
             if (propName !== 'd:resourcetype') {
                 propValue = _escapeXml(propValue);
@@ -168,7 +171,7 @@ define("app/js/DAVClient", () => {
                 'DAV:': 'd'
             };
 
-            for (let i in options) {
+            for (const i in options) {
                 this[i] = options[i];
             }
         }
@@ -188,7 +191,7 @@ define("app/js/DAVClient", () => {
                 depth = '0';
 
             // depth header must be a string, in case a number was passed in
-            depth = '' + depth;
+            depth = String(depth);
 
             headers = headers || {};
 
@@ -205,12 +208,12 @@ define("app/js/DAVClient", () => {
             body += '>\n' +
             '  <d:prop>\n';
 
-            for (let ii in properties) {
+            for (const ii in properties) {
                 if (!properties.hasOwnProperty(ii)) {
                     continue;
                 }
 
-                let property = _parseClarkNotation(properties[ii]);
+                const property = _parseClarkNotation(properties[ii]);
                 if (this.xmlNamespaces[property.namespace]) {
                     body += '    <' + this.xmlNamespaces[property.namespace] + ':' + property.name + ' />\n';
                 } else {
@@ -224,20 +227,18 @@ define("app/js/DAVClient", () => {
             return this.request('PROPFIND', url, headers, body).then(
                 function (result) {
 
-                    if (depth === '0') {
+                    if (depth === '0')
                         return {
                             status: result.status,
                             body: result.body[0],
                             xhr: result.xhr
                         };
-                    } else {
-                        return {
-                            status: result.status,
-                            body: result.body,
-                            xhr: result.xhr
-                        };
-                    }
 
+                    return {
+                        status: result.status,
+                        body: result.body,
+                        xhr: result.xhr
+                    };
                 }
             );
         }
@@ -265,16 +266,15 @@ define("app/js/DAVClient", () => {
             body += '>\n' + _renderPropSet(properties, this.xmlNamespaces);
             body += '</d:propertyupdate>';
 
-            return this.request('PROPPATCH', url, headers, body).then(
-                function (result) {
+            return this.request('PROPPATCH', url, headers, body)
+            .then(
+                result => {
                     return {
                         status: result.status,
                         body: result.body,
                         xhr: result.xhr
                     };
-                }.bind(this)
-            );
-
+                });
         }
 
         /**
@@ -304,14 +304,13 @@ define("app/js/DAVClient", () => {
             }
 
             return this.request('MKCOL', url, headers, body).then(
-                function (result) {
+                result => {
                     return {
                         status: result.status,
                         body: result.body,
                         xhr: result.xhr
                     };
-                }.bind(this)
-            );
+                });
         }
 
         /**
@@ -324,8 +323,8 @@ define("app/js/DAVClient", () => {
          * @return {Promise}
          */
         request(method, url, headers, body) {
-            let self = this;
-            let xhr = this.xhrProvider();
+            const self = this;
+            const xhr = this.xhrProvider();
             headers = headers || {};
             if (this.userName) {
                 headers['Authorization'] = 'Basic '
@@ -336,7 +335,7 @@ define("app/js/DAVClient", () => {
                 try {
                     turl = new URL(url, this.baseUrl).toString();
                 } catch (e) {
-                    return Promise.reject(this.baseUrl + "/" + URL + ": " + e);
+                    return Promise.reject(new Error(this.baseUrl + "/" + URL + ": " + e));
                 }
             } else if (!/^[a-z]*:\/\//.test(turl))
                 // Bit hacky, but it works

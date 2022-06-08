@@ -23,7 +23,7 @@
   "eslintConfig": {
     "extends": "eslint:recommended",
     "parserOptions": {
-      "ecmaVersion": 6
+      "ecmaVersion": 13
     },
     "env": {
       "shared-node-browser": true,
@@ -32,24 +32,32 @@
     "globals": {
       "define": false
     },
-    "rules": {
-      "strict": 0,
-      "no-underscore-dangle": 0,
-      "curly": 0,
-      "camelcase": 0,
-      "no-unused-vars": 1,
-      "no-console": 0,
-      "no-debugger": 0,
-      "no-alert": 1,
-      "no-new": 0,
-      "new-cap": 0,
-      "dot-notation": 1,
-      "no-trailing-spaces": 0,
-      "no-useless-escape": 1,
-      "no-use-before-define": 1,
-      "no-loop-func": 1,
-      "no-eval": 1,
-      "quotes": 0
+      "rules": {
+          "array-bracket-newline": 0,
+          "arrow-parens": 0,
+          "camelcase": 0,
+          "class-methods-use-this": 0,
+          "curly": 0,
+          "dot-notation": 0,
+          "max-params": 0,
+          "new-cap": 0,
+          "no-alert": 1,
+          "no-console": 0,
+          "no-debugger": 0,
+          "no-eval": 0,
+          "no-new": 0,
+          "no-prototype-builtins": 0,
+          "no-trailing-spaces": 0,
+          "no-underscore-dangle": 0,
+          "no-unused-vars": 1,
+          "no-useless-escape": 1,
+          "no-use-before-define": 1,
+          "no-loop-func": 1,
+          "no-warning-comments": 0,
+          "prefer-rest-params": 0,
+          "prefer-spread": 0,
+          "quotes": 0,
+          "strict": 0
     }
   },
   "devDependencies": {

@@ -1,25 +1,27 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
-
 /* eslint-env jquery */
 
 define("app/js/Roles", ["app/js/Entries"], Entries => {
 
+    /**
+     * Record of roles performed by different members. It is primarily
+     * used to populate selects in the UI.
+     */ 
     class Roles extends Entries {
-        /**
-         * Roles are read from "roles.csv' on WebDAV
-         */
-        constructor(params) {
-            super($.extend(params, {
+
+        init(params) {
+            return super.init($.extend(params, {
                 file: "roles.csv",
                 keys: {
                     role: "string",
                     list: "string"
-                },
+                }
             }));
         }
 
         /**
          * Reload the UI by re-reading the roles file from the cache
+         * @return {Promise} promise that resolves to this
          */
         reloadUI() {
             this.debug("Reloading roles");
@@ -30,16 +32,18 @@ define("app/js/Roles", ["app/js/Entries"], Entries => {
                 roles.each(row => {
                     if (!row.role || !row.list)
                         throw new Error("Roles.csv has broken header row");
-                    const $lists = $("select." + row.role);
+                    const $lists = $(`select.${row.role}`);
                     $lists.html("<option></option>");
                     const list = row.list.split(",");
                     $.each(list, function (i, m) {
                         $lists.append("<option>" + m + "</option>");
                     });
                 });
+                return this;
             })
             .catch(e => {
                 console.error("Roles load failed: " + e);
+                return this;
             });
         }
 

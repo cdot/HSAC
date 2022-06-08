@@ -15,7 +15,7 @@ define("app/js/Gas", () => {
 	 * There are three roots, 2R, -R+sqrt(3)I, -R-sqrt(3)I
 	 * See the wikipedia article for more.
 	 */
-	function polyCubicRoots(a, b, c){
+	function polyCubicRoots(a, b, c) {
 		const a_3 = a / 3;
 		const p = b - a * a_3;
 		const q = (2 * a_3 * a_3 - b) * a_3 + c;
@@ -30,14 +30,13 @@ define("app/js/Gas", () => {
 			//const R = -(A + B) / 2 - a_3;
 			//const I = Math.sqrt(3) / 2 * (A - B);
 			return A + B - a_3;
-		} else {
-			const p3by27 = Math.sqrt(-Math.pow(p, 3) / 27);
-			const costheta = -q / 2 / p3by27;
-			const alpha = Math.acos(costheta);
-			const mag = 2 * Math.sqrt(-p / 3) ;
-			const alpha_3 = alpha / 3;
-			return mag  * Math.cos(alpha_3) - a_3;
 		}
+		const p3by27 = Math.sqrt(-Math.pow(p, 3) / 27);
+		const costheta = -q / 2 / p3by27;
+		const alpha = Math.acos(costheta);
+		const mag = 2 * Math.sqrt(-p / 3);
+		const alpha_3 = alpha / 3;
+		return mag * Math.cos(alpha_3) - a_3;
 	}
 
     // Universal gas constant

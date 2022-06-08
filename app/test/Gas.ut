@@ -91,7 +91,10 @@ requirejs(["app/js/Gas", "app/test/TestRunner"], function(Gas, TestRunner) {
 		// P1V1/T = P2V2/T
 		// T is held constant, so P1V1 = P2V2
 		// P3 = (P1*V1 + P2*V2) / (V1 + V2)
-		console.log("\nCombined Gas Law, P1V1/T1 = P2V2/T2");
+        console.log("Merge volumes: VISUAL CHECK",
+                    "Please check that that the 4 calculations all",
+                    "produce acceptable results");
+		console.log("\n1: Combined Gas Law, P1V1/T1 = P2V2/T2");
 		let ppO2 = (P1 * V1 + (P2 * V2 * Ms)) / (V1 + V2);
 		let ppN2 = (P2 * V2 * (1 - Ms)) / (V1 + V2);
 		console.log("ppO2", Gas.Pa2bar(ppO2),"bar");
@@ -100,7 +103,7 @@ requirejs(["app/js/Gas", "app/test/TestRunner"], function(Gas, TestRunner) {
 
 		// Second method: calculate moles using simplistic application
 		// of the ideal gas law
-		console.log("\nIdeal Gas Law, PV = nRT");
+		console.log("\n2: Ideal Gas Law, PV = nRT");
 		let bank_moles_O2 = Gas.ideal_moles(P1, V1, T);
 		let cyl_moles_O2 = Gas.ideal_moles(Ms * P2, V2, T);
 		let cyl_moles_N2 = Gas.ideal_moles((1 - Ms) * P2, V2, T);
@@ -116,7 +119,7 @@ requirejs(["app/js/Gas", "app/test/TestRunner"], function(Gas, TestRunner) {
 
 		// Third method: use Van Der Waal's equation to calculate moles
 		// of the individual gases.
-		console.log("\nVan der Waal 1");
+		console.log("\n3: Van der Waal, estimated");
 		bank_moles_O2 = Gas.real_moles(P1, V1, T, "O");
 		cyl_moles_O2 = Gas.real_moles(Ms * P2, V2, T, "O");
 		cyl_moles_N2 = Gas.real_moles((1 - Ms) * P2, V2, T, "N");
@@ -131,7 +134,7 @@ requirejs(["app/js/Gas", "app/test/TestRunner"], function(Gas, TestRunner) {
 
 		// Alternative method: use an iterative solution to Van der Waals
 		// equation - it may give better results if there is a question.
-		console.log("\nVan der Waal 2, iterative solution for cross-check");
+		console.log("\n4: Van der Waal, iterated");
 		bank_moles_O2 = vdw_moles(
 			P1, V1, T, Gas.GASES.O.a, Gas.GASES.O.b);
 		cyl_moles_O2 = vdw_moles(

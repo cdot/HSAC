@@ -8,9 +8,23 @@ define("app/js/Loans", [
     "app/js/Entries", "app/js/jq/in-place"
 ], Entries => {
 
+    // Defaults used to populate the new entry row
+    const DEFAULTS = {
+        date: new Date(),
+        item: "select",
+        count: 1,
+        borrower: "select",
+        lender: "select",
+        donation: 0
+    };
+
+    /**
+     * Load records. Read from/saved to loans.csv in the cache.
+     */
     class Loans extends Entries {
-        constructor(params) {
-            super($.extend(params, {
+        
+        init(params) {
+            return super.init($.extend(params, {
                 file: "loans.csv",
                 keys: {
                     date: "Date",
@@ -22,60 +36,62 @@ define("app/js/Loans", [
                     returned: "string"
                 }
             }));
-
-            // Defaults used to populate the new entry row
-            this.defaults = {
-                date: new Date(),
-                item: "select",
-                count: 1,
-                borrower: "select",
-                lender: "select",
-                donation: 0
-            };
 		}
 
 		//@override
+        loadUI() {
+            return super.loadUI()
+            .then(() => {
+                this.$loan_controls = this.$tab.find("#loan_controls");
+                this.$loan_table = this.$tab.find("#loan_table");
+                return this;
+            });
+        }
+
+		//@override
 		attachHandlers() {
-			this.$tab = $(`#${this.id}`);
+			this.$loan_controls.hide();
 
-			$("#loan_controls").hide();
-
-			$("#loan_save").on("click", () => {
-				$(".loan_modified").each((i, el) => {
+			this.$tab.find("#loan_save")
+            .on("click", () => {
+				this.$tab.find(".loan_modified").each((i, el) => {
 					$(el).removeClass("loan_modified");
 				});
 				// Save to file
 				this.save()
 				.then(() => {
-					$("#loan_controls").hide();
+					this.$loan_controls.hide();
 					$(document).trigger("reload_ui");
 				});
 			});
 
-			$("#loan_reset").on("click", () => {
-				$(".loan_modified").each((i, el) => {
+			this.$tab.find("#loan_reset")
+            .on("click", () => {
+				this.$tab.find(".loan_modified").each((i, el) => {
 					$(el).removeClass("loan_modified");
 				});
 				// Reload from file
 				this.reset();
 				$(document).trigger("reload_ui");
-				$("#loan_controls").hide();
+				this.$loan_controls.hide();
 			});
 
-			$("#loan_show_all").on("change", () => {
+			this.$tab.find("#loan_show_all")
+            .on("change", () => {
 				$(document).trigger("reload_ui");
 			});
 
 			// Add whatever is in 'capture' as a new loan (after validation)
-			$("#loan_add").on("click", () => {
-				let bad = [];
+			this.$tab.find("#loan_add")
+            .on("click", () => {
+				const bad = [];
 				try {
 					if (new Date(this.capture.date) > new Date())
 						bad.push("date");
 				} catch (e) {
 					bad.push("date");
 				}
-				if (this.capture.item == this.defaults.item)
+				if (this.capture.item == DEFAULTS.item)
 					bad.push("item");
 				try {
 					if (parseInt(this.capture.count) < 0)
@@ -90,7 +106,7 @@ define("app/js/Loans", [
 					bad.push("donation");
 				}
 				Promise.all([
-					this.app.roles.find("role", "member")
+					this.sheds.roles.find("role", "member")
 					.then(row => {
 						if (row.list.split(",").indexOf(this.capture.borrower) < 0)
 							bad.push("borrower");
@@ -98,7 +114,7 @@ define("app/js/Loans", [
 					.catch(() => {
 						bad.push("borrower");
 					}),
-					this.app.roles.find("role", "operator")
+					this.sheds.roles.find("role", "operator")
 					.then(row => {
 						if (row.list.split(",").indexOf(this.capture.lender) < 0)
 							bad.push("lender");
@@ -108,7 +124,7 @@ define("app/js/Loans", [
 					})
 				]).then(() => {
 					if (bad.length == 0) {
-						$("#loan_table>tfoot")
+						this.$loan_table.find("tfoot")
 						.find(".loan_modified")
 						.removeClass("loan_modified");
 						this.push($.extend({}, this.capture));
@@ -118,7 +134,7 @@ define("app/js/Loans", [
 						});
 					} else {
 						$.each(bad, function (i, e) {
-							$("#loan_dlg_" + e).addClass("error");
+							this.$tab.find("#loan_dlg_" + e).addClass("error");
 						});
 					}
 				});
@@ -129,7 +145,7 @@ define("app/js/Loans", [
             // Table body are td, tfoot are th
             if ($td.is("td")) {
                 $td.addClass("loan_modified");
-                $("#loan_controls").show();
+                this.$loan_controls.show();
             }
         }
 
@@ -144,7 +160,7 @@ define("app/js/Loans", [
                 $td = $("<td></td>");
                 $td.css("text-align", "center");
             }
-            let type = this.keys[field];
+            const type = this.keys[field];
             let text = entry[field];
 
             if (type === "Date")
@@ -158,7 +174,7 @@ define("app/js/Loans", [
                 $(this).edit_in_place({
                     changed: function (s) {
                         if (s !== entry[field]) {
-                            let v = Number(s);
+                            const v = Number(s);
                             if (isNaN(v) || isInteger && !v.isInteger())
                                 $td.addClass("error");
                             else {
@@ -182,15 +198,15 @@ define("app/js/Loans", [
                 entry = this.get($td);
                 $td = $("<td></td>");
             }
-            let text = entry[field];
+            const text = entry[field];
             $td.text(text);
 
             $td
             .off("click")
             .on("click", () => {
                 $td.removeClass("error");
-                this.app.roles.find("role", set)
-                .then(row => {
+                this.sheds.roles.find("role", set)
+                .then(function(row) {
                     $(this).select_in_place({
                         changed: s => {
                             if (s != entry[field]) {
@@ -221,7 +237,7 @@ define("app/js/Loans", [
                 entry = this.get($td);
                 $td = $("<td></td>");
             }
-            let date = entry[field];
+            const date = entry[field];
             if (typeof date !== "undefined")
                 $td.text(Entries.formatDate(date));
             else
@@ -275,21 +291,21 @@ define("app/js/Loans", [
 
         // The tbody is where current loans are recorded
         load_tbody () {
-            let order = $("#loan_table").data("order").split(",");
-            let $tbody = $("#loan_table>tbody");
+            const order = this.$loan_table.data("order").split(",");
+            const $tbody = this.$loan_table.find("tbody");
             $tbody.empty();
 
-            let show_all = $("#loan_show_all").is(':checked');
+            const show_all = this.$tab.find("#loan_show_all").is(':checked');
             let someLate = false;
             this.each((row, r) => {
-                let active = (typeof row.returned === "undefined" ||
+                const active = (typeof row.returned === "undefined" ||
                               row.returned === "");
                 if (!active && !show_all)
                     return;
-                let $row = $("<tr></tr>");
+                const $row = $("<tr></tr>");
                 let isLate = false;
                 if (active) {
-                    let due = row.date.valueOf() +
+                    const due = row.date.valueOf() +
                         this.config.get("loan_return") * 24 * 60 * 60 * 1000;
                     if (due < Date.now()) {
                         isLate = true;
@@ -325,18 +341,18 @@ define("app/js/Loans", [
                     $row.find("td").addClass("loan_late");
                 $tbody.append($row);
             });
-            if (someLate)
-                $("#loan_some_late").show();
-            else
-                $("#loan_some_late").hide();
+            this.$tab.find("#loan_some_late").toggle(someLate);
         }
 
         // The tfoot is where new loans are entered
         load_tfoot() {
-            let order = $("#loan_table").data("order").split(",");
+            const order = this.$loan_table.data("order").split(",");
 
-            $("#loan_table>tfoot").find(".loan_modified").removeClass("modified");
-            let $col = $("#loan_table>tfoot th").first();
+            const $tfoot = this.$loan_table.find("tfoot");
+            $tfoot.find(".loan_modified")
+            .removeClass("modified");
+
+            let $col = $tfoot.find("th").first();
             for (let i = 0; i < order.length; i++) {
                 switch (order[i]) {
                 case 'date':
@@ -362,24 +378,19 @@ define("app/js/Loans", [
             }
         }
 
+        /**
+         * @override
+         * @return {Promise} promise that resolves to this
+         */
         reload_ui() {
-            return new Promise(resolve => {
-                return this.loadFromStore()
-                .then(() => {
-                    this.debug("Loading " + this.length() + " loan records");
-                    this.load_tbody();
-                    resolve();
-                })
-                .catch(e => {
-                    console.error("Loans load failed: " + e);
-                    resolve();
-                });
-            })
-			.then(() => {
-                this.capture = $.extend({}, this.defaults);
+            return this.loadFromStore()
+            .then(() => {
+                this.debug("Loading " + this.length() + " loan records");
+                this.load_tbody();
+                this.capture = $.extend({}, DEFAULTS);
                 this.load_tfoot();
-                $("#loan_table").trigger("updateAll");
-                /*$("#loan_table").tablesorter({
+                this.$loan_table.trigger("updateAll");
+                /*this.$loan_table.tablesorter({
                     cancelSelection: true,
                     selectorHeaders: "> thead th",
                     selectorSort: "th",
@@ -388,7 +399,12 @@ define("app/js/Loans", [
                     theme: 'jui',
                     delayInit: true,
                     dateFormat: "ddmmyyyy"
-                });*/
+                    });*/
+                return this;
+            })
+            .catch(e => {
+                console.error("Loans load failed: " + e);
+                return this;
             });
         }
 
@@ -402,7 +418,7 @@ define("app/js/Loans", [
         number_on_loan(item) {
             let on_loan = 0;
             this.each(row => {
-                let active = (typeof row.returned === "undefined" ||
+                const active = (typeof row.returned === "undefined" ||
                               row.returned === "");
                 if (active && row.item === item)
                     on_loan += row.count;

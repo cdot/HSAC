@@ -21,11 +21,11 @@ define("app/js/Sheds", [
      * Update time displays
      */
     function tick() {
-        let now = new Date();
+        const now = new Date();
         $(".time_display").text(now.toLocaleDateString() +
                                 " " + now.toLocaleTimeString());
         $(".date_display").text(now.toLocaleDateString());
-        let when = 1000 - (Date.now() % 1000);
+        const when = 1000 - (Date.now() % 1000);
         window.setTimeout(tick, when);
     }
 
@@ -34,11 +34,12 @@ define("app/js/Sheds", [
         constructor(params) {
             if (params.debug) {
                 if (params.console) {
-                    // Simulated console in #loading
+                    // Simulated console in #console
                     this.debug = () => {
                         console.debug.apply(console, arguments);
-                        $("#loading").append(
-                            "<br />" + Array.from(arguments).join(" "));
+                        $("#console")
+                        .append(
+                            `<div>${Array.from(arguments).join(" ")}</div>`);
                     };
                     this.consoleActive = true;
                 } else
@@ -66,7 +67,7 @@ define("app/js/Sheds", [
 							1: 50.2,
 							2: 50.2,
 							3: 47.5,
-							4: 47.5,
+							4: 47.5
 						}
 					},
                     
@@ -100,19 +101,25 @@ define("app/js/Sheds", [
                 this.debug
             );
 
-            this.roles = new Roles(this.config);
+            new Roles()
+            .init(this.config)
+            .then(roles => this.roles = roles);
         }
 
         /**
          * Update all UIs from the cache
+         * @return {Promise} promise that resolves to this
+         * @override
          */
         reloadUI() {
-            this.debug("Reloading UI");
-			return Promise.all(Object.values(this)
-						.filter(f => f instanceof Entries)
-						.map(f => f.reloadUI()))
+            this.debug("Reloading UI", this.roles);
+            return Promise.all(
+                Object.values(this)
+				.filter(f => f instanceof Entries)
+				.map(f => f.reloadUI()))
             .then(() => {
                 $("#main_tabs").tabs("option", "disabled", []);
+                return this;
             });
         }
 
@@ -122,28 +129,27 @@ define("app/js/Sheds", [
                     title: "Cannot update from web",
                     content: "No DB index URL set"
                 });
-                return Promise.reject();
+                return Promise.reject(new Error("Cannot update form web"));
             }
             this.debug("Updating WebDAV from read-only database");
-            let index = new Entries({
+            return new Entries()
+            .init({
                 url: this.config.get("db_index_url"),
                 keys: {
                     sheet: "string",
                     url: "string"
                 }
-            });
-            return index.loadFromStore()
-            .then(() => {
-                return Promise
-                .all([
-                    index.find("sheet", "roles")
-                    .then(row => this.roles.update_from_web(row.url, report)),
-                    index.find("sheet", "inventory")
-                    .then(row => this.inventory
-                          ? this.inventory.update_from_web(row.url, report)
-                          : null)
-                ]);
             })
+            .then(index => index.loadFromStore())
+            .then(index => Promise.all([
+                index.find("sheet", "roles")
+                .then(row => this.roles.update_from_web(row.url, report)),
+                index.find("sheet", "inventory")
+                .then(row => (
+                    this.inventory
+                    ? this.inventory.update_from_web(row.url, report)
+                    : null))
+            ]))
             .then(() => {
                 report("info", "Update from the web finished");
                 $(document).trigger("reload_ui");
@@ -168,7 +174,7 @@ define("app/js/Sheds", [
                 $(this).siblings('input').change();
             });
 
-            $.validator.setDefaults({ignore: ".novalidate"});
+            $.validator.setDefaults({ ignore: ".novalidate" });
 
             $(".validated_form").each(function () {
                 $(this).validate({
@@ -197,8 +203,8 @@ define("app/js/Sheds", [
             // Start the clock
             tick();
 
-            let $gear = $('#settings');
-            let self = this;
+            const $gear = $('#settings');
+            const self = this;
             $gear.on("click", () => {
                 this.config.open({
                     autoClose: 'close|60000',
@@ -207,7 +213,7 @@ define("app/js/Sheds", [
                             btnClass: "ui-button ui-corner-all ui-widget",
                             action: function () {
                                 if (this.$content.find("[name='cache_update']").is(":checked")) {
-                                    let $a = $.confirm({
+                                    const $a = $.confirm({
                                         title: "Updating from the web",
                                         content: ""
                                     });
@@ -240,7 +246,7 @@ define("app/js/Sheds", [
                         .val(Cookies.get("cache_url"))
                         .off("change")
                         .on("change", function (e) {
-                            let nurl = $(e.target).val();
+                            const nurl = $(e.target).val();
                             if (nurl != Cookies.get("cache_url")) {
                                 Cookies.set("cache_url", nurl, {
                                     expires: 365
@@ -250,7 +256,7 @@ define("app/js/Sheds", [
                                     content: "Application will now be reloaded",
                                     buttons: {
                                         ok: function () {
-                                            let loc = String(location).replace(/\?.*$/, "");
+                                            const loc = String(location).replace(/\?.*$/, "");
                                             location = loc + "?t=" + Date.now();
                                         }
                                     }
@@ -262,9 +268,9 @@ define("app/js/Sheds", [
                         // fancy footwork
                         this.$content.find(".cache_updater")
                         .each(function() {
-                            let $label =
+                            const $label =
                                 $("<label>" + $(this).text() + "</label>");
-                            let $b = $("<input type='checkbox' name='cache_update'>");
+                            const $b = $("<input type='checkbox' name='cache_update'>");
                             $label.append($b);
                             //$b.checkboxradio();
                             $(this).replaceWith($label);
@@ -277,8 +283,8 @@ define("app/js/Sheds", [
             $("[data-with-info]").with_info();
   
             $(".slider").each(function() {
-                let $this = $(this);
-                let data = $this.data("slider");
+                const $this = $(this);
+                const data = $this.data("slider");
                 data.animate = true;
 				// The "friend" of a slider is the id of an input that will
 				// take the value from the slider
@@ -296,7 +302,8 @@ define("app/js/Sheds", [
             });
 
             $(document).on("reload_ui", () => {
-                this.reloadUI().then(() => {
+                this.reloadUI()
+                .then(() => {
                     if (!this.consoleActive)
                         $("#loading").hide();
                     $("#loaded").show();
@@ -312,7 +319,7 @@ define("app/js/Sheds", [
                     title: $("#connect_failed_dialog").prop("title"),
                     content: $("#connect_failed_dialog").html(),
                     onContentReady: function () {
-                        let jc = this;
+                        const jc = this;
                         jc.$content
                         .find("input")
                         .on("change", () => {
@@ -325,7 +332,7 @@ define("app/js/Sheds", [
                     },
                     buttons: {
                         try_again: function () {
-                            let nurl = this.$content.find("input").val();
+                            const nurl = this.$content.find("input").val();
                             app.debug("Trying again with", nurl);
                             resolve(app.cache_connect(nurl));
                         },
@@ -340,7 +347,7 @@ define("app/js/Sheds", [
         }
 
         promise_to_authenticate(url) {
-            let app = this;
+            const app = this;
             return new Promise(resolve => {
                 $.confirm({
                     title: $("#auth_required").prop("title"),
@@ -355,9 +362,9 @@ define("app/js/Sheds", [
                     },
                     buttons: {
                         login: function () {
-                            let user = this.$content
+                            const user = this.$content
 								.find("input[name='user']").val();
-                            let pass = this.$content
+                            const pass = this.$content
 								.find("input[name='pass']").val();
                             app.config.store.setCredentials(user, pass);
                             resolve(app.cache_connect(url));
@@ -418,7 +425,7 @@ define("app/js/Sheds", [
                 // to feeback.
                 if (e.html)
                     $("#loading").html(e.html);
-                return Promise.reject("Could not connect to " + url);
+                return Promise.reject(new Error("Could not connect to " + url));
             });
 
         }
@@ -431,24 +438,25 @@ define("app/js/Sheds", [
 				requires.push(
 					new Promise(resolve => {
 						this.debug("Requiring", id);
-						requirejs([`app/js/${clazz}`], Clazz => {
-							this[id] = new Clazz({
-								config: this.config,
-								app: this,
-								id: id,
-								store: this.config.store,
-								debug: this.debug
-							});
-							resolve(this[id].loadUI());
-						});
-					}));
+						requirejs([`app/js/${clazz}`], Tab => resolve(Tab));
+                    })
+                    .then(Tab => new Tab()
+                          .init({
+							  config: this.config,
+							  sheds: this,
+							  id: id,
+							  store: this.config.store,
+							  debug: this.debug
+						  }))
+                    .then(tab => tab.loadUI())
+                    .then(tab => this[id] = tab));
 			});
 			Promise.all(requires)
 			.then(() => $("#main_tabs").tabs())
             .then(() => this.initialise_ui())
             .then(() => {
                 let promise;
-                let url = Cookies.get("cache_url");
+                const url = Cookies.get("cache_url");
                 if (typeof url === "undefined" || url.length == 0)
                     promise = this.promise_to_reconnect();
                 else
