@@ -139,6 +139,7 @@ define("app/js/Loans", [
 					}
 				});
             });
+            return super.attachHandlers();
         }
 
         mark_loan_modified($td) {

@@ -449,6 +449,7 @@ define("app/js/Sheds", [
 							  debug: this.debug
 						  }))
                     .then(tab => tab.loadUI())
+                    .then(tab => tab.attachHandlers())
                     .then(tab => this[id] = tab));
 			});
 			Promise.all(requires)

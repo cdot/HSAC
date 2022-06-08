@@ -52,6 +52,7 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
 					this.select_picked($(evt.target));
 				}
 			});
+            return super.attachHandlers();
         }
 
         /**
@@ -120,7 +121,8 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
         populate_tab($it) {
             var inventory = this.data;
             var hide_cols = {};
-
+            const self = this;
+ 
             function fill_sheet(sheet) {
                 var nc = sheet.heads.length,
                     ci,
@@ -133,7 +135,7 @@ define("app/js/Inventory", ["app/js/Entries"], Entries => {
                     var $tr = $("<tr></tr>");
                     var desc = getLoanDescriptor(sheet, entry);
                     $tr.data("loan_desc", desc);
-                    var on_loan = this.sheds.loans.number_on_loan(desc);
+                    var on_loan = self.sheds.loans.number_on_loan(desc);
                     var can_pick = true;
                     if (on_loan > 0) {
                         if (typeof colIndex.Count === "undefined") {

@@ -219,6 +219,8 @@ define("app/js/Compressor", [
 			})
             .button(
                 "option", "disabled", true);
+
+            return super.attachHandlers();
         }
 
         /**
@@ -328,10 +330,10 @@ define("app/js/Compressor", [
             .then(() => {
                 this.debug("\t", this.length(), this.id,
                            "compressor records");
-                let lc = 0;
+                let lc = "";
                 for (const e of this.entries) {
                     if (e.filters_changed)
-                        lc = e.date;
+                        lc = e.date.toLocaleDateString();
                 }
                 if (this.length() > 0) {
                     const cur = this.get(this.length() - 1);
@@ -344,7 +346,7 @@ define("app/js/Compressor", [
                         Entries.formatDateTime(cur.date));
                     this.$tab.find(".cr_flr").text(
                         Number(this._remainingFilterLife()).toFixed(2));
-                    this.$tab.find(".cr_flc").text(lc.toLocaleDateString());
+                    this.$tab.find(".cr_flc").text(lc);
                     this.$tab.find(".cr_runtime").text(cur.runtime.toFixed(2));
                 }
 

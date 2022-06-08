@@ -95,6 +95,8 @@ define("app/js/Nitrox", [
 					$tab.find("[name=no-blender-sel]").show();
 				}
 			});
+
+            return super.attachHandlers();
 		}
 
 		// dialog to fix bank levels

@@ -146,7 +146,6 @@ define("app/js/Entries", [
 				$tab.find('.ui-spinner-button').click(function () {
 					$(this).siblings('input').change();
 				});
-				this.attachHandlers();
 				this.debug("Loaded", this.id);
                 return this;
 			});
@@ -154,10 +153,11 @@ define("app/js/Entries", [
 
 		/**
 		 * Attach handlers, such as button click handlers, to the
-		 * elements in the tab. Pure virtual, subclasses must implement.
+		 * elements in the tab. NOP if there are no handlers.
+         * @return {Promise} promise resolving to this
 		 */
 		attachHandlers() {
-			throw new Error("Pure virtual");
+            return Promise.resolve(this);
 		}
 
 		/**
