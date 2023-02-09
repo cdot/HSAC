@@ -1,8 +1,9 @@
 # Sheds
 
 Custom application for managing a dive club's resources. The application was
-written specifically for use by Hartford Sub-Aqua Club, and reflects the way
-we organise and manage our resources.
+created specifically for use by
+[Hartford Sub-Aqua Club (HSAC)](http://hartfordscuba.co.uk), and reflects
+the way we organise and manage our resources.
 
 The application comprises two parts:
 1. A [browser application](app/README.md)

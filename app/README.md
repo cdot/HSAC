@@ -14,7 +14,7 @@ particular service:
 
 ## Databases
 
-See [Databases](app/Databases.md) for details of the database organisation and configuration.
+See [Databases](Databases.md) for details of the database organisation and configuration.
 
 # Development
 
