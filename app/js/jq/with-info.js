@@ -5,9 +5,7 @@
 /**
  * Informational dialog for use with data-with-info. Requires jquery-confirm
  */
-define("app/js/jq/with-info", [
-	"jquery"
-], () => {
+define([ "jquery" ], () => {
 
 	/**
 	 * An element with data-with-info will be displayed with an information
@@ -42,9 +40,9 @@ define("app/js/jq/with-info", [
 				.done(md => {
 					requirejs(["markdown-it"], function(Markdown) {
 						const html = new Markdown({ html: true }).render(md);
-                        $("body").append("<div class='info hidden' id='"
-                                         + url + "'>"
-                                         + html + "</div>");
+            $("body").append("<div class='info hidden' id='"
+                             + url + "'>"
+                             + html + "</div>");
 						resolve(html);
 					});
 				});
@@ -55,7 +53,7 @@ define("app/js/jq/with-info", [
 			const $thing = $(this[i]);
 			const s = params.text || $thing.data("with-info");
 			const position = params.position || $thing.data("with-info-position") ||
-				params.position || "after";
+				    params.position || "after";
 
 			if (typeof s === "undefined" || s.charAt(0) === '#' && $(s).length === 0) {
 				console.error("INTERNAL ERROR: Missing with-info");

@@ -1,42 +1,42 @@
 /*@preserve Copyright (C) 2018 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-define("app/js/Nitrox", [
+define([
 	"app/js/Entries", "app/js/NitroxBlender"
 ], (
 	Entries, NitroxBlender
 ) => {
 
+  /**
+   * Nitrox calculation tab and data store
+   */
+  class Nitrox extends Entries {
+
     /**
-     * Nitrox calculation tab and data store
+     * Configuration object
+     * @member {Config}
      */
-    class Nitrox extends Entries {
+    config;
 
-        /**
-         * Configuration object
-         * @member {Config}
-         */
-        config;
-
-        /**
-         * Shortcut to the form in the $tab
-         * @member {jQuery}
-         */
-        $form;
+    /**
+     * Shortcut to the form in the $tab
+     * @member {jQuery}
+     */
+    $form;
 
 		/**
-         * £ per L of the cheapest O2, used in bleed calculations
-         * @member {number}
-         */
-        O2_gbp = 1000000;
+     * £ per L of the cheapest O2, used in bleed calculations
+     * @member {number}
+     */
+    O2_gbp = 1000000;
 
-        init(params) {
+    init(params) {
 			return super.init($.extend(params, {
 				file: "nitrox.csv",
-                keys: {
-                    date: "Date",
+        keys: {
+          date: "Date",
 
-                    blender: "string",
+          blender: "string",
 					cylinder: "number",
 					contains_bar: "number",
 					contains_o2: "number",
@@ -48,20 +48,20 @@ define("app/js/Nitrox", [
 					bank_bar: "number",
 
 					achieved_o2: "number"
-                }
+        }
 			}));
 		}
 
 		//@override
 		attachHandlers() {
-            const $tab = this.$tab;
+      const $tab = this.$tab;
 			this.$form = $tab.children("form");
 
-            $("#nitrox")
-            .children("form")
-            .on("submit", e => e.preventDefault());
-                
-            $tab.find("input")
+      $("#nitrox")
+      .children("form")
+      .on("submit", e => e.preventDefault());
+      
+      $tab.find("input")
 			.on("change", () => this.recalculate());
 
 			$tab.find("[name=fix_bank]")
@@ -96,7 +96,7 @@ define("app/js/Nitrox", [
 				}
 			});
 
-            return super.attachHandlers();
+      return super.attachHandlers();
 		}
 
 		// dialog to fix bank levels
@@ -114,16 +114,16 @@ define("app/js/Nitrox", [
 					banks[id].bar = newp;
 					this.reloadUI();
 				});
-            }
-            $dlg.dialog({})
-            .dialog("open");
+      }
+      $dlg.dialog({})
+      .dialog("open");
 		}
 
 		/**
-         * @override
-         * @return {Promise} promise that resolves to this
-         */
-        reload_ui() {
+     * @override
+     * @return {Promise} promise that resolves to this
+     */
+    reload_ui() {
 			// Reset banks to default state
 			const $bank = this.$tab.find(".nox_o2_bank");
 			$bank.empty();
@@ -149,8 +149,8 @@ define("app/js/Nitrox", [
 			$("input[name=nox_bank]")
 			.on("change", () => this.recalculate());
 
-            return this.loadFromStore()
-            .then(() => {
+      return this.loadFromStore()
+      .then(() => {
 				this.debug("Loading " + this.length() + " o2 records");
 				for (let i = 0; i < this.length(); i++) {
 					const cur = this.get(i);
@@ -160,17 +160,17 @@ define("app/js/Nitrox", [
 					.find(`[name='bank_${cur.bank_used}']`)
 					.text(cur.bank_bar);
 				}
-                this.recalculate();
-                return this;
-            })
-            .catch(e => {
-                console.error("Nitrox load failed: " + e, e);
-                return this;
-            });
-        }
+        this.recalculate();
+        return this;
+      })
+      .catch(e => {
+        console.error("Nitrox load failed: " + e, e);
+        return this;
+      });
+    }
 
 		expandActions(actions) {
-            /* eslint-disable no-unused-vars */
+      /* eslint-disable no-unused-vars */
 			function morethan(x,y) {
 				return x >= y;
 			}
@@ -190,7 +190,7 @@ define("app/js/Nitrox", [
 			function about(v) {
 				return round(v * 100) / 100;
 			}
-            /* eslint-enable no-unused-vars */
+      /* eslint-enable no-unused-vars */
 
 			let acts = "";
 			const $templates = $("#action-templates");
@@ -204,28 +204,28 @@ define("app/js/Nitrox", [
 			return acts;
 		}
 
-        recalculate() {
-            const conditions = {};
+    recalculate() {
+      const conditions = {};
 
-            // temperature: deg C (only needed for real gas approximation)
-            // cylinder_size: litres
-            // start_mix: percent
-            // start_pressure: bar
-            // target_mix: percent
-            // target_pressure: bar
-            // O2_bank_size: litres
-            // O2_bank_pressure: bar
-            // ppO2max: max ppO2
-            this.$tab.find("input").each(function () {
-                if (this.type === "number")
-                    conditions[this.name] = parseFloat($(this).val());
-                else
-                    conditions[this.name] = $(this).val();
-            });
+      // temperature: deg C (only needed for real gas approximation)
+      // cylinder_size: litres
+      // start_mix: percent
+      // start_pressure: bar
+      // target_mix: percent
+      // target_pressure: bar
+      // O2_bank_size: litres
+      // O2_bank_pressure: bar
+      // ppO2max: max ppO2
+      this.$tab.find("input").each(function () {
+        if (this.type === "number")
+          conditions[this.name] = parseFloat($(this).val());
+        else
+          conditions[this.name] = $(this).val();
+      });
 
-            const MOD = Math.floor((100 * conditions.ppO2max
-                                  / conditions.target_mix - 1) * 10);
-            $("#nox_MOD").text(MOD);
+      const MOD = Math.floor((100 * conditions.ppO2max
+                              / conditions.target_mix - 1) * 10);
+      $("#nox_MOD").text(MOD);
 
 			const actions = [];
 			let drained_l = 0;
@@ -287,8 +287,8 @@ define("app/js/Nitrox", [
 					});
 				});
 
-            const $report = this.$tab.find("[name=report]");
-            if (filler.blend(banks)) {
+      const $report = this.$tab.find("[name=report]");
+      if (filler.blend(banks)) {
 				if (cost_gbp > 0)
 					actions.push({
 						action: "Pay",
@@ -297,8 +297,8 @@ define("app/js/Nitrox", [
 				$report.html(this.expandActions(actions));
 			} else
 				$report.html(`<div class='nitrox-step'>Fill is not possible</div>`);
-        }
     }
-    return Nitrox;
+  }
+  return Nitrox;
 });
 

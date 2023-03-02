@@ -25,7 +25,7 @@
     <meta name="apple-mobile-web-app-status-barstyle" content="black-translucent">
     <link rel="apple-touch-icon" href="app/images/apple-touch-icon.png">
 
-    <link href="app/node_modules/jquery-ui-dist/jquery-ui.css" rel="stylesheet">
+    <link href="app/node_modules/jquery-ui/dist/themes/cupertino/jquery-ui.css" rel="stylesheet">
     <link href="app/node_modules/jquery-ui-iconfont/jquery-ui.icon-font.min.css" rel="stylesheet"-->
     <link href="app/node_modules/tablesorter/dist/css/theme.jui.min.css" rel="stylesheet">
     <link href="app/node_modules/jquery-confirm/dist/jquery-confirm.min.css" rel="stylesheet">
@@ -85,144 +85,160 @@
 	</div>
 
     <div id="settings_dialog" class="hidden" data-title="<span class='fa fa-sliders-h'></span> Settings">
-      <form>
-        <table class="form_table zebra">
-          <tr>
-            <td>
-              Loan return deadline
-            </td>
-            <td class="widest">
-              <input type="number" required class="integer2" name="loan_return"> days
-            </td>
-          </tr>
-          <tr>
-            <th colspan="2">
-              O<sub>2</sub>
-            </th>
-          </tr>
-          <tr>
-            <td>
-              O<sub>2</sub> bank cylinders
-            </td>
-            <td class="widest">
-              1 <input type="number" class="number floating_point" step="any" name="o2:bank:1:size"> ℓ,
-              &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:1:price">/ℓ, max
-              <input type="number" class="number floating_point" step="any" name="o2:bank:1:max"> bar<br/>
-              2 <input type="number" class="number floating_point" step="any" name="o2:bank:2:size"> ℓ,
-              &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:2:price">/ℓ, max
-			  <input type="number" class="number floating_point" step="any" name="o2:bank:2:max"> bar<br/>
-              3 <input type="number" class="number floating_point" step="any" name="o2:bank:3:size"> ℓ,
-              &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:3:price">/ℓ, max
-			  <input type="number" class="number floating_point" step="any" name="o2:bank:3:max"> bar<br/>
-              4 <input type="number" class="number floating_point" step="any" name="o2:bank:4:size"> ℓ,
-              &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:4:price">/ℓ, max
-			  <input type="number" class="number floating_point" step="any" name="o2:bank:3:max"> bar<br/>
-            </td>
-          </tr>
-          <tr>
-            <th colspan="2">
-              Fixed Compressor
-            </th>
-          </tr>
-          <tr>
-            <td>Predicted filter lifetime</td>
-            <td>
-              <input type="number" class="integer2" step="any" required name="compressor:fixed:filter:lifetime"> hours @ 20&deg;C
-            </td>
-          </tr>
-          <tr>
-            <td>Coefficients</td>
-            <td class="widest">
-              A <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:a"><br/>
-              B <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:b"><br/>
-              C <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:c"> <br/>
-              D <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:d">
-            </td>
-          </tr>
-          <tr>
-            <td>Pumping rate</td>
-            <td class="widest">
-              <input type="text" name="compressor:fixed:pumping_rate" class="integer3"> lm<sup>-1</sup>
-            </td>
-          </tr>
-          <tr>
-            <td>Purge frequency</td>
-            <td class="widest">
-              <input type="text" name="compressor:fixed:purge_freq" class="integer2"> mins
-            </td>
-          </tr>
-          <tr>
-            <td>Max condensate</td>
-            <td>
-              <input type="text" name="compressor:fixed:safe_limit" class="integer2"> ml
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <span>
-                Sensors root URL
-              </span>
-            </td>
-            <td class="widest">
-              <input type="text" url name="compressor:fixed:sensor_url" class="widest">
-            </td>
-          </tr>
-          <tr>
-            <td>Sensor poll frequency</td>
-            <td class="widest">
-              <input type="number" class="floating_point" name="compressor:fixed:poll_frequency"> ms
-            </td>
-          </tr>
-          <tr>
-            <td>Alarm temperature</td>
-            <td class="widest">
-              <input type="number" name="compressor:fixed:internal_temperature_alarm" class="integer3">&deg;C
-            </td>
-          </tr>
-          <tr>
-            <th colspan="2">
-              Portable Compressor
-            </th>
-          </tr>
-          <tr>
-            <td>Predicted filter lifetime</td>
-            <td class="widest">
-              <input type="number" class="integer3" step="any" required name="compressor:portable:filter:lifetime"> hours @ 20&deg;C
-            </td>
-          </tr>
-          <tr>
-            <td>Coefficients</td>
-            <td class="widest">
-              A <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:a"><br/>
-              B <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:b"><br/>
-              C <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:c"><br/>
-              D <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:d">
-            </td>
-          </tr>
-          <tr>
-            <th colspan="2">
-              Databases
-            </th>
-          </tr>
-          <tr>
-            <td>
-              Remote DB index URL
-            </td>
-            <td>
-              <input class="widest" type="text" url name="db_index_url">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Local cache URL
-            </td>
-            <td>
-              <input class="widest" type="text" url name="cache_url">
-            </td>
-          </tr>
-        </table>
-      </form>
-      <span class="cache_updater">Update Cache from Remote DB</span>
+      <button name="update_cache">Update Cache from Remote DB</button>
+      <table class="form_table zebra">
+        <tr>
+          <td>
+            Loan return deadline
+          </td>
+          <td class="widest">
+            <input type="number" required class="integer2" name="loan_return"> days
+          </td>
+        </tr>
+        <tr>
+          <th colspan="2">
+            O<sub>2</sub>
+          </th>
+        </tr>
+        <tr>
+          <td>
+            O<sub>2</sub> bank cylinders
+          </td>
+          <td class="widest">
+            1 <input type="number" class="number floating_point" step="any" name="o2:bank:1:size"> ℓ,
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:1:price">/ℓ, max
+            <input type="number" class="number floating_point" step="any" name="o2:bank:1:max"> bar<br/>
+            2 <input type="number" class="number floating_point" step="any" name="o2:bank:2:size"> ℓ,
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:2:price">/ℓ, max
+			<input type="number" class="number floating_point" step="any" name="o2:bank:2:max"> bar<br/>
+            3 <input type="number" class="number floating_point" step="any" name="o2:bank:3:size"> ℓ,
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:3:price">/ℓ, max
+			<input type="number" class="number floating_point" step="any" name="o2:bank:3:max"> bar<br/>
+            4 <input type="number" class="number floating_point" step="any" name="o2:bank:4:size"> ℓ,
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:4:price">/ℓ, max
+			<input type="number" class="number floating_point" step="any" name="o2:bank:3:max"> bar<br/>
+          </td>
+        </tr>
+        <tr>
+          <th colspan="2">
+            Fixed Compressor
+          </th>
+        </tr>
+        <tr>
+          <td>Predicted filter lifetime</td>
+          <td>
+            <input type="number" class="integer2" step="any" required name="compressor:fixed:filter:lifetime"> hours @ 20&deg;C
+          </td>
+        </tr>
+        <tr>
+          <td>Coefficients</td>
+          <td class="widest">
+            A <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:a"><br/>
+            B <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:b"><br/>
+            C <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:c"> <br/>
+            D <input type="number" class="number floating_point" step="any" required name="compressor:fixed:filter:d">
+          </td>
+        </tr>
+        <tr>
+          <td>Pumping rate</td>
+          <td class="widest">
+            <input type="number" name="compressor:fixed:pumping_rate" class="integer3"> lm<sup>-1</sup>
+          </td>
+        </tr>
+        <tr>
+          <td>Purge frequency</td>
+          <td class="widest">
+            <input type="number" name="compressor:fixed:purge_freq" class="integer2"> mins
+          </td>
+        </tr>
+        <tr>
+          <td>Max condensate</td>
+          <td>
+            <input type="number" name="compressor:fixed:safe_limit" class="integer2"> ml
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span>
+              Sensors root URL
+            </span>
+          </td>
+          <td class="widest">
+            <input type="text" url name="compressor:fixed:sensor_url" class="widest">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span>
+              Enable sensors
+            </span>
+          </td>
+          <td class="widest">
+            <label>Intake &deg;C
+              <input type="checkbox" name="compressor:fixed:sensor:intake_temperature"></label>
+            <label>Intake %RH
+              <input type="checkbox" name="compressor:fixed:sensor:intake_humidity"></label>
+            <label>3rd Stage &deg;C
+              <input type="checkbox" name="compressor:fixed:sensor:internal_temperature"></label>
+            <label>Runtime
+              <input type="checkbox" name="compressor:fixed:sensor:power"></label>
+          </td>
+        </tr>
+        <tr>
+          <td>Sensor poll frequency</td>
+          <td class="widest">
+            <input type="number" class="floating_point" name="compressor:fixed:poll_frequency"> ms
+          </td>
+        </tr>
+        <tr>
+          <td>Alarm temperature</td>
+          <td class="widest">
+            <input type="number" name="compressor:fixed:internal_temperature_alarm" class="integer3">&deg;C
+          </td>
+        </tr>
+        <tr>
+          <th colspan="2">
+            Portable Compressor
+          </th>
+        </tr>
+        <tr>
+          <td>Predicted filter lifetime</td>
+          <td class="widest">
+            <input type="number" class="integer3" step="any" required name="compressor:portable:filter:lifetime"> hours @ 20&deg;C
+          </td>
+        </tr>
+        <tr>
+          <td>Coefficients</td>
+          <td class="widest">
+            A <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:a"><br/>
+            B <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:b"><br/>
+            C <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:c"><br/>
+            D <input type="number" class="number floating_point" step="any" required name="compressor:portable:filter:d">
+          </td>
+        </tr>
+        <tr>
+          <th colspan="2">
+            Databases
+          </th>
+        </tr>
+        <tr>
+          <td>
+            Remote DB index URL
+          </td>
+          <td>
+            <input class="widest" type="text" url name="db_index_url">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Local cache URL
+          </td>
+          <td>
+            <input class="widest" type="text" url name="cache_url">
+          </td>
+        </tr>
+      </table>
+      <button name="close">Close</button>
     </div>
 
     <div id="inventory_pick_dialog" class="hidden">

@@ -23,7 +23,7 @@
       Enter details of your run below:
 	</div>
 	<table class="form_table zebra" id="compressor_table">
-      <tr>
+      <tr class="operatorRow">
 		<th class="input_label">
           <span data-with-info="#infoOperator">
 			Operator
@@ -35,7 +35,8 @@
           </select>
 		</td>
       </tr>
-      <tr>
+
+      <tr class="temperatureRow">
 		<th class="input_label">
           <span data-with-info="#infoTemperature">
 			Temperature
@@ -55,12 +56,14 @@
           </div-->
 		</td>
       </tr>
-      <tr>
+
+      <tr class="humidityRow">
 		<th class="input_label">
           <span data-with-info="#infoHumidity">
 			Humidity
           </span>
 		</th>
+
 		<td class="widest">
           <input name="humidity" type="number" class="integer2" value="50" id="fixed_hum" data-compressor="fixed" data-sensor-config='{"name":"intake_humidity","max_age":300000,"sampled":".fixed_hum_sensed","unsampled":".fixed_hum_manual","dubious":".fixed_hum_dubious","enable":"#fixed_hum_enable"}'>%
           <span class="hidden fixed_hum_sensed detected">(detected)</span>
@@ -75,6 +78,7 @@
           </div-->
 		</td>
       </tr>
+
       <tr>
 		<th class="input_label">
           <span data-with-info="#infoRuntime">

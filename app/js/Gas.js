@@ -4,7 +4,7 @@
 /**
  * Real gas approximation and gas unit conversion
  */
-define("app/js/Gas", () => {
+define(() => {
 
 	function cuberoot(x) {
 		return x < 0 ? -Math.pow(-x, 1 / 3) : Math.pow(x, 1 / 3);
@@ -39,8 +39,8 @@ define("app/js/Gas", () => {
 		return mag * Math.cos(alpha_3) - a_3;
 	}
 
-    // Universal gas constant
-    const R = 8.31446261815324;
+  // Universal gas constant
+  const R = 8.31446261815324;
 
 	// Van der Waal's Constants for different diving gases
 	const GASES = {

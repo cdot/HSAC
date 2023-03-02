@@ -291,6 +291,15 @@ label.error {
     display: inline-block;
 }
 
+#settings_dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 90vw;
+  padding: 5vw;
+}
+
 .slider {
     margin-top: 0.4em;
 }
@@ -358,6 +367,10 @@ table td,th {
 
 .ui-tabs .ui-tabs-nav .ui-tabs-anchor {
     padding: .2em 1em;
+}
+
+.ui-checkboxradio-label {
+  font-size: smaller;
 }
 
 /* See also .error */
