@@ -77,6 +77,7 @@
     "jquery-confirm": "^3.3.4",
     "jquery-csv": "^1.0.21",
     "jquery-ui": "^1.13.2",
+    "jquery-ui-dist": "^1.13.2",
     "jquery-ui-iconfont": "^2.3.2",
     "jquery-validation": "^1.19.5",
     "jquery.toc": "^0.4.0",

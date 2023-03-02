@@ -25,8 +25,7 @@ requirejs.config({
   paths: {
 		jquery: "app/node_modules/jquery/dist/jquery",
 		"jquery-ui": "app/node_modules/jquery-ui/dist/jquery-ui",
-    "touch-punch" :
-		"app/node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch",
+    "touch-punch" :	"app/node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch",
     "js-cookie" : "app/node_modules/js-cookie/dist/js.cookie",
     "jquery-validate" : "app/node_modules/jquery-validation/dist/jquery.validate",
     "additional-methods" : "app/node_modules/jquery-validation/dist/additional-methods",
