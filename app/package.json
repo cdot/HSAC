@@ -83,7 +83,7 @@
     "jquery.toc": "^0.4.0",
     "js-cookie": "^3.0.1",
     "markdown-it": "^13.0.1",
-    "requirejs": "^2.3.6",
+    "requirejs": "^2.3.7",
     "requirejs-text": "^2.0.16",
     "tablesorter": "^2.31.3"
   }
