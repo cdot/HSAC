@@ -31,7 +31,7 @@
         "node-dht-sensor": "^0.4.3",
         "node-getopt": "^0.3.2",
         "request": "^2.88.0",
-        "requirejs": "^2.3.6"
+        "requirejs": "^2.3.7"
     },
     "eslintConfig": {
         "extends": "eslint:recommended",
