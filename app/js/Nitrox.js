@@ -102,7 +102,7 @@ define([
 		// dialog to fix bank levels
 		_fixBank() {
 			const $dlg = $("#fix_bank_dialog");
-			const $banks = $dlg.find("[name=banks").empty();
+			const $banks = $dlg.find("[name=banks]").empty();
 			const banks = this.config.store_data.o2.bank;
 			for (const id in banks) {
 				$banks.append(`<label for="nox_fixbank_${id}">${id}: </label>`);
