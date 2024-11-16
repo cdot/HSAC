@@ -77,7 +77,7 @@ an example configuration file is given in sensors/example.cfg
 The server has a number of command-line options that can be explored
 using the `--help` option.
 
-## Running the Server
+## Running the Server on Boot
 
 The server needs to be started on boot, by `/etc/init.d/sensors.sh`
 - you will need to create this file. Assuming the code is checked out to

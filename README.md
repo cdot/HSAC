@@ -1,9 +1,9 @@
-# Sheds
+# Dive Club Resources
 
 Custom application for managing a dive club's resources. The application was
 created specifically for use by
 [Hartford Sub-Aqua Club (HSAC)](http://hartfordscuba.co.uk), and reflects
-the way we organise and manage our resources.
+the way we organise and manage our resources - training kit, compressor, and O<sub>2</sub> bank.
 
 The application comprises two parts:
 1. A [browser application](app/README.md)
@@ -17,7 +17,7 @@ The browser application provides a user interface designed to be run in a web
 browser, either in a device specifically allocated for the purpose or in
 a mobile phone or tablet. The application supports a number of services:
 
-1. Compressor - recording fixed compressor usage with tracking of filter lifetim, optionally monitoring compressor performance using electronic sensors with the sensor package.
+1. Compressor - recording fixed compressor usage with tracking of filter lifetime, optionally monitoring compressor performance using electronic sensors with the sensor package.
 2. Nitrox - nitrox blending calculations
 
 Optionally enabled services (edit `index.html` to enable):
@@ -37,7 +37,8 @@ See [Browser application](app/README.md) for more information.
 The sensor package is designed to run on a Raspberry Pi that manages a number
 of electronic sensors on the compressor.
 
-See [Sensor package](sensors/README.md) for more information.
+See [Sensor package](sensors/README.md) for more information. The sensors package
+can be run without any connected sensors for debugging the web application.
 
 ## About
 Sheds was written by Crawford Currie http://c-dot.co.uk and is licensed
