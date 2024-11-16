@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "license": "MIT",
     "description": "HSAC Shed Sensors",
+    "type": "module",
     "scripts": {
         "lint": "eslint js",
         "update": "ncu -u ",
@@ -30,6 +31,7 @@
         "fs-extra": "^10.1.0",
         "node-dht-sensor": "^0.4.3",
         "node-getopt": "^0.3.2",
+        "posix-getopt": "^1.2.1",
         "request": "^2.88.0",
         "requirejs": "^2.3.7"
     },

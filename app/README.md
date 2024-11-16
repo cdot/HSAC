@@ -6,7 +6,7 @@ browser. This provides a high degree of portability and openness. The
 browser application presents a tab interface, where each tab offers a
 particular service:
 
-1. [Compressor](app/Compressor.md)
+1. [Compressor](Compressor.md)
 2. Nitrox - nitrox blending calculations - the calculations necessary for nitrox fills from a bank of cylinders are performed using an ideal gas approximation (there is support for real gas approximation, but it is significantly more complex and makes little difference to the results).
 3. Portable compressor - like fixed compressor but tuned for a portable
 4. Inventory - equipment records. The inventory tab provides a way to quickly look up and find the location of equipment.

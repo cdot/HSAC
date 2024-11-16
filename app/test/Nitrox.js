@@ -1,92 +1,113 @@
 /*eslint-env node, mocha */
-if (typeof module !== "undefined") {
-    requirejs = require('requirejs');
-    // node.js
-    const { JSDOM } = require('jsdom');
-    document = new JSDOM('<!doctype html><html><body></body></html>');
-    const { window } = document;
-    global.window = window;
-    global.document = window.document;
-    global.navigator = { userAgent: "node.js" };
-    let jQuery = require('jquery');
-    global.jQuery = jQuery;
-    global.$ = jQuery;
+import { assert } from "chai";
+import { Nitrox } from "../js/Nitrox.js";
+import { AbstractStore } from "../js/AbstractStore.js";
 
-    $.getTapEvent = function() { return "click"; }
+import { setup$, UNit } from "./Fixtures.js";
+
+class TestStore extends AbstractStore {
+  read(path) {
+    assert.equal("nitrox.csv", path);
+    return Promise.resolve([]);
+  }
 }
 
-requirejs.config({
-    baseUrl: "../..",
-    paths: {
-        jquery: "app/node_modules/jquery/dist/jquery"
-    }
+const tests = [
+  {    name: "simple 1",
+       temperature: 4,
+       cylinder_size: 12,
+       start_mix: 26,  start_pressure: 30,
+       target_mix: 32, target_pressure: 232,
+       banks: {
+         A: { size: 49, bar: 90, price: 0.02 }
+       },
+       expected: "1. Top up to 61 bar from bank A, leaving 83 bar in the bank.2. Top up with air to 232 bar.3. Pay £7.35."
+  },
+  {    name: "simple 2",
+       temperature: 25,
+       cylinder_size:  7,
+       start_mix:  21,  start_pressure: 50,
+       target_mix: 32, target_pressure: 232,
+       banks: {
+         B: { size: 49, bar: 200, price: 0.02 }
+       },
+       expected: "1. Top up to 83 bar from bank B, leaving 195 bar in the bank.2. Top up with air to 232 bar.3. Pay £4.56."
+  },
+  {    name: "simple 3",
+       temperature: 16,
+       cylinder_size: 12,
+       start_mix: 28,  start_pressure: 50,
+       target_mix: 32, target_pressure: 232,
+       banks: {
+         C: { size: 47, bar: 90, price: 0.02 }
+       },
+       expected: "1. Top up to 78 bar from bank C, leaving 83 bar in the bank.2. Top up with air to 232 bar.3. Pay £6.74."
+  },
+  // Too much O2 already in cylinder
+  {    name: "too much O2",
+       temperature: 40,
+       cylinder_size: 10,
+       start_mix: 32, start_pressure: 200,
+       target_mix: 28, target_pressure: 230,
+       banks: {
+         D: { size: 47, bar: 210, price: 0.02 }
+       },
+       expected: "1. Drain the cylinder down to 147 bar.2. Top up with air to 230 bar." },
+  // Mix achievable, but not enough O2 in bank
+  {    name: "not enough in bank",
+       temperature: 16,
+       cylinder_size: 24,
+       start_mix: 21, start_pressure: 50,
+       target_mix: 28, target_pressure: 230,
+       banks: {
+         E: { size: 4, bar: 60, price: 0.02 }
+       },
+       expected: "1. Top up to 52 bar from bank E, leaving 49 bar in the bank.2. Sorry, fill is not possible."
+  },
+  // Mix achievable, but too much pressure already in cylinder.
+  {    name: "too much pressure",
+       temperature: 18,
+       cylinder_size: 24,
+       start_mix: 21, start_pressure: 40,
+       target_mix: 32, target_pressure: 230,
+       banks: {
+         F: { size: 40, bar: 30, price: 0.02 }
+       },
+       expected: "1. Drain the cylinder down to 1 bar.2. Top up to 19 bar from bank F, leaving 19 bar in the bank.3. Sorry, fill is not possible."
+  },
+];
+
+describe("Nitrox", () => {
+  before(() => setup$(
+    `../../..`,
+    "../html/nitrox.html"));
+
+  for (const test of tests) {
+    it(test.name, () => {
+      const n = new Nitrox();
+      n.store = new TestStore();
+      return n.init({
+        id: "nitrox",
+        config: {
+          store_data: { o2: { bank: test.banks } }
+        }
+      })
+      .then(() => n.loadUI())
+      .then(() => n.reload_ui())
+      .then(() => {
+        n.$tab.find("[name=blender]").val(test.name);
+        n.$tab.find("#nox_t").val(test.temperature);
+        n.$tab.find("#nox_cs").val(test.cylinder_size);
+        n.$tab.find("#nox_sp").val(test.start_pressure);
+        n.$tab.find("#nox_sm").val(test.start_mix);
+        n.$tab.find("#nox_tp").val(test.target_pressure);
+        n.$tab.find("#nox_tm").val(test.target_mix);
+        n.$tab.find("#nox_ppO2max").val(1.4);
+        n.recalculate();
+        //assert.equal(33, $("#nox_MOD").text());
+        assert.equal(n.$tab.find("div[name=report]").text(), test.expected);
+      });
+    });
+  }
 });
 
-requirejs(["app/js/Nitrox", "app/test/TestRunner", "jquery"], function(Nitrox, TestRunner) {
-    let tr = new TestRunner("Compressor");
-    let assert = tr.assert;
-
-    let tests = [
-        {    name: "simple 1",
-             temperature: 4,
-             cylinder_size: 12,
-             start_mix: 26,  start_pressure: 30,
-             target_mix: 32, target_pressure: 232,
-             O2_bank_size: 49,  O2_bank_pressure: 90,
-             expected: { boostTo: 61, use: 367 } },
-        {    name: "simple 2",
-             temperature: 25,
-             cylinder_size:  7,
-             start_mix:  21,  start_pressure: 50,
-             target_mix: 32, target_pressure: 232,
-             O2_bank_size: 49, O2_bank_pressure: 200,
-             expected: { boostTo: 83, use: 227 } },
-        {    name: "simple 3",
-             temperature: 16,
-             cylinder_size: 12,
-             start_mix: 28,  start_pressure: 50,
-             target_mix: 32, target_pressure: 232,
-             O2_bank_size: 47,  O2_bank_pressure: 90,
-             expected: { boostTo: 79, use: 336 } },
-        // Too much O2 already in cylinder
-        {    name: "too much O2",
-             temperature: 40,
-             cylinder_size: 10,
-             start_mix: 32, start_pressure: 200,
-             target_mix: 28, target_pressure: 230,
-             O2_bank_size: 47,  O2_bank_pressure: 210,
-             expected: { bleedTo: 147 } },
-        // Mix achievable, but not enough O2 in bank
-        {    name: "not enough in bank",
-             temperature: 16,
-             cylinder_size: 24,
-             start_mix: 21, start_pressure: 50,
-             target_mix: 28, target_pressure: 230,
-             O2_bank_size: 4,  O2_bank_pressure: 60,
-             expected: { bleedTo: 42 } },
-        // Mix achievable, but too much pressure already in cylinder.
-        {    name: "too much pressure",
-             temperature: 18,
-             cylinder_size: 24,
-             start_mix: 21, start_pressure: 40,
-             target_mix: 32, target_pressure: 230,
-             O2_bank_size: 40,  O2_bank_pressure: 30,
-             expected: { bleedTo: 30 } },
-    ];
-
-    for (let test of tests) {
-        tr.addTest(test.name, function() {
-            let n = new Nitrox({
-                debug: console.debug
-            });
-            let result = n.blend(test);
-            //console.log(result);
-            for (let j in test.expected) {
-                assert.isNotNull(result[j]);
-                assert.closeTo(result[j], test.expected[j], 1, j);
-            }
-        });
-    }
-
-    tr.run();
-});

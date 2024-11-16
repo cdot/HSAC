@@ -30,7 +30,7 @@
           </span>
 		</th>
 		<td colspan="2" class="widest">
-          <select name="operator" class="operator" data-msg="Must be a trained operator" required>
+          <select name="operator" id="fixed_operator" class="operator" data-msg="Must be a trained operator" required>
 			<option></option>
           </select>
 		</td>
@@ -53,7 +53,7 @@
           <!--div style="display:inline">
             <label for="fixed_temp_enable" class="small-button">use sensor</label>
             <input id="fixed_temp_enable" type="checkbox" style="float:right" checked />
-          </div-->
+          </div -->
 		</td>
       </tr>
 
@@ -161,11 +161,63 @@
 			<option>8</option>
 			<option>9</option>
           </select>
-          <input name="runtime" style="display:none" readonly="readonly" type="floating_point" data-msg="Must be greater than the last recorded runtime" min="0" required>
+          <input name="runtime" id="fixed_runtime" style="display:none" readonly="readonly" type="floating_point" data-msg="Must be greater than the last recorded runtime" min="0" required>
 		  hours
 		</td>
       </tr>
 	</table>
   </form>
-  <button name="add_record">Touch here to record this run</button>
+  <button name="add_record" id="fixed_add">Touch here to record this run</button>
+    <!-- Compressor help -->
+    <div class="hidden info" id="infoLastRun" data-title="<span class='fa fa-cog'></span> Last Run">
+      $1
+      If you made a mistake, you can remove the last run from the history.
+      <div class="warning">Please be careful, this can&apos;t be undone!</div>
+    </div>
+
+    <div class="hidden info" id="infoFilterEfficiency">
+      <p>Filter lifetime is predicted based on the intake air temperature
+        and runtime from the compressor records, and does <em>not</em>
+        reflect on the efficiency of the filters.</p>
+      <p>When the lifetime drops below 2 hours, contact the Equipment Officer
+        so the filters can be changed (or, better, learn to change them yourself.)</p>
+      <p class="warning">
+        <strong>NEVER</strong> use the compressor if the filter
+        lifetime is negative!
+      </p>
+    </div>
+    <div class="hidden info" id="infoOperator">
+      Only trained operators may use this compressor. Please
+      select your name from the list. If you are not there and
+      want to be trained, contact the Training Officer. If you have recently
+      been trained, your name may not have been added yet. In this case, please
+      use the name of the instructor who taught you.
+    </div>
+    <div class="hidden info" id="infoTemperature">
+      If the electronic sensor is functioning, the temperature will be
+      detected automatically. Otherwise the temperature must be taken from the
+      thermometer at the <strong>end</strong>
+      of the filling session and entered manually by dragging the slider.
+    </div>
+    <div class="hidden info" id="infoHumidity">
+      <!-- If the electronic sensor is functioning, the humidity will be
+      detected automatically. Otherwise -->The humidity must be taken from the
+      hygrometer at the <strong>end</strong>
+      of the filling session and entered manually by dragging the slider.
+    </div>
+    <div class="hidden info" id="infoFilters">
+      Select this <strong>only</strong> if the filters have just
+      been changed. It will reset the filter lifetime clock.
+    </div>
+    <div class="hidden info" id="infoRuntime">
+      Runtime is read from the counter on the right of the
+      compressor control panel, but may "stray". You can correct
+      it here if necessary.
+    </div>
+    <div class="hidden info" id="infoSession">
+      Tap <span class="fa fa-play"></span> when the compressor starts, and <span class="fas fa-pause"></span> if you need to temporarily stop the compressor for longer than a bottle change. When the session is finished, click <span class="fas fa-pause"></span> and then "Touch here to record this run"
+    </div>
+    <div class="hidden info" id="infoManualHours">
+      If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
+    </div>
 </div>

@@ -8,130 +8,141 @@
  *
  * See sensors/README.md for information
  */
-requirejs = require('requirejs');
-requirejs.config({
-    baseUrl: __dirname.replace(/\/[^/]*$/, "")
-});
+import { promises as Fs } from "fs";
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+import Path from "path";
+const __dirname = Path.dirname(__filename);
+import Getopt from "posix-getopt";
+import Cors from "cors";
+import Express from "express";
+import HTTP from "http";
+import { Time } from "./Time.js";
 
-requirejs(["fs-extra", "node-getopt", "express", "cors", "js/Time"], function(Fs, Getopt, Express, CORS, Time) {
-    const DESCRIPTION =
-          "DESCRIPTION\nA Raspberry PI sensors ajax server.\n" +
-          "See sensors/README.md for details\n\nOPTIONS\n";
-    const DEFAULT_PORT = 8000;
+const DEFAULT_PORT = 8000;
 
-    const cliopt = Getopt.create([
-        ["h", "help", "Show this help"],
-        ["c", "config=ARG", "Configuration file (default ~/sensors.cfg)"],
-        ["p", "port=ARG", "What port to run the server on (default " + DEFAULT_PORT + ")"],
-        ["s", "simulate", "Use a simulation for any missing hardware, instead of backing off and retrying"],
-        ["v", "verbose", "Verbose debugging messages"]
-    ])
-        .bindHelp()
-        .setHelp(DESCRIPTION + "[[OPTIONS]]")
-        .parseSystem()
-        .options;
+const DESCRIPTION = [
+  "DESCRIPTION\nA Raspberry PI sensors ajax server.",
+  "See sensors/README.md for details",
+  "", "OPTIONS",
+  "\t-h, --help -Show this help",
+  "\t-c, config=ARG - Configuration file (default ~/sensors.cfg)",
+  `\t-p, port=ARG - What port to run the server on (default ${DEFAULT_PORT})`,
+  "\t-s, simulate - Use a simulation for any missing hardware, instead of backing off and retrying",
+  "\t-v, verbose - Verbose debugging messages"
+].join("\n");
 
-    if (typeof cliopt.config === "undefined")
-        cliopt.config = process.env.HOME + "/sensors.cfg";
+const go_parser = new Getopt.BasicParser(
+  "h(help)c:(config)p:(port)sv", process.argv);
 
-    const log = (cliopt.verbose) ? console.log : (() => {});
+const options = {
+  config : `${process.env.HOME}/sensors.cfg`,
+  simulate: false,
+  log: () => {}
+};
+let option;
+while ((option = go_parser.getopt())) {
+  switch (option.option) {
+  case "p": options.port = option.optarg; break;
+  case "c": options.config = option.optarg; break;
+  case 's': options.simulate = true; break;
+  case "h": console.log(DESCRIPTION); process.exit();
+  case 'v': options.log = console.log; break;
+  default: throw Error(`Unknown option -${option.option}\n${DESCRIPTION}`);
+  }
+}
 
-    const simulation = cliopt.simulate;
-
-	function connect(cfg) {
-		cfg.sensor.connect()
-		.then(() => {
-			console.log(`connect: ${cfg.sensor.name} connected`);
-		})
-		.catch(error => {
-			//console.log(`connect: ${error}`);
-			// If simulation is requested, make a simulated sensor if the
-			// connect failed
-			if (simulation) {
-				console.log(`connect: Using simulation for '${cfg.name}`);
-				cfg.sensor.simulate();
-			} else {
-				// Back off and re-try
-				setTimeout(() => connect(cfg), 2000);
-			}
-		});
-	}
+function start_connect(cfg) {
+	cfg.sensor.connect()
+	.then(() => {
+		console.log(`connect: ${cfg.sensor.name} connected`);
+	})
+	.catch(error => {
+		console.error(`connect error: ${error}`);
+		// If simulation is requested, make a simulated sensor if the
+		// connect failed
+		if (options.simulate) {
+			console.log(`connect: Using simulation for '${cfg.name}'`);
+			cfg.sensor.simulate();
+		} else {
+			// Back off and re-try
+			setTimeout(() => start_connect(cfg), 2000);
+		}
+	});
+}
 	
-    Fs.readFile(cliopt.config)
-    .then(config => {
-        return JSON.parse(config);
-    })
-    .catch(e => {
-        console.error("Configuration error", e);
-        return Promise.reject(e.message);
-    })
-    .then(config => {
-        const server = Express();
+Fs.readFile(options.config)
+.then(config => {
+  return JSON.parse(config);
+})
+.catch(e => {
+  console.error("Configuration error", e);
+  return Promise.reject(e.message);
+})
+.then(config => {
+  const server = new Express();
 
-        server.use(CORS());
+  server.use(Cors());
 
-        // Error handling
-        server.use(function (err, req, res, next) {
-            res.status(500).send(err);
+  // Error handling
+  server.use(function (err, req, res, next) {
+    res.status(500).send(err);
+  });
+
+  // Make sensors
+  const promises = [];
+  for (const cfg of config.sensors) {
+    cfg.log = options.log;
+    const clss = cfg.class;
+
+    promises.push(
+      import(`./${clss}.js`)
+      .then(mods => {
+        const SensorClass = mods[clss];
+        cfg.sensor = new SensorClass(cfg);
+      })
+      .catch(e => {
+        options.log(clss, `import(${clss}) : ${e}`);
+        cfg.error = `Could not import ${clss}: ${e}`;
+ 			})
+      .then(() => {
+			  // Start trying to connect
+			  options.log(`Connect ${cfg.name}`);
+			  start_connect(cfg);
+		  })
+      // Add routes
+      .then(() => {
+        server.get(`/${cfg.sensor.name}`, (req, res) => {
+          if (typeof req.query.t !== "undefined")
+            Time.sync(req.query.t);
+					options.log(`Got ${cfg.name} request`);
+          cfg.sensor.sample()
+          .then(sample => {
+            res.send(sample);
+          })
+					.catch(e => {
+					});
         });
-
-        // Make sensors
-        const promises = [];
-        for (const cfg of config.sensors) {
-            cfg.log = log;
-            const clss = cfg.class;
-
-            const promise = new Promise((resolve, reject) => {
-                requirejs([`js/${clss}`], SensorClass => {
-                    cfg.sensor = new SensorClass(cfg);
-					resolve();
-                }, e => {
-                    log(clss, `require(${clss}) : ${e}`);
-                    cfg.error = `Could not require ${clss}: ${e}`;
- 					reject();
-                });
-            }).then(() => {
-				// Start trying to connect
-				log(`Connect ${cfg.name}`);
-				connect(cfg);
-			});
-			
-            // Add routes
-            promises.push(
-                promise
-                .then(() => {
-                    server.get(`/${cfg.sensor.name}`, (req, res) => {
-                        if (typeof req.query.t !== "undefined")
-                            Time.sync(req.query.t);
-						log(`Got ${cfg.name} request`);
-                        cfg.sensor.sample()
-                        .then(sample => {
-                            res.send(sample);
-                        })
-						.catch(e => {
-						});
-                    });
-                    log("Registered /" + cfg.sensor.name);
-                    return Promise.resolve("registered /" + cfg.sensor.name);
-                })
-                .catch(cfg => {
-                    log(cfg.name, "could not be registered", cfg);
-                    server.get(`/${cfg.name}`, (req, res, next) => {
-                        next();
-                    });
-                    return Promise.resolve(`failed /${cfg.name}`);
-                }));
-        }
-
-        Promise.all(promises)
-        .then(ps => {
-            log(ps);
-            const port = cliopt.port || config.port || DEFAULT_PORT;
-            server.listen(port);
-            console.log("Server started on port", port);
+        options.log("Registered /" + cfg.sensor.name);
+        return "registered /" + cfg.sensor.name;
+      })
+      .catch(cfg => {
+        options.log(cfg.name, "could not be registered", cfg);
+        server.get(`/${cfg.name}`, (req, res, next) => {
+          next();
         });
-    })
-    .catch(e => {
-        console.error("Error", e);
-    });
+        return Promise.resolve(`failed /${cfg.name}`);
+      }));
+  }
+
+  Promise.all(promises)
+  .then(ps => {
+    options.log(ps);
+    const port = options.port || config.port || DEFAULT_PORT;
+    server.listen(port);
+    console.log("Server started on port", port);
+  });
+})
+.catch(e => {
+  console.error("Error", e);
 });

@@ -10,6 +10,9 @@
   </select>
 </div>
 <div name="blender-sel" style="display:none">
+  <div>
+    The ambient temperature is around <input id="nox_t" name="temperature" data-msg="Must be between 4 and 40" required type="number" class="integer2" min="4" max="40" value="15">&deg;C.
+  </div>
   Fill a
   <input id="nox_cs" name="cylinder_size" data-msg="Must be between 1ℓ and 30ℓ" required type="number" class="integer2" min="1" max="30" value="12">ℓ cylinder containing
   <input id="nox_sp" name="start_pressure" required type="number" class="integer3" min="1" max="300" value="50"> bar of
@@ -33,4 +36,18 @@
   <div name="report">
   </div>
   <button name="add_record">Touch here to record this mix</button>
+  <div id="action-templates" style="display:none">
+    <div name="Bleed">Drain the cylinder down to ${Math.round(a.to_bar)} bar.</div>
+    <div name="AddFromBank">Add O<sub>2</sub> to ${Math.round(a.to_bar)} bar from bank ${a.bank}, using ${Math.round(a.used_l)}L and leaving ${Math.round(a.left_bar)} bar in the bank.</div>
+    <div name="TopUp">Top up with air to ${Math.round(a.to_bar)} bar.</div>
+    <div name="Pay">Pay &pound;${a.cost_gbp.toFixed(2)}.</div>
+    <div name="Impossible"><b>Sorry, fill is not possible.</b></div>
+  </div>
+  <div class="hidden info" id="infoBankSize">
+    This is the size of the O<sub>2</sub> cylinder you intend to
+    use. A 'J' cylinder is 47.2L, while a 'W' is 45.7L. Check the
+    shoulder of the cylinder you are using if you are unsure. Always
+    use the lowest pressure cylinder that has enough for the
+    fill you want
+  </div>
 </div>

@@ -1,16 +1,17 @@
 {
-  "name": "hsac",
-  "version": "1.0.0",
+  "name": "@cdot/HSAC",
+  "version": "2.0.0",
   "license": "MIT",
   "description": "HSAC Sheds",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cdot/HSAC.git"
   },
   "scripts": {
-    "lint": "eslint js",
-    "update": "ncu -u ",
-    "test": "mocha --extension ut --timeout=5000"
+    "doc": "jsdoc -c build/jsdoc_config.json src",
+    "lint": "eslint js -f unix",
+    "test": "mocha --recursive --extension js --timeout=5000 test"
   },
   "author": "Crawford Currie",
   "bugs": {
@@ -20,70 +21,34 @@
     "node": ">=12.4.0"
   },
   "homepage": "https://github.com/cdot/HSAC",
-  "eslintConfig": {
-    "extends": "eslint:recommended",
-    "parserOptions": {
-      "ecmaVersion": 13
-    },
-    "env": {
-      "shared-node-browser": true,
-      "jquery": true
-    },
-    "globals": {
-      "define": false
-    },
-    "rules": {
-      "array-bracket-newline": 0,
-      "arrow-parens": 0,
-      "camelcase": 0,
-      "class-methods-use-this": 0,
-      "curly": 0,
-      "dot-notation": 0,
-      "max-params": 0,
-      "new-cap": 0,
-      "no-alert": 1,
-      "no-console": 0,
-      "no-debugger": 0,
-      "no-eval": 0,
-      "no-new": 0,
-      "no-prototype-builtins": 0,
-      "no-trailing-spaces": 0,
-      "no-underscore-dangle": 0,
-      "no-unused-vars": 1,
-      "no-useless-escape": 1,
-      "no-use-before-define": 1,
-      "no-loop-func": 1,
-      "no-warning-comments": 0,
-      "prefer-rest-params": 0,
-      "prefer-spread": 0,
-      "quotes": 0,
-      "strict": 0
-    }
-  },
   "devDependencies": {
     "axios": "^1.7.4",
+    "chai": "^5.1.2",
     "clean-css": "^5.3.2",
     "eslint": ">=8.33.0",
+    "express": "^4.21.1",
     "html-minifier": "^4.0.0",
     "jquery-ui-touch-punch": "^0.2.3",
     "markdown-it": "^13.0.1",
-    "mocha": "^10.2.0"
+    "mocha": "^10.2.0",
+    "posix-getopt": "^1.2.1",
+    "webdav-server": "^2.6.2"
   },
   "dependencies": {
+    "@rwap/jquery-ui-touch-punch": "^1.1.5",
     "font-awesome": "^4.7.0",
     "fs-extra": "^11.1.0",
-    "icon-font": "^0.0.4",
+    "icon-font": "^0.0.1",
     "jquery": "^3.6.3",
     "jquery-confirm": "^3.3.4",
     "jquery-csv": "^1.0.21",
     "jquery-ui": "^1.13.2",
-    "jquery-ui-dist": "^1.13.2",
     "jquery-ui-iconfont": "^2.3.2",
     "jquery-validation": "^1.19.5",
     "jquery.toc": "^0.4.0",
-    "js-cookie": "^3.0.1",
+    "js-cookie": "^3.0.5",
+    "jsdom": "^25.0.1",
     "markdown-it": "^13.0.1",
-    "requirejs": "^2.3.7",
     "requirejs-text": "^2.0.16",
     "tablesorter": "^2.31.3"
   }

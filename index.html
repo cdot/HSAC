@@ -9,7 +9,8 @@
     <meta name="expires" content="BUILD_DATE">
     <meta name="build_date" content="BUILD_DATE">
     <title>Sheds</title>
-    <link rel="icon" href="app/images/favicon.ico" type="image/x-icon" />
+    <!--base href="app"> DON'T DO THIS - it'll banjax jquery-ui.tabs -->
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
 
     <!-- for ios 7 style, multi-resolution icon of 152x152 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,10 +24,10 @@
     <link rel="shortcut icon" href="app/images/favicon.png" type="png" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-barstyle" content="black-translucent">
-    <link rel="apple-touch-icon" href="app/images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 
     <link href="app/node_modules/jquery-ui/dist/themes/cupertino/jquery-ui.css" rel="stylesheet">
-    <link href="app/node_modules/jquery-ui-iconfont/jquery-ui.icon-font.min.css" rel="stylesheet"-->
+    <link href="app/node_modules/jquery-ui-iconfont/jquery-ui.icon-font.min.css" rel="stylesheet">
     <link href="app/node_modules/tablesorter/dist/css/theme.jui.min.css" rel="stylesheet">
     <link href="app/node_modules/jquery-confirm/dist/jquery-confirm.min.css" rel="stylesheet">
 
@@ -36,8 +37,19 @@
 
     <link href="app/node_modules/font-awesome/css/font-awesome.css" rel="stylesheet">
 
-    <script data-main="app/js/main" src="app/node_modules/requirejs/require.js"></script>
-
+    <script type="importmap">
+      {
+        "imports": {
+          "jquery": "./app/node_modules/jquery/dist/jquery.min.js",
+          "jquery-ui": "./app/node_modules/jquery-ui/dist/jquery-ui.min.js",
+          "jquery-csv": "./app/node_modules/jquery-csv/src/jquery.csv.min.js",
+          "jquery-confirm": "./app/node_modules/jquery-confirm/dist/jquery-confirm.min.js",
+          "js-cookie": "./app/node_modules/js-cookie/dist/js.cookie.min.mjs",
+          "jquery-validate": "./app/node_modules/jquery-validation/dist/jquery.validate.min.js"
+        }
+      }
+    </script>
+    <script src="app/js/main.js" type="module"></script>
   </head>
   <body>
     <div id="console" class="hidden">
@@ -54,10 +66,10 @@
         <ul style="margin-right:1.2em">
           <li><a href="#fixed" data-class="Compressor">Fixed Compressor</a></li>
 		  <!-- DISABLED UNTIL SOMEONE WANTS THESE PAGES
-          <li><a href="#portable" data-class="Compressor">Portable Compressor</a></li>
+               <li><a href="#portable" data-class="Compressor">Portable Compressor</a></li>
           <li><a href="#loans" data-class="Loans">Loans</a></li>
           <li><a href="#inventory" data-class="Inventory">Inventory</a></li>
-		  -->
+		  <!-- -->
           <li><a href="#nitrox" data-class="Nitrox">Nitrox</a></li>
         </ul>
 	  </div>
@@ -106,16 +118,16 @@
           </td>
           <td class="widest">
             1 <input type="number" class="number floating_point" step="any" name="o2:bank:1:size"> ℓ,
-            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:1:price">/ℓ, max
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:1:price">/ℓ,
             <input type="number" class="number floating_point" step="any" name="o2:bank:1:max"> bar<br/>
             2 <input type="number" class="number floating_point" step="any" name="o2:bank:2:size"> ℓ,
-            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:2:price">/ℓ, max
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:2:price">/ℓ,
 			<input type="number" class="number floating_point" step="any" name="o2:bank:2:max"> bar<br/>
             3 <input type="number" class="number floating_point" step="any" name="o2:bank:3:size"> ℓ,
-            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:3:price">/ℓ, max
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:3:price">/ℓ,
 			<input type="number" class="number floating_point" step="any" name="o2:bank:3:max"> bar<br/>
             4 <input type="number" class="number floating_point" step="any" name="o2:bank:4:size"> ℓ,
-            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:4:price">/ℓ, max
+            &pound;<input type="number" class="floating_point" step="0.0001" required name="o2:bank:4:price">/ℓ,
 			<input type="number" class="number floating_point" step="any" name="o2:bank:3:max"> bar<br/>
           </td>
         </tr>
@@ -175,13 +187,11 @@
           </td>
           <td class="widest">
             <label>Intake &deg;C
-              <input type="checkbox" name="compressor:fixed:sensor:intake_temperature"></label>
+              <input type="checkbox" name="compressor:fixed:enable_intake_temperature"></label>
             <label>Intake %RH
-              <input type="checkbox" name="compressor:fixed:sensor:intake_humidity"></label>
+              <input type="checkbox" name="compressor:fixed:enable_intake_humidity"></label>
             <label>3rd Stage &deg;C
-              <input type="checkbox" name="compressor:fixed:sensor:internal_temperature"></label>
-            <label>Runtime
-              <input type="checkbox" name="compressor:fixed:sensor:power"></label>
+              <input type="checkbox" name="compressor:fixed:enable_internal_temperature"></label>
           </td>
         </tr>
         <tr>
@@ -278,108 +288,5 @@
       <div id="alert_body">
       </div>
     </div>
-
-    <!-- Compressor help -->
-    <div class="hidden info" id="infoLastRun" data-title="<span class='fa fa-cog'></span> Last Run">
-      $1
-      If you made a mistake, you can remove the last run from the history.
-      <div class="warning">Please be careful, this can&apos;t be undone!</div>
-    </div>
-
-    <div class="hidden info" id="infoFilterEfficiency">
-      <p>Filter lifetime is predicted based on the intake air temperature
-        and runtime from the compressor records, and does <em>not</em>
-        reflect on the efficiency of the filters.</p>
-      <p>When the lifetime drops below 2 hours, contact the Equipment Officer
-        so the filters can be changed (or, better, learn to change them yourself.)</p>
-      <p class="warning">
-        <strong>NEVER</strong> use the compressor if the filter
-        lifetime is negative!
-      </p>
-    </div>
-    <div class="hidden info" id="infoOperator">
-      Only trained operators may use this compressor. Please
-      select your name from the list. If you are not there and
-      want to be trained, contact the Training Officer. If you have recently
-      been trained, your name may not have been added yet. In this case, please
-      use the name of the instructor who taught you.
-    </div>
-    <div class="hidden info" id="infoTemperature">
-      If the electronic sensor is functioning, the temperature will be
-      detected automatically. Otherwise the temperature must be taken from the
-      thermometer at the <strong>end</strong>
-      of the filling session and entered manually by dragging the slider.
-    </div>
-    <div class="hidden info" id="infoHumidity">
-      If the electronic sensor is functioning, the humidity will be
-      detected automatically. Otherwise the humidity must be taken from the
-      hygrometer at the <strong>end</strong>
-      of the filling session and entered manually by dragging the slider.
-    </div>
-    <div class="hidden info" id="infoFilters">
-      Select this <strong>only</strong> if the filters have just
-      been changed. It will reset the filter lifetime clock.
-    </div>
-    <div class="hidden info" id="infoRuntime">
-      Runtime is read from the counter on the right of the
-      compressor control panel, but may "stray". You can correct
-      it here if necessary.
-    </div>
-    <div class="hidden info" id="infoSession">
-      Tap <span class="fa fa-play"></span> when the compressor starts, and <span class="fas fa-pause"></span> if you need to temporarily stop the compressor for longer than a bottle change. When the session is finished, click <span class="fas fa-pause"></span> and then "Touch here to record this run"
-    </div>
-    <div class="hidden info" id="infoManualHours">
-      If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
-    </div>
-
-    <!-- Loans help -->
-    <div class="hidden info" id="infoLoans">
-      <dl>
-        <dt>Date</dt><dd>Touch the date to correct it if necessary</dd>
-        <dt>Borrower</dt><dd>
-          Select the borrower's name. Only current members of the club
-          can borrow equipment. If the borrower's name does not appear
-          on this list, select their instructor instead</dd>
-        <dt>Lender</dt><dd>Select the lender' name. Only qualified
-          compressor operators can lend equipment</dd>
-        <dt>Donation</dt><dd>
-          All members except those currently on the Ocean Diver course
-          are asked to make a donation to the club to help with
-          equipment maintenance. See the notices on the wall for the
-          current recommended donations</dd>
-        <dt>Returned</dt><dd>
-          When something is returned to you, select the 'Returned' column for that item and add your name
-        </dd>
-      </dl>
-      You can also edit older loans e.g. to indicate when a loan was
-      returned, or correct an error. Just touch the item you want to
-      edit, then touch "Save Changes" (or "Discard Changes").
-    </div>
-    <div class="hidden info" id="infoAddLoan">
-      Touch "Add" to record the details you entered on the last row of
-      the table.
-    </div>
-    <div class="hidden info" id="infoLate">
-      Members are requested to make an additional donation when
-      items are returned late. <strong>This includes trainees</strong>
-    </div>
-
-    <!-- Inventory help -->
-    <div class="hidden info" id="infoOnLoan1">
-      The number in brackets indicates how many are out on loan
-    </div>
-    <div class="hidden info" id="infoOnLoan2">
-      Crossed-out entries are out on loan
-    </div>
-
-    <!-- Nitrox help -->
-    <div class="hidden info" id="infoBankSize">
-      This is the size of the O<sub>2</sub> cylinder you intend to
-      use. A 'J' cylinder is 47.2L, while a 'W' is 45.7L. Check the
-      shoulder of the cylinder you are using if you are unsure. Always
-      use the lowest pressure cylinder that has enough for the
-      fill you want
-    </div>
-
   </body>
 </html>
