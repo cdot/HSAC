@@ -3,7 +3,7 @@
 Custom application for managing a dive club's resources. The application was
 created specifically for use by
 [Hartford Sub-Aqua Club (HSAC)](http://hartfordscuba.co.uk), and reflects
-the way we organise and manage our resources - training kit, compressor, and O<sub>2</sub> bank.
+the way we organise and manage our resources - training kit, compressor, and oxygen bank.
 
 The application comprises two parts:
 1. A [browser application](app/README.md)
@@ -34,7 +34,7 @@ See [Browser application](app/README.md) for more information.
 
 ## Sensor package
 
-The sensor package is designed to run on a Raspberry Pi that manages a number
+The sensor package is designed to run on a Raspberry Pi that interfaces to a number
 of electronic sensors on the compressor.
 
 See [Sensor package](sensors/README.md) for more information. The sensors package

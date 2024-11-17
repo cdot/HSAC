@@ -52,16 +52,18 @@
     <script src="app/js/main.js" type="module"></script>
   </head>
   <body>
-    <div id="console" class="hidden">
-      <!-- hidden unless ?debug=1;console=1 in URL -->
-    </div>
     <div id="loading" class="rainbow fullscreen">
       Loading...
     </div>
+    
+    <!-- console will move to console_dialog once loading is complete -->
+    <div id="console"></div>
+
     <div id="loaded" class="hidden fullscreen">
       <div id="main_tabs">
         <div id="settings_block">
-          <span id="settings" class="fa fa-sliders"></span>
+          <span id="settings" class="fa fa-sliders"></span><br/>
+          <span id="open_console" class="fa fa-wrench"></span>
         </div>
         <ul style="margin-right:1.2em">
           <li><a href="#fixed" data-class="Compressor">Fixed Compressor</a></li>
@@ -77,24 +79,9 @@
 
 	<!-- tabs are dynamically loaded from app/html -->
 
-	<div id="action-templates" class="hidden">
-	  <div name="Bleed">Bleed cylinder down to ${floor(a.to_bar)} bar
-		${morethan(a.wasted_l*this.O2_gbp,0.01)?"(losing O<sub>2</sub> worth about £" + about(a.wasted_l*this.O2_gbp) + ")":""} (${round(a.drained_l/100)} mins)
-	  </div>
-	  <div name="AddFromBank">
-		Add O<sub>2</sub> from bank ${a.bank}
-		to a pressure of ${ceil(a.to_bar)} bar
-		(${round(a.used_l)}ℓ in ${ceil(a.used_l/7)} mins),
-		leaving the bank with ${floor(a.left_bar)} bar
-	  </div>
-	  <div name="TopUp">
-		Top up with air from the compressor to ${a.to_bar} bar (${ceil(a.used_l)}ℓ in ${ceil(a.used_l/250)} mins)
-	  </div>
-	  <div name="Pay">
-		You should pay the club £${Math.ceil(a.cost_gbp * 100) / 100}
-		for the O<sub>2</sub> used from the bank
-	  </div>
-	</div>
+    <div id="console_dialog" class="hidden">
+      <button id="console_dialog_close">Close</button>
+    </div>
 
     <div id="settings_dialog" class="hidden" data-title="<span class='fa fa-sliders-h'></span> Settings">
       <button name="update_cache">Update Cache from Remote DB</button>
@@ -249,17 +236,6 @@
         </tr>
       </table>
       <button name="close">Close</button>
-    </div>
-
-    <div id="inventory_pick_dialog" class="hidden">
-      <div class="crowded_tab inventory_tab" data-hide-cols="Kit Pool,Location,Count">
-      </div>
-    </div>
-
-    <div id="fix_bank_dialog" class="hidden" title="Enter correct bank levels">
-	  Enter measured pressure in bank cylinders. Only change what you have personally measured with the whip gauge!
-      <div name="banks">
-      </div>
     </div>
 
     <div id="auth_required" class="hidden" title="Authentication required">

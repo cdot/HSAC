@@ -43,19 +43,26 @@ class Sheds {
    * (such as Android Webview)
    */
   constructor(params) {
-    if (params.debug) {
-      if (params.console) {
-        // Simulated console in #console
-        this.debug = () => {
-          console.debug.apply(console, arguments);
-          $("#console")
-          .append(
-            `<div>${Array.from(arguments).join(" ")}</div>`);
-        };
-      } else
-        this.debug = console.debug;
-    } else
-			this.debug = () => {};
+    /**
+     * The app console (a div) is initially open, but is closed
+     * after loading unless this is true.
+     * @member {boolean}
+     * @private
+     */
+    this.keepConsoleOpen = params.console;
+
+    /**
+     * Debug print function. Messages are always added to the app console,
+     * and to the developer console if debug is set.
+     */
+    this.debug = (...args) => {
+      const mess = args.join(" ");
+      if (params.debug)
+        console.debug(mess);
+      const $div = $("<div></div>");
+      $div.text(mess);
+      $("#console").append($div);
+    };
 
     // Possible override of cache_url, otherwise use whatever
     // is cookied in the browser
@@ -224,7 +231,8 @@ class Sheds {
     // Start the clock
     tick();
 
-    $("#settings").on("click", () => this.config.open(this));
+    $("#settings")
+    .on("click", () => this.config.open(this));
 
     // Information buttons
     $("[data-with-info]").with_info();
@@ -252,6 +260,16 @@ class Sheds {
       this.reloadUI()
       .then(() => {
         $("#loading").hide();
+        $("#console").prependTo($("#console_dialog"));
+        $("#open_console")
+        .on("click", () => {
+          $("#console_dialog").show();
+        });
+        $("#console_dialog_close")
+        .on("click", () => {
+          $("#console_dialog").hide();
+        });
+
         $("#loaded").show();
         window.scrollTo(0,document.body.scrollHeight);
       });

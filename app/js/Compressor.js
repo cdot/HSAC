@@ -466,10 +466,10 @@ class Compressor extends Entries {
             .then(sample => this._updateSampledField($el, sample))
             .catch(() => this._updateSampledField($el, null)));
         }
-        else
-          this.debug(`compressor:${this.id}:enable_${info.name}`,
-                     "sensor is disabled",
-                    this.config.get(`compressor:${this.id}:enable_${info.name}`));
+        //else
+        //  this.debug(`compressor:${this.id}:enable_${info.name}`,
+        //             "sensor is disabled",
+        //            this.config.get(`compressor:${this.id}:enable_${info.name}`));
       });
 
       // Promise to check alarm sensors
@@ -492,7 +492,7 @@ class Compressor extends Entries {
                 $report.addClass("error");
                 $el.show();
                 if (typeof Audio !== "undefined") {
-                  var snd = new Audio("sounds/siren.mp3");
+                  var snd = new Audio("app/sounds/siren.mp3");
                   snd.play();
                 }
               } else {
@@ -595,9 +595,9 @@ class Compressor extends Entries {
     })
     .then(() => {
       if (typeof Audio !== "undefined") {
-        const pick = Math.floor(Math.random() * 25);
+        const pick = Math.floor(Math.random() * 122);
         try {
-          const snd = new Audio(`sounds/${pick}.mp3`);
+          const snd = new Audio(`app/sounds/${pick}.mp3`);
           snd.play();
         } catch (e) {
           console.debug("Cannot play", e);

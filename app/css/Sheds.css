@@ -9,118 +9,128 @@ Glass #EDFAFD
 /* Rules are organised alphabetically */
 
 .alarm {
-    color: white;
-    background-color: red;
+  color: white;
+  background-color: red;
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14pt;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14pt;
 }
 
 /* Allow space for button and "fiters changed" select */
 #compressor_table {
-    margin-bottom: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+#console_dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  padding: 0;
 }
 
 #console {
-    float: left;
-    width: 30%;
-    height: 100%;
-    background-color: #FFFFD0
+  width: 100%;
+  height: 90%;
+  padding: 1vw;
+  background-color: #FFFFD0;
+  overflow: auto;
 }
 
 .crowded_tab {
-    padding: 0.2em 0 0 0 !important;
-    margin: 0;
+  padding: 0.2em 0 0 0 !important;
+  margin: 0;
 }
 
 .cr_delta {
-    font-size: smaller;
+  font-size: smaller;
 }
 
 /* Markdown */
 [data-markdown] {
-    color: blue;
-    text_decoration: underline;
+  color: blue;
+  text_decoration: underline;
 }
 
 .detected {
-    color: olive;
-    font-size: smaller;
+  color: olive;
+  font-size: smaller;
 }
 
 .rainbow {
-    animation:rainbowText 1.2s infinite;
+  animation:rainbowText 1.2s infinite;
 }
 
 @keyframes rainbowText {
-	0%{ color: red; }
-	14%{ color: orange; }
-	29%{ color: yellow; }
-	43%{ color: green; }
-	57%{ color: blue; }
-	71%{ color: indigo; }
-	86%{color: violet; }
+  0%{ color: red; }
+  14%{ color: orange; }
+  29%{ color: yellow; }
+  43%{ color: green; }
+  57%{ color: blue; }
+  71%{ color: indigo; }
+  86%{color: violet; }
 }
 
 /* Button (not a control) inside a dialog */
 .dialog-inner-button {
-    font-size: smaller;
-    font-weight: bolder;
-    padding: 0.25em;
+  font-size: smaller;
+  font-weight: bolder;
+  padding: 0.25em;
 }
 
 /* Button (not a control) inside a dialog */
 .dialog-inner-button:hover {
-    font-weight: bolder;
+  font-weight: bolder;
 }
 
 /* Digital runtime display */
 .digital {
-    font-size: 24pt !important;
-    font-family: "Courier New", Courier, monospace !important
+  font-size: 24pt !important;
+  font-family: "Courier New", Courier, monospace !important
 }
 
 /* Markdown */
 .equation {
-    font-style: italic;
-    background-color: pink;
+  font-style: italic;
+  background-color: pink;
 }
 
 /* Used by validation */
 .error {
-    color: white;
-    background-color: red;
+  color: white;
+  background-color: red;
 }
 
 #fixed {
-    font-size: 18pt;
+  font-size: 18pt;
 }
 
 .flex-row {
-	display: flex;
-	margin-top: 0.25em;
-	margin-bottom: 0.25em;
-	flex-direction: row;
-	width: 100%;
+  display: flex;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+  flex-direction: row;
+  width: 100%;
 }
 
 .flex-row label {
-	margin-right: 0.25em;
+  margin-right: 0.25em;
 }
 
 /* Markdown - doesn't work, thanks for nothing github
-.fraction {
-    display: inline-block;
-    vertical-align: middle; 
-    margin: 0 0.2em 0.4ex;
-    text-align: center;
-}
+   .fraction {
+   display: inline-block;
+   vertical-align: middle; 
+   margin: 0 0.2em 0.4ex;
+   text-align: center;
+   }
 
 .fraction > span {
-    display: block;
-    padding-top: 0.15em;
+display: block;
+padding-top: 0.15em;
 }
 
 .fraction span.fdn {border-top: thin solid black;}
@@ -128,227 +138,227 @@ body {
 
 /* Attempt to hide browser url bar :-( */
 .fullscreen {
-    padding-top: 3vh;
-    height: 110%;
-    width: 100%;
+  padding-top: 3vh;
+  height: 110%;
+  width: 100%;
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 .humidity.slider {
-    background-image: linear-gradient(
-      to right, #f2d16b, #086294
-    );
+  background-image: linear-gradient(
+    to right, #f2d16b, #086294
+  );
 }
 
 /* Input width control */
 input.floating_point {
-    width: 6em;
+  width: 6em;
 }
 
 input.integer2 {
-    width: 3em;
+  width: 3em;
 }
 
 input.integer3 {
-    width: 4em;
+  width: 4em;
 }
 
 /* Used to highlight a chosen item in an inventory tab */
 .inventory_chosen {
-    color: red;
+  color: red;
 }
 
 /* Applied to each sheet in an inventory */
 .inventory_sheet {
-    padding: 0.25em 0 0 0 !important;
-    margin: 0;
+  padding: 0.25em 0 0 0 !important;
+  margin: 0;
 }
 
 /* The table within an inventory sheet */
 .inventory_table {
-    margin: 0;
-    border-collapse: collapse;
+  margin: 0;
+  border-collapse: collapse;
 }
 
 .inventory_table th {
-    background-color: #AED9DA;
-    border: 1px dotted black;
+  background-color: #AED9DA;
+  border: 1px dotted black;
 }
 
 .inventory_table td {
-    border: 1px dotted black;
+  border: 1px dotted black;
 }
 
 .inventory_on_loan {
-    text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 /* Default is to float buttons to the right, which can obscure them on
  * low-res displays */
 .jconfirm-buttons {
-    float: left !important;
+  float: left !important;
 }
 
 /* Float validation reports */
 label.error {
-    float:right;
-    padding: 0 0.2em;
+  float:right;
+  padding: 0 0.2em;
 }
 
 /* Used in the loan table to highlight a late loan */
 .loan_late {
-    color: red;
+  color: red;
 }
 
 #loan_table {
-    border: 1px dotted grey;
-    margin: 0;
-    border-collapse: collapse;
+  border: 1px dotted grey;
+  margin: 0;
+  border-collapse: collapse;
 }
 
 #loan_table td:last-child,
-#loan_table th:last-child,
-    text-align: center;
+               #loan_table th:last-child,
+                              text-align: center;
 }
 
-#loan_table td:nth-child(2),
-#loan_table td:nth-child(6) {
-    text-align: center;
-}
+ #loan_table td:nth-child(2),
+ #loan_table td:nth-child(6) {
+   text-align: center;
+ }
 
-#loan_table th.isnumber .tablesorter-header-inner {
-    padding: 0;
-}
+ #loan_table th.isnumber .tablesorter-header-inner {
+   padding: 0;
+ }
 
-#loan_table th:nth-child(2),
-#loan_table th:nth-child(6) {
-    text-align: center;
-}
+ #loan_table th:nth-child(2),
+ #loan_table th:nth-child(6) {
+   text-align: center;
+ }
 
-#loan_table td,
-#loan_table th {
-    border: 1px dotted grey;
-}
+ #loan_table td,
+ #loan_table th {
+   border: 1px dotted grey;
+ }
 
-#loan_table > tfoot th {
-    color: #135589;
-    text-align: center;
-}
+ #loan_table > tfoot th {
+   color: #135589;
+   text-align: center;
+ }
 
-/* A single cell in the loan table */
-.loan_cell {
-    width: 100%;
-    height: 100%;
-}
+ /* A single cell in the loan table */
+ .loan_cell {
+   width: 100%;
+   height: 100%;
+ }
 
-.loan_control {
-    background-color: #135589;
-    color: white;
-}
+ .loan_control {
+   background-color: #135589;
+   color: white;
+ }
 
-#loan_controls {
-    display: inline;
-}
+ #loan_controls {
+   display: inline;
+ }
 
-/* Used when an entry in the loan table is modified */
-.loan_modified {
-    color: white !important;
-    background-color: #135589;
-}
+ /* Used when an entry in the loan table is modified */
+ .loan_modified {
+   color: white !important;
+   background-color: #135589;
+ }
 
-#nitrox {
-    font-size: 18pt;
-}
+ #nitrox {
+   font-size: 18pt;
+ }
 
-.bank_cylinder {
-	border: thin solid black;
-	display: inline;
-	padding-right: 5px;
-	padding-left: 5px;
-	margin-right: 5px;
-}
+ .bank_cylinder {
+   border: thin solid black;
+   display: inline;
+   padding-right: 5px;
+   padding-left: 5px;
+   margin-right: 5px;
+ }
 
-#portable {
-    font-size: 20pt;
-}
+ #portable {
+   font-size: 20pt;
+ }
 
-.report {
-    color: olive;
-}
+ .report {
+   color: olive;
+ }
 
-/* A scrollable container in a tab */
-.scroll_container {
-    height: 70%;
-    overflow: scroll;
-}
+ /* A scrollable container in a tab */
+ .scroll_container {
+   height: 70%;
+   overflow: scroll;
+ }
 
-/* Settings icon */
-#settings_block {
-    float: right;
-    display: inline-block;
-}
+ /* Settings icon */
+ #settings_block {
+   float: right;
+   display: inline-block;
+ }
 
-#settings_dialog {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 90vw;
-  padding: 5vw;
-}
+ #settings_dialog {
+   position: absolute;
+   top: 0;
+   left: 0;
+   height: 100%;
+   width: 90vw;
+   padding: 5vw;
+ }
 
-.slider {
-    margin-top: 0.4em;
-}
+ .slider {
+   margin-top: 0.4em;
+ }
 
-.slider > div.max {
-    float: right;
-    color: white;
-    font-size: 50%;
-}
+ .slider > div.max {
+   float: right;
+   color: white;
+   font-size: 50%;
+ }
 
-.slider > div.min {
-    float: left;
-    color: white;
-    font-size: 50%;
-}
+ .slider > div.min {
+   float: left;
+   color: white;
+   font-size: 50%;
+ }
 
-.small-button {
-    padding: 0 0.2em;
-}
+ .small-button {
+   padding: 0 0.2em;
+ }
 
-.temperature.slider {
-    background-image: linear-gradient(
-      to right, #3c89d0, #F9423A
-    );
-}
+ .temperature.slider {
+   background-image: linear-gradient(
+     to right, #3c89d0, #F9423A
+   );
+ }
 
-/* An element that displays the current time */
-.time_display {
-    width: 100%;
-    color: white;
-    background-color: #135589;
-}
+ /* An element that displays the current time */
+ .time_display {
+   width: 100%;
+   color: white;
+   background-color: #135589;
+ }
 
-/* A right-aligned table in a data capture form */
-th.input_label {
-    text-align: right;
-}
+ /* A right-aligned table in a data capture form */
+ th.input_label {
+   text-align: right;
+ }
 
-/* And alternate-coloured table */
-table.zebra > tbody > tr:nth-child(odd) {
-    background-color: #3DDAD7;
-}
+ /* And alternate-coloured table */
+ table.zebra > tbody > tr:nth-child(odd) {
+   background-color: #3DDAD7;
+ }
 
-table.zebra > tbody > tr:nth-child(even) {
-    background-color: #AED9DA;
-}
+ table.zebra > tbody > tr:nth-child(even) {
+   background-color: #AED9DA;
+ }
 
-table {
-    table-layout: auto;
+ table {
+   table-layout: auto;
     border-collapse: collapse;
     width: 100%;
 }
@@ -382,3 +392,4 @@ table td,th {
 .widest {
     width: 100%;
 }
+
