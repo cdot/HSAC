@@ -2,7 +2,7 @@
 /* eslint-env browser,jquery */
 
 import "jquery";
-import "./jq/edit-table.js";
+import "./jq/edit-in-place.js";
 
 import { Entries } from "./Entries.js";
 
