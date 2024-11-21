@@ -1,10 +1,12 @@
 <div class="crowded_tab">
   <div class="hidden alarm error" data-compressor="fixed" data-sensor-config='{"name":"internal_temperature"}'>
-	3rd STAGE HEAD <span " class="fixed_internal_temp"></span> IS TOO HOT!
+	3rd STAGE HEAD
+    <span class="fixed_internal_temp"></span> IS TOO HOT!
   </div>
-  <div style="float:right;font-size:small">3rd stage: <span class="fixed_internal_temp"></span></div>
+  <div style="float:right;font-size:small">3rd stage: <span class="fixed_internal_temp"></span>
+  </div>
   <form id="fixed_form" class="validated_form">
-	<div>
+    <div>
       Last run by
       <span class="cr_operator">?</span>
       <span class="cr_time">?</span>.
@@ -18,206 +20,203 @@
       <div style="display:inline;float:right">
         <button class="small-button" name="filters_changed">Filters changed</button>
       </div>
-	</div>
-	<div>
+    </div>
+    <div>
       Enter details of your run below:
-	</div>
-	<table class="form_table zebra" id="compressor_table">
+    </div>
+    <table class="form_table zebra" id="compressor_table">
       <tr class="operatorRow">
-		<th class="input_label">
+	    <th class="input_label">
           <span data-with-info="#infoOperator">
-			Operator
+		    Operator
           </span>
-		</th>
-		<td colspan="2" class="widest">
+	    </th>
+	    <td colspan="2" class="widest">
           <select name="operator" id="fixed_operator" class="operator" data-msg="Must be a trained operator" required>
-			<option></option>
+		    <option></option>
           </select>
-		</td>
+	    </td>
       </tr>
 
       <tr class="temperatureRow">
-		<th class="input_label">
+	    <th class="input_label">
           <span data-with-info="#infoTemperature">
-			Temperature
+		    Temperature
           </span>
-		</th>
-		<td class="widest">
+	    </th>
+	    <td class="widest">
           <input name="temperature" type="number" class="integer2" min="4" max="40" data-msg-min="Must be ≥4°C" data-msg-max="Must be ≤40°C" value="18" id="fixed_temp" data-compressor="fixed" data-sensor-config='{"name":"intake_temperature","max_age":300000,"sampled":".fixed_temp_sensed","dubious":".fixed_temp_dubious","unsampled":".fixed_temp_manual","enable":"#fixed_temp_enable"}'>&deg;C
           <span class="hidden fixed_temp_sensed detected">(detected)</span>
           <span class="hidden fixed_temp_manual warning">(Cannot read sensor - please enter value manually)</span>
           <span class="hidden fixed_temp_dubious rainbow">(sensed value out of valid range)</span>
           <div class="hidden temperature slider fixed_temp_manual" data-slider='{"min":4,"max":40,"friend":"#fixed_temp"}'>
-			<div class="min">4&deg;C</div><div class="max">40&deg;C</div>
+		    <div class="min">4&deg;C</div><div class="max">40&deg;C</div>
           </div>
-          <!--div style="display:inline">
-            <label for="fixed_temp_enable" class="small-button">use sensor</label>
-            <input id="fixed_temp_enable" type="checkbox" style="float:right" checked />
-          </div -->
-		</td>
+          <!--<div style="display:inline">
+              <label for="fixed_temp_enable" class="small-button">use sensor</label>
+              <input id="fixed_temp_enable" type="checkbox" style="float:right" checked />
+          </div> -->
+        </td>
       </tr>
 
       <tr class="humidityRow">
-		<th class="input_label">
+	    <th class="input_label">
           <span data-with-info="#infoHumidity">
-			Humidity
+		    Humidity
           </span>
-		</th>
+	    </th>
 
-		<td class="widest">
+	    <td class="widest">
           <input name="humidity" type="number" class="integer2" value="50" id="fixed_hum" data-compressor="fixed" data-sensor-config='{"name":"intake_humidity","max_age":300000,"sampled":".fixed_hum_sensed","unsampled":".fixed_hum_manual","dubious":".fixed_hum_dubious","enable":"#fixed_hum_enable"}'>%
           <span class="hidden fixed_hum_sensed detected">(detected)</span>
           <span class="hidden fixed_hum_manual warning">(Cannot read sensor - please enter value manually)</span>
           <span class="hidden fixed_hum_dubious rainbow">(sensed value out of valid range)</span>
           <div class="hidden humidity slider fixed_hum_manual" data-slider='{"min":0,"max":80,"friend":"#fixed_hum"}'>
-			<div class="min">0%</div><div class="max">80%</div>
+		    <div class="min">0%</div><div class="max">80%</div>
           </div>
-          <!--div style="display:inline">
-            <label for="fixed_hum_enable" class="small-button">use sensor</label>
-            <input id="fixed_hum_enable" type="checkbox" style="float:right" checked />
-          </div-->
-		</td>
+          <!-- <div style="display:inline">
+               <label for="fixed_hum_enable" class="small-button">use sensor</label>
+               <input id="fixed_hum_enable" type="checkbox" style="float:right" checked />
+          </div> -->
+	    </td>
       </tr>
 
       <tr>
-		<th class="input_label">
+	    <th class="input_label">
           <span data-with-info="#infoRuntime">
-			Runtime
+		    Runtime
           </span>
           <br/>
           <span class="cr_delta detected"></span>
-		</th>
-		<td class="widest">
+	    </th>
+	    <td class="widest">
           <select class="digital" data-units="1000">
-			<option>0</option>
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4</option>
-			<option>5</option>
-			<option>6</option>
-			<option>7</option>
-			<option>8</option>
-			<option>9</option>
+		    <option>0</option>
+		    <option>1</option>
+		    <option>2</option>
+		    <option>3</option>
+		    <option>4</option>
+		    <option>5</option>
+		    <option>6</option>
+		    <option>7</option>
+		    <option>8</option>
+		    <option>9</option>
           </select>
           <select class="digital" data-units="100">
-			<option>0</option>
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4</option>
-			<option>5</option>
-			<option>6</option>
-			<option>7</option>
-			<option>8</option>
-			<option>9</option>
+		    <option>0</option>
+		    <option>1</option>
+		    <option>2</option>
+		    <option>3</option>
+		    <option>4</option>
+		    <option>5</option>
+		    <option>6</option>
+		    <option>7</option>
+		    <option>8</option>
+		    <option>9</option>
           </select>
           <select class="digital" data-units="10">
-			<option>0</option>
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4</option>
-			<option>5</option>
-			<option>6</option>
-			<option>7</option>
-			<option>8</option>
-			<option>9</option>
+		    <option>0</option>
+		    <option>1</option>
+		    <option>2</option>
+		    <option>3</option>
+		    <option>4</option>
+		    <option>5</option>
+		    <option>6</option>
+		    <option>7</option>
+		    <option>8</option>
+		    <option>9</option>
           </select>
           <select class="digital" data-units="1">
-			<option>0</option>
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4</option>
-			<option>5</option>
-			<option>6</option>
-			<option>7</option>
-			<option>8</option>
-			<option>9</option>
+		    <option>0</option>
+		    <option>1</option>
+		    <option>2</option>
+		    <option>3</option>
+		    <option>4</option>
+		    <option>5</option>
+		    <option>6</option>
+		    <option>7</option>
+		    <option>8</option>
+		    <option>9</option>
           </select>
           .
           <select class="digital" data-units="0.1">
-			<option>0</option>
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4</option>
-			<option>5</option>
-			<option>6</option>
-			<option>7</option>
-			<option>8</option>
-			<option>9</option>
+		    <option>0</option>
+		    <option>1</option>
+		    <option>2</option>
+		    <option>3</option>
+		    <option>4</option>
+		    <option>5</option>
+		    <option>6</option>
+		    <option>7</option>
+		    <option>8</option>
+		    <option>9</option>
           </select>
           <select class="digital" data-units="0.01">
-			<option>0</option>
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4</option>
-			<option>5</option>
-			<option>6</option>
-			<option>7</option>
-			<option>8</option>
-			<option>9</option>
+		    <option>0</option>
+		    <option>1</option>
+		    <option>2</option>
+		    <option>3</option>
+		    <option>4</option>
+		    <option>5</option>
+		    <option>6</option>
+		    <option>7</option>
+		    <option>8</option>
+		    <option>9</option>
           </select>
           <input name="runtime" id="fixed_runtime" style="display:none" readonly="readonly" type="floating_point" data-msg="Must be greater than the last recorded runtime" min="0" required>
 		  hours
-		</td>
+	    </td>
       </tr>
-	</table>
+    </table>
   </form>
   <button name="add_record" id="fixed_add">Touch here to record this run</button>
-    <!-- Compressor help -->
-    <div class="hidden info" id="infoLastRun" data-title="<span class='fa fa-cog'></span> Last Run">
-      $1
-      If you made a mistake, you can remove the last run from the history.
-      <div class="warning">Please be careful, this can&apos;t be undone!</div>
-    </div>
 
-    <div class="hidden info" id="infoFilterEfficiency">
-      <p>Filter lifetime is predicted based on the intake air temperature
-        and runtime from the compressor records, and does <em>not</em>
-        reflect on the efficiency of the filters.</p>
-      <p>When the lifetime drops below 2 hours, contact the Equipment Officer
-        so the filters can be changed (or, better, learn to change them yourself.)</p>
-      <p class="warning">
-        <strong>NEVER</strong> use the compressor if the filter
-        lifetime is negative!
-      </p>
-    </div>
-    <div class="hidden info" id="infoOperator">
-      Only trained operators may use this compressor. Please
-      select your name from the list. If you are not there and
-      want to be trained, contact the Training Officer. If you have recently
-      been trained, your name may not have been added yet. In this case, please
-      use the name of the instructor who taught you.
-    </div>
-    <div class="hidden info" id="infoTemperature">
-      If the electronic sensor is functioning, the temperature will be
-      detected automatically. Otherwise the temperature must be taken from the
-      thermometer at the <strong>end</strong>
-      of the filling session and entered manually by dragging the slider.
-    </div>
-    <div class="hidden info" id="infoHumidity">
-      <!-- If the electronic sensor is functioning, the humidity will be
-      detected automatically. Otherwise -->The humidity must be taken from the
-      hygrometer at the <strong>end</strong>
-      of the filling session and entered manually by dragging the slider.
-    </div>
-    <div class="hidden info" id="infoFilters">
-      Select this <strong>only</strong> if the filters have just
-      been changed. It will reset the filter lifetime clock.
-    </div>
-    <div class="hidden info" id="infoRuntime">
-      Runtime is read from the counter on the right of the
-      compressor control panel, but may "stray". You can correct
-      it here if necessary.
-    </div>
-    <div class="hidden info" id="infoSession">
-      Tap <span class="fa fa-play"></span> when the compressor starts, and <span class="fas fa-pause"></span> if you need to temporarily stop the compressor for longer than a bottle change. When the session is finished, click <span class="fas fa-pause"></span> and then "Touch here to record this run"
-    </div>
-    <div class="hidden info" id="infoManualHours">
-      If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
-    </div>
+  <!-- Compressor help -->
+
+  <div class="hidden info" id="infoFilterEfficiency">
+    <p>Filter lifetime is predicted based on the intake air temperature
+      and runtime from the compressor records, and does <em>not</em>
+      reflect on the efficiency of the filters.</p>
+    <p>When the lifetime drops below 2 hours, contact the Equipment Officer
+      so the filters can be changed (or, better, learn to change them yourself.)</p>
+    <p class="warning">
+      <strong>NEVER</strong> use the compressor if the filter
+      lifetime is negative!
+    </p>
+  </div>
+  <div class="hidden info" id="infoOperator">
+    Only trained operators may use this compressor. Please
+    select your name from the list. If you are not there and
+    want to be trained, contact the Training Officer. If you have recently
+    been trained, your name may not have been added yet. In this case, please
+    use the name of the instructor who taught you.
+  </div>
+  <div class="hidden info" id="infoTemperature">
+    If the electronic sensor is functioning, the temperature will be
+    detected automatically. Otherwise the temperature must be taken from the
+    thermometer at the <strong>end</strong>
+    of the filling session and entered manually by dragging the slider.
+  </div>
+  <div class="hidden info" id="infoHumidity">
+    <!-- If the electronic sensor is functioning, the humidity will be
+         detected automatically. Otherwise -->The humidity must be taken from the
+    hygrometer at the <strong>end</strong>
+    of the filling session and entered manually by dragging the slider.
+  </div>
+  <div class="hidden info" id="infoFilters">
+    Select this <strong>only</strong> if the filters have just
+    been changed. It will reset the filter lifetime clock.
+  </div>
+  <div class="hidden info" id="infoRuntime">
+    Runtime is read from the counter on the right of the
+    compressor control panel, but may "stray". You can correct
+    it here if necessary.
+  </div>
+  <div class="hidden info" id="infoSession">
+    Tap <span class="fa fa-play"></span> when the compressor starts, and <span class="fas fa-pause"></span> if you need to temporarily stop the compressor for longer than a bottle change. When the session is finished, click <span class="fas fa-pause"></span> and then "Touch here to record this run"
+  </div>
+  <div class="hidden info" id="infoManualHours">
+    If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
+  </div>
 </div>
+

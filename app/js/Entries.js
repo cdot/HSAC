@@ -212,6 +212,41 @@ class Entries {
   }
 
   /**
+   * Get the last entry
+   * @return {object} the last entry, or undefined if there are
+   * no entries.
+   */
+  lastEntry() {
+    if (this.entries.length > 0)
+      return this.entries[this.entries.length - 1];
+    return undefined;
+  }
+
+  /**
+   * Find the index of an entry
+   * @param {object} entry the entry to find
+   * @return {number} index of the entry, or -1 if not found
+   */
+  findIndex(entry) {
+    return this.entries.findIndex(e => e === entry);
+  }
+
+  /**
+   * Remove the entry at the given index
+   * @param {number|object} index index of the entry to remove, or the
+   * entry itself.
+   * @return {number} the (old) index of the entry that was removed
+   */
+  removeEntry(index) {
+    if (typeof index !== "number")
+      index = this.findIndex(index);
+    if (index < 0 || index >= this.entries.length)
+      throw new Error(`No entry ${index}`);
+    this.entries.splice(index, 1);
+    return index;
+  }
+
+  /**
    * Return a promise to find the row that has "col":val.
    * resolve is called with the row object.
    * @param col name of the column to search
@@ -321,6 +356,8 @@ class Entries {
       return this;
     })
     .catch(e => {
+      if (typeof e === "object" && e.html)
+        e = e.html;
       this.debug("(debug) error reading " + (this.url || this.file) +
                  ": ", e);
       this.heads = [];

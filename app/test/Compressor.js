@@ -3,7 +3,6 @@
 
 import { assert } from "chai";
 
-import { Compressor } from "../js/Compressor.js";
 import { AbstractStore } from "../js/AbstractStore.js";
 import { Config } from "../js/Config.js";
 import { setup$, UNit } from "./Fixtures.js";
@@ -39,6 +38,8 @@ class TestStore extends AbstractStore {
   }
 }
 
+let Compressor;
+
 describe("Compressor", () => {
   let comp;
 
@@ -52,7 +53,9 @@ describe("Compressor", () => {
       // node.js. It will work from the browser, though.
       (typeof process === "undefined")
       ? import("jquery-validation")
-      : Promise.resolve());
+      : Promise.resolve())
+    .then(() => import("../js/Compressor.js"))
+    .then(mods => Compressor = mods.Compressor);
   });
 
   beforeEach(() => {

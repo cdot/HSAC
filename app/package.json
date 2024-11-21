@@ -9,7 +9,6 @@
     "url": "git+https://github.com/cdot/HSAC.git"
   },
   "scripts": {
-    "doc": "jsdoc -c build/jsdoc_config.json src",
     "lint": "eslint js -f unix",
     "test": "mocha --recursive --extension js --timeout=5000 test"
   },
@@ -22,34 +21,36 @@
   },
   "homepage": "https://github.com/cdot/HSAC",
   "devDependencies": {
-    "axios": "^1.7.4",
+    "axios": "^1.7.7",
     "chai": "^5.1.2",
-    "clean-css": "^5.3.2",
-    "eslint": ">=8.33.0",
+    "clean-css": "^5.3.3",
+    "eslint": ">=9.15.0",
+    "eslint-formatter-unix": "^8.40.0",
     "express": "^4.21.1",
     "html-minifier": "^4.0.0",
     "jquery-ui-touch-punch": "^0.2.3",
-    "markdown-it": "^13.0.1",
-    "mocha": "^10.2.0",
+    "markdown-it": "^14.1.0",
+    "mocha": "^10.8.2",
     "posix-getopt": "^1.2.1",
     "webdav-server": "^2.6.2"
   },
   "dependencies": {
     "@rwap/jquery-ui-touch-punch": "^1.1.5",
     "font-awesome": "^4.7.0",
-    "fs-extra": "^11.1.0",
-    "icon-font": "^0.0.1",
-    "jquery": "^3.6.3",
+    "fs-extra": "^11.2.0",
+    "icon-font": "^0.0.4",
+    "jquery": "^3.7.1",
     "jquery-confirm": "^3.3.4",
-    "jquery-csv": "^1.0.21",
-    "jquery-ui": "^1.13.2",
+    "jquery-csv": "^1.0.40",
+    "jquery-tabledit": "^1.0.0",
+    "jquery-ui": "^1.14.1",
     "jquery-ui-iconfont": "^2.3.2",
-    "jquery-validation": "^1.19.5",
+    "jquery-validation": "^1.21.0",
     "jquery.toc": "^0.4.0",
     "js-cookie": "^3.0.5",
     "jsdom": "^25.0.1",
-    "markdown-it": "^13.0.1",
+    "markdown-it": "^14.1.0",
     "requirejs-text": "^2.0.16",
-    "tablesorter": "^2.31.3"
+    "tablesorter": "^2.32.0"
   }
 }

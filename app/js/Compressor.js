@@ -1,8 +1,21 @@
 /*@preserve Copyright (C) 2018-2024 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env browser,jquery */
 
-import { Entries } from "./Entries.js";
 import "jquery";
+import "./jq/edit-table.js";
+
+import { Entries } from "./Entries.js";
+
+// input types for headings
+const HEAD_TYPES = {
+  date: "datetime-local",
+  temperature: "number",
+  humidity: "number",
+  runtime: "number"
+};
+
+// number of rows of history to present.
+const HISTORY_SIZE = 50;
 
 /**
  * Compressor runtime events page.
@@ -62,6 +75,9 @@ class Compressor extends Entries {
     }));
   }
 
+  /**
+   * Add a record from the values in the UI
+   */
   _addCompressorRecord() {
 		if (typeof this.$form.valid === "function" && !this.$form.valid()) {
       this.debug("Form invalid");
@@ -174,28 +190,36 @@ class Compressor extends Entries {
 			return false;
 		});
 
-		const compressor = this;
 		this.$tab.find(".cr_last_run")
 		.off("click")
 		.on("click", () => {
-			const content = $("#infoLastRun").html().replace("$1", () => {
-				return this._activityHTML(5);
-			});
-			$.confirm({
-				title: $("#infoLastRun").data("title"),
-				content: content,
-				buttons: {
-					"Remove last run": () => {
-						compressor._removeLastEntry()
-            .then(r => {
-							compressor._setRuntimeAndDigits(r.runtime);
-							compressor._setMinRuntime(r.runtime);
-							compressor._formChanged();
-						});
-					},
-					"Don't remove": () => {}
-				}
-			});
+      const $history = $("#history");
+      const $dlg = $("#history_dialog");
+			$history.empty().append(this._history$table(HISTORY_SIZE));
+
+      $dlg
+      .show()
+      .find("button[name=close]")
+      .on("click", () => {
+        $dlg.hide();
+        $("#loaded").show();
+      });
+
+      $dlg
+      .show()
+      .find("button[name=addrow]")
+      .on("click", () => {
+        const copy = $.extend({}, this.lastEntry());
+        this.entries.push(copy);
+        this.save().then(() => this.reloadUI());
+        // Don't need to resort because the copy is the last entry
+        const $table = $("#history > table");
+        $table.append(this._history$tr(this.lastEntry()));
+        $history[0].scrollTo(0, $history[0].scrollHeight);
+      });
+      
+      $("#loaded").hide();
+      $history[0].scrollTo(0, $history[0].scrollHeight);
 		});
 
     this.$tab.find("button[name='add_record']")
@@ -386,9 +410,7 @@ class Compressor extends Entries {
     const spec = $el.data("sensor-config");
     const id = `${this.id}:${spec.name}`;
 
-    if (!sample) {
-      this.debug(`Sample for ${id} unavailable`);
-    } else {
+    if (sample) {
       const thresh = Date.now() - spec.max_age;
       if (sample.time < thresh) {
         // Sample unavailable or too old
@@ -400,6 +422,8 @@ class Compressor extends Entries {
           sample = null;
       }
     }
+    //else this.debug(`Sample for ${id} unavailable`);
+
     if (!sample) {
       $el.prop("readonly", null);
       $(spec.sampled).hide();
@@ -492,7 +516,7 @@ class Compressor extends Entries {
                 $report.addClass("error");
                 $el.show();
                 if (typeof Audio !== "undefined") {
-                  var snd = new Audio("app/sounds/siren.mp3");
+                  const snd = new Audio("app/sounds/siren.mp3");
                   snd.play();
                 }
               } else {
@@ -608,50 +632,146 @@ class Compressor extends Entries {
   }
 
   /**
-   * Pop the last entry and return the new last entry
-   * @return {Promise} promise that resolves to the entry removed
+   * Handle a change to a cell in the history table.
+   * @param {object} entry entry the entry
+   * @param {string} name column name e.g. "runtime"
+   * @param {string} val new value
 	 * @private
    */
-  _removeLastEntry() {
-    return this.loadFromStore()
-    .then(() => this.entries.pop())
-    .then(() => this.save())
-    .then(() => this.reloadUI())
-		.then(() => this.get(this.length() - 1));
+  _history$change(entry, name, val) {
+    const $table = $("#history > table");
+    const entryIndex = this.findIndex(entry);
+    const $trs = $table.find("tr:gt(0)");
+    const firstTr = this.length() - $trs.length;
+    const trIndex = entryIndex - firstTr;
+    const $tr = $($trs[trIndex]);
+
+    if (name === "operator" && val == "") {
+      // Clearing the operator field removes the row.
+      // Remove the entry from the $table. The $table doesn't have
+      // all the entries, so have to do some sums
+      this.removeEntry(entry);
+      $tr.remove();
+    } else {
+      if (HEAD_TYPES[name] == "number")
+        val = parseFloat(val);
+      entry[name] = val;
+      const $td = $tr.find(`td[name=${name}]`);
+      $td.text(val);
+      if (name == "runtime") {
+        this.entries.sort((a, b) => {
+          if (a.runtime > b.runtime)
+            return 1;
+          if (a.runtime < b.runtime)
+            return -1;
+          return 0;
+        });
+        // Resorting the visible table is wrong, because it'll miss
+        // when a sort takes a row out of range. Have to regenerate.
+			  $("#history").empty().append(this._history$table(HISTORY_SIZE));
+      }
+    }
+    this.save()
+    .then(() => this.reloadUI());
+  }
+
+  /**
+   * Construct a cell for the DOM history table. Doesn't get added
+   * to the table.
+   * @param {object} entry entry in this.entries
+   * @param {string} name column name e.g. "runtime"
+   * @param {string} text current value
+   * @return {jQuery} the TD
+	 * @private
+   */
+  _history$td(entry, name, text) {
+    const $td = $(`<td name="${name}">${text}</td>`);
+    $td.on("click", () => {
+      $td.edit_in_place({
+        changed: v => this._history$change(entry, name, v)
+      });
+    });
+    return $td;
+  }
+
+  /**
+   * Construct a row for the DOM history table. Doesn't get added
+   * to the table.
+   * @param {object} entry entry in this.entries
+   * @return {jQuery} the TR
+	 * @private
+   */
+  _history$tr(entry) {
+    const heads = this.getHeads().filter(h => h !== "filters_changed");
+    const $tr = $("<tr></tr>");
+    if (entry.filters_changed) {
+      $tr.append(
+        this._history$td(entry, "date", entry.date.toLocaleString()));
+      $tr.append(
+        this._history$td(entry, "operator", entry.operator));
+      $tr.append(`<td colspan="${heads.length - 2}">FILTERS CHANGED</td>`);
+    } else {
+      for (const head of heads) {
+        let val = entry[head];
+        if (val instanceof Date)
+          val = val.toLocaleString();
+        else if ((typeof val === "number" || !isNaN(Number.parseFloat(val)))
+                 && !Number.isInteger(val))
+          val = Number(val).toFixed(2);
+
+        $tr.append(this._history$td(entry, head, val));
+      }
+    }
+    return $tr;
+  }
+
+  /**
+   * Resort the history DOM table by runtime.
+	 * @private
+   */
+  _history$resort() {
+    const $table = $("#history>table");
+
+    function getRT(row) {
+      const t = $("[name=runtime]", row).text();
+      return parseFloat(t);
+    }
+
+    const rows = $table
+          .find('tr:gt(0)')
+          .toArray()
+          .sort((a, b) => getRT(a) - getRT(b));
+
+    // The action of re-appending the TR to the table will remove it
+    // from its old position
+    for (const row of rows)
+      $table.append(row);
   }
 
 	/**
+   * Construct a new history table
+   * @param {number} num_records max number of entries in the table
+   * @return {jQuery} the constructed table
 	 * @private
 	 */
-  _activityHTML(num_records) {
-    const ents = this.getEntries();
-    if (ents.length === 0)
-      return "No activity";
-    
+  _history$table(num_records) {
+    const ents = this.getEntries();   
     const heads = this.getHeads().filter(h => h !== "filters_changed");
+    const $table = $("<table></table>");
 
-    let table = "<table><thead><tr><th>"
-        + heads.join("</th><th>") + "</tr></thead><tbody>";
+    // Construct header row
+    let $tr = $("<tr></tr>");
+    heads.forEach(h => {
+      const t = HEAD_TYPES[h] ? ` type="${HEAD_TYPES[h]}"` : "";
+      $tr.append(`<th${t}>${h}</th>`);
+    });
+    $table.append($tr);
 
-    for (let i = ents.length - num_records; i < ents.length; i++) {
-      const e = ents[i];
-      table += "<tr>";
-      if (e.filters_changed) {
-        table += `<td>${e.date.toLocaleString()}</td>`;
-        table += `<td>${e.operator}</td>`;
-        table += `<td colspan="${heads.length - 2}">FILTERS CHANGED</td>`;
-      } else {
-        for (const h of heads) {
-          let d = e[h];
-          if (d instanceof Date)
-            d = d.toLocaleString();
-          table += `<td>${d}</td>`;
-        }
-      }
-      table += "</tr>";
-    }
+    const start = ents.length - num_records;
+    for (let i = start < 0 ? 0 : start; i < ents.length; i++)
+      $table.append(this._history$tr(ents[i]));
     
-    return table + "</tbody></table>";
+    return $table;
   }
 
   /**

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <!-- Load this in the browser to test in place widgets -->
+  <head>
+    <meta name="copyright" content="Copyright (C) 2024 Crawford Currie http://c-dot.co.uk license MIT">
+    <meta charset="UTF-8">
+    <link href="../node_modules/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="../node_modules/jquery-ui/dist/themes/cupertino/jquery-ui.css" rel="stylesheet">
+    <script type="importmap">
+      {
+        "imports": {
+          "jquery": "../node_modules/jquery/dist/jquery.min.js",
+          "jquery-ui": "../node_modules/jquery-ui/dist/jquery-ui.min.js",
+          "jquery-edit-in-place": "../js/jq/edit-in-place.js"
+        }
+      }
+    </script>
+    <style>
+      table {
+        width: 100%;
+      }
+      td,th {
+        border: 1px solid blue;
+      }
+    </style>
+    <script type="module">
+      import "jquery";
+      import "jquery-edit-in-place";
+      import "jquery-edit-table";
+
+      $("#edit_button").on("click", () => {
+        $("#edit-in-place").edit_in_place({
+          changed: val => $("#edit-in-place").text(val),
+          attrs: {
+            type: "range", min: 0, max: 5
+          }});
+      });
+    </script>
+  </head>
+  <body>
+    <div>
+      <h1>edit-in-place</h1>
+      <div style="width:20%" id="edit-in-place" data-placeholder="edit in place"></div>
+      <button id="edit_button" class="fa fa-pencil"></button>
+    </div>
+  </body>
+</html>

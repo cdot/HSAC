@@ -261,17 +261,17 @@ class Sheds {
       .then(() => {
         $("#loading").hide();
         $("#console").prependTo($("#console_dialog"));
+
+        const $condlg = $("#console_dialog");
         $("#open_console")
+        .on("click", () => $condlg.show());
+        $condlg.find("[name=close]")
         .on("click", () => {
-          $("#console_dialog").show();
-        });
-        $("#console_dialog_close")
-        .on("click", () => {
-          $("#console_dialog").hide();
+          $condlg.hide();
         });
 
         $("#loaded").show();
-        window.scrollTo(0,document.body.scrollHeight);
+        window.scrollTo(0, document.body.scrollHeight);
       });
     });
   }

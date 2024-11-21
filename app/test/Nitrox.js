@@ -21,7 +21,7 @@ const tests = [
        banks: {
          A: { size: 49, bar: 90, price: 0.02 }
        },
-       expected: "1. Top up to 61 bar from bank A, leaving 83 bar in the bank.2. Top up with air to 232 bar.3. Pay £7.35."
+       expected: "1. Add O2 to 61 bar from bank A, using 367L and leaving 83 bar in the bank.2. Top up with air to 232 bar.3. Pay £7.35."
   },
   {    name: "simple 2",
        temperature: 25,
@@ -31,7 +31,7 @@ const tests = [
        banks: {
          B: { size: 49, bar: 200, price: 0.02 }
        },
-       expected: "1. Top up to 83 bar from bank B, leaving 195 bar in the bank.2. Top up with air to 232 bar.3. Pay £4.56."
+       expected: "1. Add O2 to 83 bar from bank B, using 228L and leaving 195 bar in the bank.2. Top up with air to 232 bar.3. Pay £4.56."
   },
   {    name: "simple 3",
        temperature: 16,
@@ -41,7 +41,7 @@ const tests = [
        banks: {
          C: { size: 47, bar: 90, price: 0.02 }
        },
-       expected: "1. Top up to 78 bar from bank C, leaving 83 bar in the bank.2. Top up with air to 232 bar.3. Pay £6.74."
+       expected: "1. Add O2 to 78 bar from bank C, using 337L and leaving 83 bar in the bank.2. Top up with air to 232 bar.3. Pay £6.74."
   },
   // Too much O2 already in cylinder
   {    name: "too much O2",
@@ -62,7 +62,7 @@ const tests = [
        banks: {
          E: { size: 4, bar: 60, price: 0.02 }
        },
-       expected: "1. Top up to 52 bar from bank E, leaving 49 bar in the bank.2. Sorry, fill is not possible."
+       expected: "1. Add O2 to 52 bar from bank E, using 44L and leaving 49 bar in the bank.2. Sorry, fill is not possible."
   },
   // Mix achievable, but too much pressure already in cylinder.
   {    name: "too much pressure",
@@ -73,7 +73,7 @@ const tests = [
        banks: {
          F: { size: 40, bar: 30, price: 0.02 }
        },
-       expected: "1. Drain the cylinder down to 1 bar.2. Top up to 19 bar from bank F, leaving 19 bar in the bank.3. Sorry, fill is not possible."
+       expected: "1. Drain the cylinder down to 1 bar.2. Add O2 to 19 bar from bank F, using 440L and leaving 19 bar in the bank.3. Sorry, fill is not possible."
   },
 ];
 

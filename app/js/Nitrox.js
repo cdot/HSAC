@@ -230,19 +230,19 @@ class Nitrox extends Entries {
     $("#nox_MOD").text(MOD);
 
 		const actions = [];
-		let drained_l = 0;
-		let wasted_l = 0;
-		let used_l = 0;
+		//let drained_l = 0;
+		//let wasted_l = 0;
+		//let used_l = 0;
 		let cost_gbp = 0;
 		function action(a) {
 			actions.push(a);
 			switch (a.action) {
 			case "Bleed":
-				drained_l += a.drained_l;
-				wasted_l += a.wasted_l;
+				//drained_l += a.drained_l;
+				//wasted_l += a.wasted_l;
 				break;
 			case "AddFromBank":
-				used_l += a.used_l;
+				//used_l += a.used_l;
 				cost_gbp += a.cost_gbp;
 				break;
 			}

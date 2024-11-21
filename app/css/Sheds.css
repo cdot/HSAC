@@ -1,9 +1,9 @@
 /*
-Marina #135589
-Bondi Blue #2A93D5
-Californian Coral #3DDAD7
-Chill #AED9DA
-Glass #EDFAFD
+  Marina #135589
+  Bondi Blue #2A93D5
+  Californian Coral #3DDAD7
+  Chill #AED9DA
+  Glass #EDFAFD
 */
 
 /* Rules are organised alphabetically */
@@ -23,7 +23,9 @@ body {
   margin-bottom: 0.3em;
 }
 
-#console_dialog {
+/* A dialog that takes over the full screen */
+.fullscreen_dialog {
+  display: none;
   position: absolute;
   top: 0;
   left: 0;
@@ -34,9 +36,17 @@ body {
 
 #console {
   width: 100%;
-  height: 90%;
+  height: 85%;
   padding: 1vw;
   background-color: #FFFFD0;
+  overflow: auto;
+}
+
+#history {
+  width: 100%;
+  height: 75%;
+  padding: 1vw;
+  background-color: #EFE0F0;
   overflow: auto;
 }
 
@@ -219,164 +229,154 @@ label.error {
   border-collapse: collapse;
 }
 
-#loan_table td:last-child,
-               #loan_table th:last-child,
-                              text-align: center;
+#loan_table td:last-child, #loan_table th:last-child {
+  text-align: center;
 }
 
- #loan_table td:nth-child(2),
- #loan_table td:nth-child(6) {
-   text-align: center;
- }
+#loan_table td:nth-child(2),
+#loan_table td:nth-child(6) {
+  text-align: center;
+}
 
- #loan_table th.isnumber .tablesorter-header-inner {
-   padding: 0;
- }
+#loan_table th.isnumber .tablesorter-header-inner {
+  padding: 0;
+}
 
- #loan_table th:nth-child(2),
- #loan_table th:nth-child(6) {
-   text-align: center;
- }
+#loan_table th:nth-child(2),
+#loan_table th:nth-child(6) {
+  text-align: center;
+}
 
- #loan_table td,
- #loan_table th {
-   border: 1px dotted grey;
- }
+#loan_table td,
+#loan_table th {
+  border: 1px dotted grey;
+}
 
- #loan_table > tfoot th {
-   color: #135589;
-   text-align: center;
- }
+#loan_table > tfoot th {
+  color: #135589;
+  text-align: center;
+}
 
- /* A single cell in the loan table */
- .loan_cell {
-   width: 100%;
-   height: 100%;
- }
+/* A single cell in the loan table */
+.loan_cell {
+  width: 100%;
+  height: 100%;
+}
 
- .loan_control {
-   background-color: #135589;
-   color: white;
- }
+.loan_control {
+  background-color: #135589;
+  color: white;
+}
 
- #loan_controls {
-   display: inline;
- }
+#loan_controls {
+  display: inline;
+}
 
- /* Used when an entry in the loan table is modified */
- .loan_modified {
-   color: white !important;
-   background-color: #135589;
- }
+/* Used when an entry in the loan table is modified */
+.loan_modified {
+  color: white !important;
+  background-color: #135589;
+}
 
- #nitrox {
-   font-size: 18pt;
- }
+#nitrox {
+  font-size: 18pt;
+}
 
- .bank_cylinder {
-   border: thin solid black;
-   display: inline;
-   padding-right: 5px;
-   padding-left: 5px;
-   margin-right: 5px;
- }
+.bank_cylinder {
+  border: thin solid black;
+  display: inline;
+  padding-right: 5px;
+  padding-left: 5px;
+  margin-right: 5px;
+}
 
- #portable {
-   font-size: 20pt;
- }
+#portable {
+  font-size: 20pt;
+}
 
- .report {
-   color: olive;
- }
+.report {
+  color: olive;
+}
 
- /* A scrollable container in a tab */
- .scroll_container {
-   height: 70%;
-   overflow: scroll;
- }
+/* A scrollable container in a tab */
+.scroll_container {
+  height: 70%;
+  overflow: scroll;
+}
 
- /* Settings icon */
- #settings_block {
-   float: right;
-   display: inline-block;
- }
+/* Settings icon */
+#settings_block {
+  float: right;
+  display: inline-block;
+}
 
- #settings_dialog {
-   position: absolute;
-   top: 0;
-   left: 0;
-   height: 100%;
-   width: 90vw;
-   padding: 5vw;
- }
+.slider {
+  margin-top: 0.4em;
+}
 
- .slider {
-   margin-top: 0.4em;
- }
+.slider > div.max {
+  float: right;
+  color: white;
+  font-size: 50%;
+}
 
- .slider > div.max {
-   float: right;
-   color: white;
-   font-size: 50%;
- }
+.slider > div.min {
+  float: left;
+  color: white;
+  font-size: 50%;
+}
 
- .slider > div.min {
-   float: left;
-   color: white;
-   font-size: 50%;
- }
+.small-button {
+  padding: 0 0.2em;
+}
 
- .small-button {
-   padding: 0 0.2em;
- }
+.temperature.slider {
+  background-image: linear-gradient(
+    to right, #3c89d0, #F9423A
+  );
+}
 
- .temperature.slider {
-   background-image: linear-gradient(
-     to right, #3c89d0, #F9423A
-   );
- }
+/* An element that displays the current time */
+.time_display {
+  width: 100%;
+  color: white;
+  background-color: #135589;
+}
 
- /* An element that displays the current time */
- .time_display {
-   width: 100%;
-   color: white;
-   background-color: #135589;
- }
+/* A right-aligned table in a data capture form */
+th.input_label {
+  text-align: right;
+}
 
- /* A right-aligned table in a data capture form */
- th.input_label {
-   text-align: right;
- }
+/* And alternate-coloured table */
+table.zebra > tbody > tr:nth-child(odd) {
+  background-color: #3DDAD7;
+}
 
- /* And alternate-coloured table */
- table.zebra > tbody > tr:nth-child(odd) {
-   background-color: #3DDAD7;
- }
+table.zebra > tbody > tr:nth-child(even) {
+  background-color: #AED9DA;
+}
 
- table.zebra > tbody > tr:nth-child(even) {
-   background-color: #AED9DA;
- }
-
- table {
-   table-layout: auto;
-    border-collapse: collapse;
-    width: 100%;
+table {
+  table-layout: auto;
+  border-collapse: collapse;
+  width: 100%;
 }
 
 table td,th {
-    white-space: nowrap;
-    padding: 0.5em;
-    text-align: left;
+  white-space: nowrap;
+  padding: 0.5em;
+  text-align: left;
 }
 
 /* Tabs restyling for optimum space on Lenovo TAB 3 8 landscape mode */
 .ui-tabs-nav {
-    font-size: 17pt;
-    padding: 0;
+  font-size: 17pt;
+  padding: 0;
 }
 
 .ui-tabs .ui-tabs-nav .ui-tabs-anchor {
-    padding: .2em 1em;
+  padding: .2em 1em;
 }
 
 .ui-checkboxradio-label {
@@ -385,11 +385,11 @@ table td,th {
 
 /* See also .error */
 .warning {
-    color: red;
+  color: red;
 }
 
 /* Used to widen a specific column in a table */
 .widest {
-    width: 100%;
+  width: 100%;
 }
 
