@@ -15,29 +15,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://npm.pkg.github.com/
-      - name: Build app
+      - name: Install dependencies
         working-directory: ./app
         run: npm ci
-
-  publish-gpr:
+      - name: Set up pages
+        uses: actions/configure-pages@v5
+      - name: Upload pagesartifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+            path: 'app'
+  
+  deploy:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       pages: write
-      packages: write
+      id-token: write
     steps:
-      - name: Set up pages
-        uses: actions/configure-pages@v2
-      - name: Build artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-            path: 'app'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
