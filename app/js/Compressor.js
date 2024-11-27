@@ -12,10 +12,15 @@ const HEAD_TYPES = {
   temperature: "number",
   humidity: "number",
   runtime: "number"
+  // Other fields are all "string"
 };
 
-// number of rows of history to present.
-const HISTORY_SIZE = 50;
+// Tradeoff on the number of rows of history to show in the UI. The
+// history can grow large, thousands of entries, which would be slow
+// to load into the DOM. However we are very unlikely to ever want to
+// edit outside the last 30 or so rows and if we do, we can always
+// edit the .csv file
+const HISTORY_TRS = 30;
 
 /**
  * Compressor runtime events page.
@@ -194,7 +199,9 @@ class Compressor extends Entries {
 		.on("click", () => {
       const $history = $("#history");
       const $dlg = $("#history_dialog");
-			$history.empty().append(this._history$table(HISTORY_SIZE));
+      // Has to be moved up to cover everything else
+      $("body").append($dlg);
+			$history.empty().append(this._history$table(HISTORY_TRS));
 
       $dlg
       .show()
@@ -630,33 +637,34 @@ class Compressor extends Entries {
 
   /**
    * Handle a change to a cell in the history table.
+   * @param {HTMLElement} el the TD
    * @param {object} entry entry the entry
    * @param {string} name column name e.g. "runtime"
    * @param {string} val new value
 	 * @private
    */
-  _history$change(entry, name, val) {
-    const $table = $("#history > table");
-    const entryIndex = this.findIndex(entry);
-    const $trs = $table.find("tr:gt(0)");
-    const firstTr = this.length() - $trs.length;
-    const trIndex = entryIndex - firstTr;
-    const $tr = $($trs[trIndex]);
+  _history$change(td, entry, name, val) {
+    const $td = $(td);
+    const $tr = $td.closest("tr");
 
-    if (name === "operator" && val == "") {
+    if (name === "operator" && val === "") {
       // Clearing the operator field removes the row.
       // Remove the entry from the $table. The $table doesn't have
       // all the entries, so have to do some sums
       this.removeEntry(entry);
       $tr.remove();
     } else {
-      if (name === "date")
+      if (name === "date") {
         val = new Date(val);
-      else // temperature, humidity, runtime all numbers
+        $td.text(val.toISOString()); // clean up the entry
+      } else if (HEAD_TYPES[name] === "number") {
         val = parseFloat(val);
+        $td.text(val); // clean up the entry
+      }
+      // Otherwise treat as string
+      
+
       entry[name] = val;
-      const $td = $tr.find(`td[name=${name}]`);
-      $td.text(val);
       if (name == "runtime") {
         this.entries.sort((a, b) => {
           if (a.runtime > b.runtime)
@@ -665,12 +673,16 @@ class Compressor extends Entries {
             return -1;
           return 0;
         });
-        // Resorting the visible table is wrong, because it'll miss
+        // Resorting the visible table is not enough, because it'll miss
         // when a sort takes a row out of range. Have to regenerate.
-			  $("#history").empty().append(this._history$table(HISTORY_SIZE));
+			  $("#history")
+        .empty()
+        .append(this._history$table(HISTORY_TRS));
       }
     }
     this.save()
+    // reloadUI will invoke reload_ui which will call
+    // _setLastRuntime to set the form
     .then(() => this.reloadUI());
   }
 
@@ -680,16 +692,28 @@ class Compressor extends Entries {
    * @param {object} entry entry in this.entries
    * @param {string} name column name e.g. "runtime"
    * @param {string} text current value
-   * @return {jQuery} the TD
+   * @return {jQuery} the $TD
 	 * @private
    */
-  _history$td(entry, name, text) {
-    const $td = $(`<td name="${name}">${text}</td>`);
+  _history$td(entry, name) {
+    let val = entry[name];
+
+    if (name === "date") {
+      val = val.toISOString();
+    } else if (HEAD_TYPES[name] === "number")
+      val = Number(val).toFixed(2);
+
+    const $td = $(`<td name="${name}">${val}</td>`);
+
+    const compressor = this;
     $td.on("click", () => {
       $td.edit_in_place({
-        changed: v => this._history$change(entry, name, v)
+        changed: function(v) {
+          return compressor._history$change(this, entry, name, v);
+        }
       });
     });
+
     return $td;
   }
 
@@ -705,21 +729,13 @@ class Compressor extends Entries {
     const $tr = $("<tr></tr>");
     if (entry.filters_changed) {
       $tr.append(
-        this._history$td(entry, "date", entry.date.toLocaleString()));
+        this._history$td(entry, "date", entry.date.toISOString()));
       $tr.append(
         this._history$td(entry, "operator", entry.operator));
       $tr.append(`<td colspan="${heads.length - 2}">FILTERS CHANGED</td>`);
     } else {
-      for (const head of heads) {
-        let val = entry[head];
-        if (val instanceof Date)
-          val = val.toLocaleString();
-        else if ((typeof val === "number" || !isNaN(Number.parseFloat(val)))
-                 && !Number.isInteger(val))
-          val = Number(val).toFixed(2);
-
-        $tr.append(this._history$td(entry, head, val));
-      }
+      for (const head of heads)
+        $tr.append(this._history$td(entry, head));
     }
     return $tr;
   }
@@ -756,19 +772,21 @@ class Compressor extends Entries {
   _history$table(num_records) {
     const ents = this.getEntries();   
     const heads = this.getHeads().filter(h => h !== "filters_changed");
-    const $table = $("<table></table>");
-
+    const $table = $("<table><thead></thead><tbody></tbody></table>");
+    const $thead = $("thead", $table);
+    const $tbody = $("tbody", $table);
+    
     // Construct header row
-    let $tr = $("<tr></tr>");
+    const $tr = $("<tr></tr>");
     heads.forEach(h => {
       const t = HEAD_TYPES[h] ? ` type="${HEAD_TYPES[h]}"` : "";
       $tr.append(`<th${t}>${h}</th>`);
     });
-    $table.append($tr);
+    $thead.append($tr);
 
     const start = ents.length - num_records;
     for (let i = start < 0 ? 0 : start; i < ents.length; i++)
-      $table.append(this._history$tr(ents[i]));
+      $tbody.append(this._history$tr(ents[i]));
     
     return $table;
   }

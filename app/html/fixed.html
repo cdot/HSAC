@@ -184,6 +184,16 @@
       lifetime is negative!
     </p>
   </div>
+
+  <div id="history_dialog" class="fullscreen_dialog">
+    <h2><span data-with-info="#infoHistory"><span class='fa fa-cog'></span> History</span></h2>
+    <div id="history">
+    </div>
+    <div class="warning">Please be careful, changes can&apos;t be undone!</div>
+    <button name="addrow">Duplicate last row</button>
+    <button name="close">Close</button>
+  </div>
+  
   <div class="hidden info" id="infoOperator">
     Only trained operators may use this compressor. Please
     select your name from the list. If you are not there and
@@ -191,32 +201,48 @@
     been trained, your name may not have been added yet. In this case, please
     use the name of the instructor who taught you.
   </div>
+
   <div class="hidden info" id="infoTemperature">
     If the electronic sensor is functioning, the temperature will be
     detected automatically. Otherwise the temperature must be taken from the
     thermometer at the <strong>end</strong>
     of the filling session and entered manually by dragging the slider.
   </div>
+
   <div class="hidden info" id="infoHumidity">
     <!-- If the electronic sensor is functioning, the humidity will be
          detected automatically. Otherwise -->The humidity must be taken from the
     hygrometer at the <strong>end</strong>
     of the filling session and entered manually by dragging the slider.
   </div>
+
   <div class="hidden info" id="infoFilters">
     Select this <strong>only</strong> if the filters have just
     been changed. It will reset the filter lifetime clock.
   </div>
+
   <div class="hidden info" id="infoRuntime">
     Runtime is read from the counter on the right of the
     compressor control panel, but may "stray". You can correct
     it here if necessary.
   </div>
+
   <div class="hidden info" id="infoSession">
     Tap <span class="fa fa-play"></span> when the compressor starts, and <span class="fas fa-pause"></span> if you need to temporarily stop the compressor for longer than a bottle change. When the session is finished, click <span class="fas fa-pause"></span> and then "Touch here to record this run"
   </div>
+
   <div class="hidden info" id="infoManualHours">
     If you forgot to start the timer, you can manually enter the <b>total</b> compressor run time here. Look at the runtime when the compressor was last run, and add the number of <b>hours</b> you have run for. Enter the total here and record the run.
+  </div>
+
+  <div class="hidden info" id="infoHistory">
+    Only the last 30 recorded events are shown.
+    Edit by touching the value you want to change. You can delete a
+    row by clearing the operator. Add rows by duplicating the last
+    row and editing. The table is sorted by runtime, so make
+    sure that's the last thing you change. Only the most recent 50
+    runs are shown. If you need to change anything before
+    that, you'll need to edit the .csv file.
   </div>
 </div>
 

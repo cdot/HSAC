@@ -50,6 +50,16 @@ body {
   overflow: auto;
 }
 
+#history table {
+  padding: 0;
+}
+
+#history thead th {
+  position: sticky;
+  top: 0;
+  background: #f0d903;
+}
+
 .crowded_tab {
   padding: 0.2em 0 0 0 !important;
   margin: 0;

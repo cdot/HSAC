@@ -460,9 +460,14 @@ class Entries {
    */
   serialise(key, val) {
     if (typeof val !== "undefined"
-        && (this.keys[key] === "Date" || val instanceof Date))
+        && (this.keys[key] === "Date" || val instanceof Date)) {
       // Dates are serialised as simplified ISO8601 strings
-      return val.toISOString();
+      try {
+        return val.toISOString();
+      } catch (e) {
+        debugger;
+      }
+    }
     return val;
   }
 

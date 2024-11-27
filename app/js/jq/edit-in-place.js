@@ -102,11 +102,10 @@ const SUPPORTED_TYPES = [
 
     .on("change", function () {
       // no change event from color :-(
-      const val = $(this)
-            .val();
+      const val = $(this).val();
       blurb();
       if (val !== text)
-        text = changed.call($this, val);
+        text = changed.call(this, val);
     })
 
     .on("keydown", function (e) { // Escape means cancel
