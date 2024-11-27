@@ -89,25 +89,24 @@ class Compressor extends Entries {
 		// Stop the counter
 		$session_pause.trigger("click");
 
-		const values = {};
+		const record = {};
 		this.$form.find(":input").each((i, el) => {
 			if (el.name in this.keys) {
-				values[el.name] = this.deserialise(
+				record[el.name] = this.deserialise(
 					el.name, $(el).val());
       }
 		});
-		this.debug("Adding compressor record", values);
-		this._add(values).then(() => {
+		this.debug("Adding compressor record", record);
+		this._add(record).then(() => {
 			// Clear the timer
 			this.session_time = 0;
 			$session_time.trigger("ticktock");
 			// Clear down the operator
 			this.$form.find("[name='operator']").val('');
 			// Make sure the form reflects where we are
-			this._setRuntimeAndDigits(values.runtime);
-			this._setMinRuntime(values.runtime);
-			// Validate the form for the new values
-			this._formChanged();
+			this._setLastRuntime(record);
+			// Validate the form for the new record
+			this._validateForm();
 		});
   }
   
@@ -143,7 +142,7 @@ class Compressor extends Entries {
 			// Convert to hours
 			rta += this.session_time / 3600000;
 			this._setRuntimeAndDigits(rta);
-			this._formChanged();
+			this._validateForm();
 		});
 
 		function tock() {
@@ -183,7 +182,7 @@ class Compressor extends Entries {
 
 		// Handling form submission
 		this.$form.find(":input")
-		.on("change", () => this._formChanged());
+		.on("change", () => this._validateForm());
 		
 		this.$form.on("submit", e => {
 			e.preventDefault();
@@ -236,15 +235,15 @@ class Compressor extends Entries {
 		$change
 		.off("click")
 		.on("click", () => {
-			const values = {};
+			const record = {};
 			this.$form.find(":input").each((i, el) => {
 				if (el.name in this.keys)
-					values[el.name] = this.deserialise(
+					record[el.name] = this.deserialise(
 						el.name, $(el).val());
 			});
-      values.filters_changed = true;
-			this.debug("Adding filter changed record", values);
-			this._add(values);
+      record.filters_changed = true;
+			this.debug("Adding filter changed record", record);
+			this._add(record);
 		})
     .button(
       "option", "disabled", true);
@@ -257,7 +256,7 @@ class Compressor extends Entries {
    * One of the form fields has changed, validate the form and
    * update the submit button
    */
-  _formChanged() {
+  _validateForm() {
     if (typeof this.$form.valid === "function") {
       this.$tab
       .find("button[name='add_record']")
@@ -270,7 +269,7 @@ class Compressor extends Entries {
 
   /**
    * @private
-   * Set the runtime but not the digits display
+   * Set the runtime but not the digits display.
    */
   _setRuntime(v) {
     this.runtime = v;
@@ -310,7 +309,7 @@ class Compressor extends Entries {
 
   /**
    * @private
-   * On change to the digits display, read it and set the runtime
+   * On manual change to the digits display, read it and set the runtime
    */
   _readDigits() {
     let v = 0;
@@ -322,11 +321,24 @@ class Compressor extends Entries {
 
   /**
    * @private
-   * Set the rule for the minimum runtime
+   * Set the UI for the last run, and the rule for the minimum runtime
    */
-  _setMinRuntime(r) {
+  _setLastRuntime(record) {
+		this._setRuntimeAndDigits(record.runtime);
+
+    this.$tab.find(".cr_operator").text(record.operator);
+    this.$tab.find(".cr_time").text(
+      Entries.formatDateTime(record.date));
+    this.$tab.find(".cr_flr").text(
+      Number(this._remainingFilterLife()).toFixed(2));
+
+    const lc = this.entries.find(e => e.filters_changed);
+    this.$tab.find(".cr_flc").text(lc ? lc.date.toLocaleDateString() : "never");
+    this.$tab.find(".cr_runtime").text(record.runtime.toFixed(2));
+
     if (this.$runtime.length === 0)
       return;
+
     if (this.$runtime.attr("type") === "hidden")
       return;
 
@@ -357,30 +369,15 @@ class Compressor extends Entries {
     .then(() => {
       this.debug("\t", this.length(), this.id,
                  "compressor records");
-      let lc = "";
-      for (const e of this.entries) {
-        if (e.filters_changed)
-          lc = e.date.toLocaleDateString();
-      }
-      if (this.length() > 0) {
-        const cur = this.get(this.length() - 1);
-        this._setRuntimeAndDigits(cur.runtime);
-        this._setMinRuntime(cur.runtime);
-        // Set the compressor record
-        this.$tab.find(".cr_operator").text(cur.operator);
-        this.$tab.find(".cr_time").text(
-          Entries.formatDateTime(cur.date));
-        this.$tab.find(".cr_flr").text(
-          Number(this._remainingFilterLife()).toFixed(2));
-        this.$tab.find(".cr_flc").text(lc);
-        this.$tab.find(".cr_runtime").text(cur.runtime.toFixed(2));
-      }
+      const cur = this.lastEntry();
+      if (cur)
+        this._setLastRuntime(cur);
 
       // Restart the sensor loop
       this._readSensors();
 
       // Validate the form
-      this._formChanged();
+      this._validateForm();
 
       return this;
     })
@@ -473,7 +470,7 @@ class Compressor extends Entries {
         .then(sample => {
           this._setRuntimeAndDigits(
             this.runtime + sample.sample / (60 * 60 * 1000));
-          this._formChanged();
+          this._validateForm();
         })
         .catch(() => this._setRuntimeAndDigits(this.runtime, true))
       ];
@@ -653,7 +650,9 @@ class Compressor extends Entries {
       this.removeEntry(entry);
       $tr.remove();
     } else {
-      if (HEAD_TYPES[name] == "number")
+      if (name === "date")
+        val = new Date(val);
+      else // temperature, humidity, runtime all numbers
         val = parseFloat(val);
       entry[name] = val;
       const $td = $tr.find(`td[name=${name}]`);
