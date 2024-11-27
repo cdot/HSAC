@@ -25,22 +25,125 @@
     </style>
     <script type="module">
       import "jquery";
-      import "jquery-edit-in-place";
+      import { SUPPORTED_TYPES } from "jquery-edit-in-place";
 
-      $("#edit_button").on("click", () => {
-        $("#edit-in-place").edit_in_place({
-          changed: val => $("#edit-in-place").text(val),
+      const TEST_INFO = {
+        color: {
+          value: "#0AA0BB"
+        },
+        date: {
+          value: new Date("2000-04-01"),
           attrs: {
-            type: "range", min: 0, max: 5
-          }});
-      });
+            // max, min - type?
+            autocapitalize: "words"
+          }
+        },
+        "datetime-local": {
+          value: "2000-04-01T12:34",
+          attrs: {
+            autocapitalize: "characters",
+            // max, min
+          }
+        },
+        email: {
+          attrs: {
+            placeholder: "placeholder",
+            size: 10
+          }
+        },
+        month: {
+          value: 4,
+          attrs: {
+            value: 10
+            // max, min
+          }
+        },
+        number: {
+          value: 999,
+          attrs: {
+            max: 1000, min: 998
+          }
+        },
+        password: {
+          value: "Pass",
+          attrs: {
+            minlength: 10
+          }
+        },
+        range: {
+          value: 1,
+          attrs: {
+            min: 0, max: 5
+          }
+        },
+        tel: {
+          value: "call me",
+          attrs: {
+          }
+        },
+        text: {
+          value: "5 chars",
+          attrs: {
+            autocapitalze: "words",
+            minlength: 5,
+            maxlength: 50
+          }
+        },
+        time: {
+          value: "00:00",
+          attrs: {
+            step: 10
+          }
+        },
+        url: {
+          value: "http://blah",
+          attrs: {
+          }
+        },
+        week: {
+          value: 51,
+          attrs: {
+          }
+        }
+      };
+
+      for (const type of SUPPORTED_TYPES) {
+        const $tr = $("<tr></tr>");
+        $tr.append($(`<th>${type}</th>`));
+        const info = TEST_INFO[type];
+        let $td = $(`<td data-placeholder="${type}">${info.value ?? "click here"}</td>`);
+        const attrs = $.extend({ type: type }, info.attrs);
+        $td.on("click", function() {
+          $(this).edit_in_place({
+            changed: function(val) {
+              $(this).text(val)
+            },
+            attrs: attrs
+          });
+        });
+        $tr.append($td);
+
+        $td = $(`<td data-type="${type}" data-value="${info.value}">click here</td>`);
+        $td.on("click", function() {
+          $(this).edit_in_place({
+            changed: function(val) {
+              $(this).text(val)
+            },
+            attrs: info.attrs
+          });
+        });
+        $tr.append($td);
+
+        $td = $(`<td data-type="${type}" data-value="${info.value}" contentEditable>click here</td>`);
+        $tr.append($td);
+
+        $("table").append($tr);
+      }
     </script>
   </head>
   <body>
-    <div>
-      <h1>edit-in-place</h1>
-      <div style="width:20%" id="edit-in-place" data-placeholder="edit in place"></div>
-      <button id="edit_button" class="fa fa-pencil"></button>
-    </div>
+    <table>
+      <tr><th>Type</th><th>.options.attrs</th><th>data-</th></tr>
+    </table>
   </body>
 </html>

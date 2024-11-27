@@ -705,7 +705,8 @@ class Compressor extends Entries {
       val = Number(val).toFixed(2);
 
     const $td = $(`<td name="${name}">${val}</td>`);
-
+    $td.data("type", HEAD_TYPES[name]);
+    
     const compressor = this;
     $td.on("click", () => {
       $td.edit_in_place({
@@ -779,10 +780,7 @@ class Compressor extends Entries {
     
     // Construct header row
     const $tr = $("<tr></tr>");
-    heads.forEach(h => {
-      const t = HEAD_TYPES[h] ? ` type="${HEAD_TYPES[h]}"` : "";
-      $tr.append(`<th${t}>${h}</th>`);
-    });
+    heads.forEach(h => $tr.append(`<th>${h}</th>`));
     $thead.append($tr);
 
     const start = ents.length - num_records;
