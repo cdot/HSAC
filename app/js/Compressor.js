@@ -20,7 +20,7 @@ const HEAD_TYPES = {
 // to load into the DOM. However we are very unlikely to ever want to
 // edit outside the last 30 or so rows and if we do, we can always
 // edit the .csv file
-const HISTORY_TRS = 30;
+const HISTORY_TRS = 50;
 
 /**
  * Compressor runtime events page.
@@ -201,6 +201,7 @@ class Compressor extends Entries {
       const $dlg = $("#history_dialog");
       // Has to be moved up to cover everything else
       $("body").append($dlg);
+      $("#HISTORY_TRS").text(HISTORY_TRS);
 			$history.empty().append(this._history$table(HISTORY_TRS));
 
       $dlg

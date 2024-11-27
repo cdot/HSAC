@@ -105,7 +105,7 @@ const SUPPORTED_TYPES = [
       const val = $(this).val();
       blurb();
       if (val !== text)
-        text = changed.call(this, val);
+        text = changed.call($this[0], val);
     })
 
     .on("keydown", function (e) { // Escape means cancel
