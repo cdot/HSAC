@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/cdot/HSAC",
   "devDependencies": {
-    "axios": "^1.7.7",
+    "axios": "^1.8.2",
     "chai": "^5.1.2",
     "clean-css": "^5.3.3",
     "eslint": ">=9.15.0",
